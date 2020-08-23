@@ -7,11 +7,11 @@ from typing import Any
 from collections import OrderedDict
 
 
-# fixed length FRU field
 @dataclass
 class FruFieldFixed():
-    # format must be suitable for bitstruct module
-    format: str
+    ''' Fixed length FRU field '''
+
+    format: str  # must be suitable for bitstruct module
     value: Any = None
 
     def serialize(self) -> bytearray:
@@ -35,15 +35,10 @@ class FruFieldFixed():
 
 
 class FruArea:
-    _schema = OrderedDict([
-        ('foo', FruFieldFixed('u4u4')),
-        ('bar', FruFieldFixed('u4u4')),
-        ('baz', FruFieldFixed('u8')),
-    ])
+    ''' Common base class for FRU areas '''
 
     def __init__(self, initdict=None):
-        if initdict is not None:
-            self.update(initdict)
+        self._dict = OrderedDict(self._schema)
 
     # dict interface
 
@@ -66,10 +61,10 @@ class FruArea:
             self._set(key, value)
 
     def __contains__(self, key):
-        return hasattr(self, f'_set_{key}') or key in self._schema
+        return hasattr(self, f'_set_{key}') or key in self._dict
 
     def __repr__(self):
-        return repr({k: self[k] for k in self._schema.keys()})
+        return repr({k: self[k] for k in self._dict.keys()})
 
     def update(self, src):
         for k, v in src.items():
@@ -78,14 +73,32 @@ class FruArea:
     # accessors
 
     def _get(self, key):
-        v = self._schema[key].value
+        v = self._dict[key].value
         if type(v) is tuple:
             return list(v)
         else:
             return v
 
     def _set(self, key, value):
-        self._schema[key].value = value if type(value) is not list else tuple(value)
+        self._dict[key].value = value if type(value) is not list else tuple(value)
+
+    # (de)serializing
+
+    def serialize(self) -> bytearray:
+        return b''.join([v.serialize() for v in self._dict.values()])
+
+    def deserialize(self, input: bytearray):
+        remainder = input
+        for v in self._dict.values():
+            remainder = v.deserialize(remainder)
+
+
+class FruCommonHeader(FruArea):
+    _schema = [
+        ('foo', FruFieldFixed('u4u4')),
+        ('bar', FruFieldFixed('u4u4')),
+        ('baz', FruFieldFixed('u8')),
+    ]
 
     def _get_baz(self):
         return self._get('baz') ^ 0xff
@@ -93,26 +106,15 @@ class FruArea:
     def _set_baz(self, value):
         self._set('baz', value ^ 0xff)
 
-    # (de)serializing
-
-    def serialize(self) -> bytearray:
-        return b''.join([v.serialize() for v in self._schema.values()])
-
-    def deserialize(self, input: bytearray):
-        remainder = input
-        for v in self._schema.values():
-            remainder = v.deserialize(remainder)
-
-
 with open("test.yml", "r") as infile:
     conf = yaml.safe_load(infile)
 print(conf)
 
-test = FruArea(conf)
-
+test = FruCommonHeader()
+test.update(conf)
 b = test.serialize()
 print(b)
 
-test1 = FruArea()
+test1 = FruCommonHeader()
 test1.deserialize(b)
 print(test1)
