@@ -15,7 +15,10 @@ class FruFieldFixed():
     value: Any = None
 
     def size(self) -> int:
-        return int(bitstruct.calcsize(self.format) / 8)
+        numBits = bitstruct.calcsize(self.format)
+        if numBits % 8 != 0:
+            raise RuntimeError("Bitfield not aligned to bytes")
+        return int(numBits / 8)
 
     def serialize(self) -> bytearray:
         if type(self.value) is tuple:
@@ -23,11 +26,8 @@ class FruFieldFixed():
         else:
             return bitstruct.pack(self.format, self.value)
 
-    def deserialize(self, input: bytearray):
-        numBits = bitstruct.calcsize(self.format)
-        if numBits % 8 != 0:
-            raise RuntimeError("Bitfield not aligned to bytes")
-        n = int(numBits / 8)
+    def deserialize(self, input: bytearray) -> bytearray:
+        n = self.size()
         tmp, remainder = input[:n], input[n:]
         result = bitstruct.unpack(self.format, tmp)
         if len(result) > 1:
