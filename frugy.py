@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import yaml
 from dataclasses import dataclass
 import bitstruct
 from typing import Any
@@ -40,6 +41,10 @@ class FruArea:
         ('baz', FruFieldFixed('u8')),
     ])
 
+    def __init__(self, initdict=None):
+        if initdict is not None:
+            self.update(initdict)
+
     # dict interface
 
     def __getitem__(self, key):
@@ -61,18 +66,26 @@ class FruArea:
             self._set(key, value)
 
     def __contains__(self, key):
-        return hasattr(self, f'_set_{key}_') or key in self._schema
+        return hasattr(self, f'_set_{key}') or key in self._schema
 
     def __repr__(self):
-        return repr({k: v.value for k, v in self._schema.items()})
+        return repr({k: self[k] for k in self._schema.keys()})
+
+    def update(self, src):
+        for k, v in src.items():
+            self[k] = v
 
     # accessors
 
     def _get(self, key):
-        return self._schema[key].value
+        v = self._schema[key].value
+        if type(v) is tuple:
+            return list(v)
+        else:
+            return v
 
     def _set(self, key, value):
-        self._schema[key].value = value
+        self._schema[key].value = value if type(value) is not list else tuple(value)
 
     def _get_baz(self):
         return self._get('baz') ^ 0xff
@@ -90,10 +103,12 @@ class FruArea:
         for v in self._schema.values():
             remainder = v.deserialize(remainder)
 
-test = FruArea()
-test['foo'] = (1, 4)
-test['bar'] = (8, 9)
-test['baz'] = 5
+
+with open("test.yml", "r") as infile:
+    conf = yaml.safe_load(infile)
+print(conf)
+
+test = FruArea(conf)
 
 b = test.serialize()
 print(b)
