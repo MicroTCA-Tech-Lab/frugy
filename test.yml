@@ -1,5 +1,5 @@
 ---
 
-foo: [1, 4]
-bar: [8, 9]
-baz: 5
+internal_use_offs: 8
+board_area_offs: 32
+multirecord_offs: 64

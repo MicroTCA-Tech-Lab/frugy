@@ -14,6 +14,9 @@ class FruFieldFixed():
     format: str  # must be suitable for bitstruct module
     value: Any = None
 
+    def size(self) -> int:
+        return int(bitstruct.calcsize(self.format) / 8)
+
     def serialize(self) -> bytearray:
         if type(self.value) is tuple:
             return bitstruct.pack(self.format, *self.value)
@@ -84,27 +87,54 @@ class FruArea:
 
     # (de)serializing
 
+    def _epilogue(self, payload):
+        ''' return checksum and padding to 64 bit alignment '''
+        numPadBytes = (7 - len(payload)) % 8
+        result = b'\x00' * numPadBytes
+        cksum = (-sum(payload)) & 0xff
+        result += cksum.to_bytes(length=1, byteorder='little')
+        return result
+
+    def size(self):
+        return sum([v.size() for v in self._dict.values()])
+
     def serialize(self) -> bytearray:
-        return b''.join([v.serialize() for v in self._dict.values()])
+        payload = b''.join([v.serialize() for v in self._dict.values()])
+        return payload + self._epilogue(payload)
 
     def deserialize(self, input: bytearray):
+        if len(input) % 8 != 0:
+            raise RuntimeError("FRU data not aligned to 64 bit")
+        if (sum(input) & 0xff) != 0:
+            raise RuntimeError("FRU data checksum invalid")
+
         remainder = input
         for v in self._dict.values():
             remainder = v.deserialize(remainder)
 
 
 class FruCommonHeader(FruArea):
+    _format_version = 1
     _schema = [
-        ('foo', FruFieldFixed('u4u4')),
-        ('bar', FruFieldFixed('u4u4')),
-        ('baz', FruFieldFixed('u8')),
+        ('format_version', FruFieldFixed('u4u4', value=(0, _format_version))),
+        ('internal_use_offs', FruFieldFixed('u8', value=0)),
+        ('chassis_info_offs', FruFieldFixed('u8', value=0)),
+        ('board_area_offs', FruFieldFixed('u8', value=0)),
+        ('product_info_offs', FruFieldFixed('u8', value=0)),
+        ('multirecord_offs', FruFieldFixed('u8', value=0)),
     ]
 
-    def _get_baz(self):
-        return self._get('baz') ^ 0xff
+    def __getitem__(self, key):
+        return self._get(key) * 8 if key.endswith('offs') else self._get(key)
 
-    def _set_baz(self, value):
-        self._set('baz', value ^ 0xff)
+    def __setitem__(self, key, value):
+        if key.endswith('offs'):
+            if value % 8 != 0:
+                raise RuntimeError("Offset not aligned to 64 bit")
+            self._set(key, int(value / 8))
+        else:
+            self._set(key, value)
+
 
 with open("test.yml", "r") as infile:
     conf = yaml.safe_load(infile)
