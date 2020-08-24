@@ -13,7 +13,7 @@ def _sizeAlign(size: int, alignment: int) -> int:
 
 
 def _grouper(n, iterable, padvalue=None):
-    "grouper(3, 'abcdefg', 'x') --> ('a','b','c'), ('d','e','f'), ('g','x','x')"
+    "grouper(3, 'abcdefg', 'x') -> ('a','b','c'), ('d','e','f'), ('g','x','x')"
     return zip_longest(*[iter(iterable)]*n, fillvalue=padvalue)
 
 
