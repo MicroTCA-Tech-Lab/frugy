@@ -1,4 +1,4 @@
-from frugy._types import FruArea, FixedField
+from frugy.types import FruArea, FixedField
 
 
 class FruCommonHeader(FruArea):

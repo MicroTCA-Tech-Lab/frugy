@@ -2,7 +2,7 @@
 
 import unittest
 
-from frugy._types import FixedField, FruArea
+from frugy.types import FixedField, FruArea
 
 
 class TestFixedField(unittest.TestCase):
@@ -55,7 +55,7 @@ class TestFruArea(unittest.TestCase):
         foo = FooArea()
         self.assertEqual(foo.size_payload(), 6)
         self.assertEqual(foo.size_total(), 8)
-        self.assertEqual(foo.serialize(), b'\x57\x2a\x37\x13\x00\x00')
+        self.assertEqual(foo.serialize(), b'\x57\x2a\x37\x13\x00\x00\x00\x35')
 
 
 if __name__ == '__main__':
