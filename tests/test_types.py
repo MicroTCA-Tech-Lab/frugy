@@ -26,6 +26,15 @@ class TestFixedField(unittest.TestCase):
 
 
 class TestString(unittest.TestCase):
+    def test_null(self):
+        nul = StringField()
+        ser = nul.serialize()
+        self.assertEqual(ser, b'\xc0')
+        ser += b'remainder'
+        tmp = StringField()
+        self.assertEqual(tmp.deserialize(ser), b'remainder')
+        self.assertEqual(tmp.value, '')
+
     def test_plain(self):
         testStr = 'Hello world'
         tmp = StringField(testStr, format=StringFmt.ASCII_8BIT)
@@ -55,7 +64,8 @@ class TestString(unittest.TestCase):
         tmp = StringField(testStr, format=StringFmt.ASCII_6BIT)
         self.assertEqual(tmp.size(), 13)
         ser = tmp.serialize()
-        self.assertEqual(ser, b'\x8c\x29\xdc\xa6\x00Z\xb2\xec\x0b\xdc\xaf\xcc\x92')
+        self.assertEqual(ser,
+                         b'\x8c\x29\xdc\xa6\x00Z\xb2\xec\x0b\xdc\xaf\xcc\x92')
         ser += b'remainder'
         tmp2 = StringField()
         self.assertEqual(tmp2.deserialize(ser), b'remainder')
