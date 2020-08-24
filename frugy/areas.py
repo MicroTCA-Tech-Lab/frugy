@@ -1,5 +1,5 @@
 from frugy.types import FruArea, FixedField, StringField
-
+from datetime import datetime, timedelta
 
 _format_version = 1
 _format_version_field = ('format_version',
@@ -57,6 +57,18 @@ class BoardInfo(FruArea):
         # TODO: do we need custom manufacturing info fields?
         _delimiter_field
     ]
+
+    _time_ref = datetime(1996, 1, 1)
+
+    def _set_mfg_date_time(self, timestamp):
+        td = timestamp - BoardInfo._time_ref
+        minutes = td.seconds // 60 + td.days * (60*24)
+        self._set('mfg_date_time', minutes)
+
+    def _get_mfg_date_time(self):
+        minutes = self._get('mfg_date_time')
+        timestamp = BoardInfo._time_ref + timedelta(minutes=minutes)
+        return timestamp
 
 
 class ProductInfo(FruArea):
