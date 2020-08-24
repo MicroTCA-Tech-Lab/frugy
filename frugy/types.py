@@ -2,6 +2,10 @@ from dataclasses import dataclass
 import bitstruct
 from typing import Any
 from collections import OrderedDict
+def _sizeAlign(size: int, alignment: int) -> int:
+    ''' return number of padding bytes & total length after padding '''
+    numPadBytes = -size % alignment
+    return numPadBytes, size + numPadBytes
 
 
 @dataclass
@@ -87,7 +91,7 @@ class FruArea:
 
     def _epilogue(self, payload):
         ''' return checksum and padding to 64 bit alignment '''
-        numPadBytes = (7 - len(payload)) % 8
+        _, numPadBytes = _sizeAlign(len(payload) + 1, 8)
         result = b'\x00' * numPadBytes
         cksum = (-sum(payload)) & 0xff
         result += cksum.to_bytes(length=1, byteorder='little')
@@ -97,8 +101,8 @@ class FruArea:
         return sum([v.size() for v in self._dict.values()])
 
     def size_total(self):
-        n = self.size_payload()
-        return n + (8 - n) % 8
+        n, _ = _sizeAlign(self.size_payload()) + 1, 8)
+        return n
 
     def serialize(self) -> bytearray:
         payload = b''.join([v.serialize() for v in self._dict.values()])
