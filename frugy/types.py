@@ -58,7 +58,7 @@ class StringFmt(Enum):
 class StringField():
     ''' Variable length field for strings'''
 
-    value: str = None
+    value: str = ''
     format: StringFmt = StringFmt.ASCII_8BIT
 
     bcdplus_lookup = {
