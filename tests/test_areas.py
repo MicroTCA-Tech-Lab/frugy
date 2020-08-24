@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import unittest
-
+from datetime import datetime
 from frugy.areas import CommonHeader, ChassisInfo, BoardInfo, ProductInfo
 
 
@@ -36,6 +36,19 @@ class TestAreas(unittest.TestCase):
         }
         b = b'\x01\x03\x05\xc8Test1234\xc7SN-4711\xc1\x00\x00\xa2'
         self.do_test_area(ChassisInfo, a, b, 24)
+
+    def test_boardinfo(self):
+        a = {
+            'mfg_date_time': datetime(2020, 1, 1, 12, 30, 0),
+            'board_manufacturer': 'FabLab',
+            'board_product_name': 'FooGadget',
+            'board_serial_number': '1234-rev42',
+            'board_part_number': '54750893',
+            'fru_file_id': 'N/A',
+        }
+        b = b'\x01\x07\x19\xae\x9f\xc0\xc6FabLab\xc9FooGadget\xca1234-rev42' \
+            b'\xc854750893\xc3N/A\xc1\x00\x00\x00\x00\x00\x00\x00\x94'
+        self.do_test_area(BoardInfo, a, b, 56)
 
     def test_productinfo(self):
         a = {
