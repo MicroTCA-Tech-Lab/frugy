@@ -233,7 +233,7 @@ class FruArea:
             remainder = v.deserialize(remainder)
         payload = input[:-len(remainder)]
         ep = self._epilogue(payload)
-        vfy, remainder = remainder[:len(ep)],remainder[len(ep):]
+        vfy, remainder = remainder[:len(ep)], remainder[len(ep):]
         if ep != vfy:
             raise RuntimeError('Checksum verify error')
         return remainder

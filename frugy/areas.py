@@ -9,7 +9,8 @@ _area_length_field = ('area_length',
 _delimiter_field = ('delimiter',
                     FixedField('u8', value=0xc1))
 _language_code = 25  # Use English and UTF-8 as default encoding
-_language_code_field = ('language_code', FixedField('u8', value=_language_code)),
+_language_code_field = ('language_code',
+                        FixedField('u8', value=_language_code))
 
 
 class CommonHeader(FruArea):
@@ -39,8 +40,8 @@ class ChassisInfo(FruArea):
         _format_version_field,
         _area_length_field,
         ('chassis_type', FixedField('u8')),
-        ('chassis_part_number', StringField),
-        ('chassis_serial_number', StringField),
+        ('chassis_part_number', StringField()),
+        ('chassis_serial_number', StringField()),
         # TODO: do we need custom chassis info fields?
         _delimiter_field
     ]
@@ -52,11 +53,11 @@ class BoardInfo(FruArea):
         _area_length_field,
         _language_code_field,
         ('mfg_date_time', FixedField('u24', value=0)),
-        ('board_manufacturer', StringField),
-        ('board_product_name', StringField),
-        ('board_serial_number', StringField),
-        ('board_part_number', StringField),
-        ('fru_file_id', StringField),
+        ('board_manufacturer', StringField()),
+        ('board_product_name', StringField()),
+        ('board_serial_number', StringField()),
+        ('board_part_number', StringField()),
+        ('fru_file_id', StringField()),
         # TODO: do we need custom manufacturing info fields?
         _delimiter_field
     ]
@@ -67,14 +68,13 @@ class ProductInfo(FruArea):
         _format_version_field,
         _area_length_field,
         _language_code_field,
-        ('manufacturer_name', StringField),
-        ('product_name', StringField),
-        ('product_part_number', StringField),
-        ('product_version', StringField),
-        ('product_serial_number', StringField),
-        ('asset_tag', StringField),
-        ('fru_file_id', StringField),
+        ('manufacturer_name', StringField()),
+        ('product_name', StringField()),
+        ('product_part_number', StringField()),
+        ('product_version', StringField()),
+        ('product_serial_number', StringField()),
+        ('asset_tag', StringField()),
+        ('fru_file_id', StringField()),
         # TODO: do we need custom manufacturing info fields?
         _delimiter_field
     ]
-
