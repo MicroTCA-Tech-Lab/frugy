@@ -228,11 +228,12 @@ class FruArea:
         return payload + self._epilogue(payload)
 
     def deserialize(self, input: bytearray):
-        if len(input) % 8 != 0:
-            raise RuntimeError("FRU data not aligned to 64 bit")
-        if (sum(input) & 0xff) != 0:
-            raise RuntimeError("FRU data checksum invalid")
-
         remainder = input
         for v in self._dict.values():
             remainder = v.deserialize(remainder)
+        payload = input[:-len(remainder)]
+        ep = self._epilogue(payload)
+        vfy, remainder = remainder[:len(ep)],remainder[len(ep):]
+        if ep != vfy:
+            raise RuntimeError('Checksum verify error')
+        return remainder
