@@ -222,6 +222,8 @@ class FruArea:
         return n
 
     def serialize(self) -> bytearray:
+        if 'area_length' in self:
+            self['area_length'] = int(self.size_total() / 8)
         payload = b''.join([v.serialize() for v in self._dict.values()])
         return payload + self._epilogue(payload)
 
