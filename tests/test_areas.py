@@ -47,7 +47,8 @@ class TestAreas(unittest.TestCase):
             'asset_tag': 'Unknown',
             'fru_file_id': 'N/A',
         }
-        b = b'\x01\x07\x19\xc4DESY\xccTest Product\xc5P1234\xc4V9.0\xc7SN98765\xc7Unknown\xc3N/A\xc1\x00\x00u'
+        b = b'\x01\x07\x19\xc4DESY\xccTest Product\xc5P1234\xc4V9.0' \
+            b'\xc7SN98765\xc7Unknown\xc3N/A\xc1\x00\x00u'
         self.do_test_area(ProductInfo, a, b, 56)
 
 
