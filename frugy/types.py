@@ -73,7 +73,7 @@ class StringField():
 
         def size_6bit(val):
             _, n = _sizeAlign(len(val), 4)
-            return n * 3
+            return int(n / 4) * 3
 
         def size_bcd_plus(val):
             _, n = _sizeAlign(len(val), 2)
