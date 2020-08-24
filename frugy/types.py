@@ -28,7 +28,7 @@ class FixedField():
         numBits = bitstruct.calcsize(self.format)
         if numBits % 8 != 0:
             raise RuntimeError("Bitfield not aligned to bytes")
-        return int(numBits / 8)
+        return numBits // 8
 
     def serialize(self) -> bytearray:
         if type(self.value) is tuple:
@@ -73,11 +73,11 @@ class StringField():
 
         def size_6bit(val: str) -> int:
             _, n = _sizeAlign(len(val), 4)
-            return int(n / 4) * 3
+            return (n // 4) * 3
 
         def size_bcd_plus(val: str) -> int:
             _, n = _sizeAlign(len(val), 2)
-            return int(n / 2)
+            return n // 2
 
         size_fn = {
             StringFmt.BIN: size_plain,

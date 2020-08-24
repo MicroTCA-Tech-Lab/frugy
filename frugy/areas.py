@@ -26,7 +26,7 @@ class CommonHeader(FruArea):
         if key.endswith('offs'):
             if value % 8 != 0:
                 raise RuntimeError("Offset not aligned to 64 bit")
-            self._set(key, int(value / 8))
+            self._set(key, value // 8)
         else:
             self._set(key, value)
 
