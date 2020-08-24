@@ -48,19 +48,19 @@ class TestString(unittest.TestCase):
         tmp2 = StringField()
         self.assertEqual(tmp2.deserialize(ser), b'remainder')
         self.assertEqual(tmp2.format, StringFmt.BCD_PLUS)
-        self.assertEqual(tmp2.value, testStr + ' ') # append padding space
+        self.assertEqual(tmp2.value, testStr + ' ')  # append padding space
 
     def test_ascii_6bit(self):
-        testStr = 'Hello world'
+        testStr = 'IPMI Hello world'
         tmp = StringField(testStr, format=StringFmt.ASCII_6BIT)
-        self.assertEqual(tmp.size(), 10)
+        self.assertEqual(tmp.size(), 13)
         ser = tmp.serialize()
-        self.assertEqual(ser, b'\x47\x12\x3c\x45\xb6\x7a\x89\x0a')
+        self.assertEqual(ser, b'\x8c\x29\xdc\xa6\x00Z\xb2\xec\x0b\xdc\xaf\xcc\x92')
         ser += b'remainder'
         tmp2 = StringField()
         self.assertEqual(tmp2.deserialize(ser), b'remainder')
         self.assertEqual(tmp2.format, StringFmt.ASCII_6BIT)
-        self.assertEqual(tmp2.value, testStr + ' ') # append padding space
+        self.assertEqual(tmp2.value, 'IPMI HELLO WORLD')
 
 
 class FooArea(FruArea):

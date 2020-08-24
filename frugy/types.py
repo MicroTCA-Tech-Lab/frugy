@@ -68,14 +68,14 @@ class StringField():
     bcdplus_lookup_rev = {v: k for k, v in bcdplus_lookup.items()}
 
     def size(self) -> int:
-        def size_plain(val):
+        def size_plain(val: str) -> int:
             return len(val)
 
-        def size_6bit(val):
+        def size_6bit(val: str) -> int:
             _, n = _sizeAlign(len(val), 4)
             return int(n / 4) * 3
 
-        def size_bcd_plus(val):
+        def size_bcd_plus(val: str) -> int:
             _, n = _sizeAlign(len(val), 2)
             return int(n / 2)
 
@@ -88,24 +88,26 @@ class StringField():
         return size_fn(self.value) + 1
 
     def serialize(self) -> bytearray:
-        def ser_plain(val):
+        def ser_plain(val: str) -> bytearray:
             return val.encode('utf-8')
 
-        def ser_6bit(val):
+        def ser_6bit(val: str) -> bytearray:
             result = b''
-            for chunk in _grouper(4, val, padvalue=' '):
-                chunk = map(lambda x: x - 0x20, chunk)
-                result += bitstruct.pack('u6'*4, *chunk)
+            for chunk in _grouper(4, val.upper(), padvalue=' '):
+                chunk = list(map(lambda x: ord(x) - 0x20, chunk))
+                chunk.reverse()
+                tmp = bitstruct.pack('u6'*4, *chunk)
+                result += tmp[::-1]
             return result
 
-        def ser_bcd_plus(val):
+        def ser_bcd_plus(val: str) -> bytearray:
             result = b''
             for chunk in _grouper(2, val, padvalue=' '):
                 chunk = map(lambda x: self.bcdplus_lookup[x], chunk)
                 result += bitstruct.pack('u4'*2, *chunk)
             return result
 
-        def ser_type_length(val):
+        def ser_type_length(val: str) -> int:
             return bitstruct.pack('u2u6', self.format.value, len(val))
 
         ser_fn = {
@@ -118,18 +120,18 @@ class StringField():
         return ser_type_length(result) + result
 
     def deserialize(self, input: bytearray) -> bytearray:
-        def deser_plain(val):
+        def deser_plain(val: bytearray) -> str:
             return val.decode('utf-8')
 
-        def deser_6bit(val):
+        def deser_6bit(val: bytearray) -> str:
             result = b''
             for chunk in _grouper(3, val, padvalue=' '):
-                tmp = bitstruct.unpack('u6'*4, chunk)
-                result += map(lambda x: x + 0x20,
-                              tmp)
+                tmp = bitstruct.unpack('u6'*4, bytearray(reversed(chunk)))
+                for x in tmp[::-1]:
+                    result += bytes((x + 0x20,))
             return result.decode('utf-8')
 
-        def deser_bcd_plus(val):
+        def deser_bcd_plus(val: bytearray) -> str:
             result = ''
             for v in val:
                 tmp = bitstruct.unpack('u4'*2, bytes((v,)))
