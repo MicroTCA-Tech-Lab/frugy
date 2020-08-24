@@ -2,15 +2,24 @@ from dataclasses import dataclass
 import bitstruct
 from typing import Any
 from collections import OrderedDict
+from enum import Enum
+from itertools import zip_longest
+
+
 def _sizeAlign(size: int, alignment: int) -> int:
     ''' return number of padding bytes & total length after padding '''
     numPadBytes = -size % alignment
     return numPadBytes, size + numPadBytes
 
 
+def _grouper(n, iterable, padvalue=None):
+    "grouper(3, 'abcdefg', 'x') --> ('a','b','c'), ('d','e','f'), ('g','x','x')"
+    return zip_longest(*[iter(iterable)]*n, fillvalue=padvalue)
+
+
 @dataclass
 class FixedField():
-    ''' Fixed length FRU field '''
+    ''' Fixed length field for numbers & bitfields '''
 
     format: str  # must be suitable for bitstruct module
     value: Any = None
@@ -35,6 +44,112 @@ class FixedField():
             self.value = result
         else:
             self.value = result[0]
+        return remainder
+
+
+class StringFmt(Enum):
+    BIN = 0b00
+    BCD_PLUS = 0b01
+    ASCII_6BIT = 0b10
+    ASCII_8BIT = 0b11
+
+
+@dataclass
+class StringField():
+    ''' Variable length field for strings'''
+
+    value: str = None
+    format: StringFmt = StringFmt.ASCII_8BIT
+
+    bcdplus_lookup = {
+        '0': 0, '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7,
+        '8': 8, '9': 9, ' ': 10, '-': 11, '.': 12
+    }
+    bcdplus_lookup_rev = {v: k for k, v in bcdplus_lookup.items()}
+
+    def size(self) -> int:
+        def size_plain(val):
+            return len(val)
+
+        def size_6bit(val):
+            _, n = _sizeAlign(len(val), 4)
+            return n * 3
+
+        def size_bcd_plus(val):
+            _, n = _sizeAlign(len(val), 2)
+            return int(n / 2)
+
+        size_fn = {
+            StringFmt.BIN: size_plain,
+            StringFmt.BCD_PLUS: size_bcd_plus,
+            StringFmt.ASCII_6BIT: size_6bit,
+            StringFmt.ASCII_8BIT: size_plain
+        }[self.format]
+        return size_fn(self.value) + 1
+
+    def serialize(self) -> bytearray:
+        def ser_plain(val):
+            return val.encode('utf-8')
+
+        def ser_6bit(val):
+            result = b''
+            for chunk in _grouper(4, val, padvalue=' '):
+                chunk = map(lambda x: x - 0x20, chunk)
+                result += bitstruct.pack('u6'*4, *chunk)
+            return result
+
+        def ser_bcd_plus(val):
+            result = b''
+            for chunk in _grouper(2, val, padvalue=' '):
+                chunk = map(lambda x: self.bcdplus_lookup[x], chunk)
+                result += bitstruct.pack('u4'*2, *chunk)
+            return result
+
+        def ser_type_length(val):
+            return bitstruct.pack('u2u6', self.format.value, len(val))
+
+        ser_fn = {
+            StringFmt.BIN: ser_plain,
+            StringFmt.BCD_PLUS: ser_bcd_plus,
+            StringFmt.ASCII_6BIT: ser_6bit,
+            StringFmt.ASCII_8BIT: ser_plain
+        }[self.format]
+        result = ser_fn(self.value)
+        return ser_type_length(result) + result
+
+    def deserialize(self, input: bytearray) -> bytearray:
+        def deser_plain(val):
+            return val.decode('utf-8')
+
+        def deser_6bit(val):
+            result = b''
+            for chunk in _grouper(3, val, padvalue=' '):
+                tmp = bitstruct.unpack('u6'*4, chunk)
+                result += map(lambda x: x + 0x20,
+                              tmp)
+            return result.decode('utf-8')
+
+        def deser_bcd_plus(val):
+            result = ''
+            for v in val:
+                tmp = bitstruct.unpack('u4'*2, bytes((v,)))
+                for x in tmp:
+                    result += self.bcdplus_lookup_rev[x]
+            return result
+
+        fmt_int, payload_len = bitstruct.unpack('u2u6', input[0:1])
+        self.format = StringFmt(fmt_int)
+        remainder = input[1:]
+        payload, remainder = remainder[:payload_len], remainder[payload_len:]
+
+        deser_fn = {
+            StringFmt.BIN: deser_plain,
+            StringFmt.BCD_PLUS: deser_bcd_plus,
+            StringFmt.ASCII_6BIT: deser_6bit,
+            StringFmt.ASCII_8BIT: deser_plain
+        }[self.format]
+        self.value = deser_fn(payload)
+
         return remainder
 
 
@@ -91,7 +206,7 @@ class FruArea:
 
     def _epilogue(self, payload):
         ''' return checksum and padding to 64 bit alignment '''
-        _, numPadBytes = _sizeAlign(len(payload) + 1, 8)
+        numPadBytes, _ = _sizeAlign(len(payload) + 1, 8)
         result = b'\x00' * numPadBytes
         cksum = (-sum(payload)) & 0xff
         result += cksum.to_bytes(length=1, byteorder='little')
@@ -101,7 +216,7 @@ class FruArea:
         return sum([v.size() for v in self._dict.values()])
 
     def size_total(self):
-        n, _ = _sizeAlign(self.size_payload()) + 1, 8)
+        _, n = _sizeAlign(self.size_payload() + 1, 8)
         return n
 
     def serialize(self) -> bytearray:
