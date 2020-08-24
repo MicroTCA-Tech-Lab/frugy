@@ -204,6 +204,14 @@ class FruArea:
         self._dict[key].value = value if type(value) is not list \
                                 else tuple(value)
 
+    def _set_area_length(self, val):
+        if (val % 8) != 0:
+            raise ValueError(f'area length {val} not 64-bit aligned')
+        self._set('area_length', val // 8)
+
+    def _get_area_length(self):
+        return self._get('area_length') * 8
+
     # (de)serializing
 
     def _epilogue(self, payload):
@@ -222,8 +230,8 @@ class FruArea:
         return n
 
     def serialize(self) -> bytearray:
-        if 'area_length' in self:
-            self['area_length'] = int(self.size_total() / 8)
+        if 'area_length' in self._dict:
+            self['area_length'] = self.size_total()
         payload = b''.join([v.serialize() for v in self._dict.values()])
         return payload + self._epilogue(payload)
 
