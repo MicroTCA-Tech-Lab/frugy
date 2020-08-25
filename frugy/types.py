@@ -1,6 +1,4 @@
-from dataclasses import dataclass
 import bitstruct
-from typing import Any
 from collections import OrderedDict
 from enum import Enum
 from itertools import zip_longest
@@ -17,12 +15,12 @@ def _grouper(n, iterable, padvalue=None):
     return zip_longest(*[iter(iterable)]*n, fillvalue=padvalue)
 
 
-@dataclass
 class FixedField():
     ''' Fixed length field for numbers & bitfields '''
 
-    format: str  # must be suitable for bitstruct module
-    value: Any = None
+    def __init__(self, format: str, value=None):
+        self.format = format
+        self.value = value
 
     def size(self) -> int:
         numBits = bitstruct.calcsize(self.format)
@@ -54,12 +52,12 @@ class StringFmt(Enum):
     ASCII_8BIT = 0b11
 
 
-@dataclass
 class StringField():
     ''' Variable length field for strings'''
 
-    value: str = ''
-    format: StringFmt = StringFmt.ASCII_8BIT
+    def __init__(self, value='', format: StringFmt=StringFmt.ASCII_8BIT):
+        self.format = format
+        self.value = value
 
     bcdplus_lookup = {
         '0': 0, '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7,
