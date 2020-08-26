@@ -1,4 +1,4 @@
-from frugy.types import FruArea, FixedField, StringField
+from frugy.types import FruAreaBase, FruArea, FixedField, StringField
 from datetime import datetime, timedelta
 
 _delimiter_field = ('delimiter',
@@ -6,7 +6,7 @@ _delimiter_field = ('delimiter',
 _language_code = 25  # Use English and UTF-8 as default encoding
 
 
-class CommonHeader(FruArea):
+class CommonHeader(FruAreaBase):
     _schema = [
         ('internal_use_offs', FixedField('u8', value=0)),
         ('chassis_info_offs', FixedField('u8', value=0)),
@@ -29,7 +29,6 @@ class CommonHeader(FruArea):
 
 class ChassisInfo(FruArea):
     _schema = [
-        ('area_length', FixedField('u8')),
         ('chassis_type', FixedField('u8')),
         ('chassis_part_number', StringField()),
         ('chassis_serial_number', StringField()),
@@ -40,7 +39,6 @@ class ChassisInfo(FruArea):
 
 class BoardInfo(FruArea):
     _schema = [
-        ('area_length', FixedField('u8')),
         ('language_code', FixedField('u8', value=_language_code)),
         ('mfg_date_time', FixedField('u24', value=0)),
         ('board_manufacturer', StringField()),
@@ -67,7 +65,6 @@ class BoardInfo(FruArea):
 
 class ProductInfo(FruArea):
     _schema = [
-        ('area_length', FixedField('u8')),
         ('language_code', FixedField('u8', value=_language_code)),
         ('manufacturer_name', StringField()),
         ('product_name', StringField()),

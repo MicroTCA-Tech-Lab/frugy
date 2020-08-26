@@ -154,7 +154,7 @@ class StringField():
         return remainder
 
 
-class FruArea:
+class FruAreaBase:
     ''' Common base class for FRU areas '''
     _schema = None
 
@@ -210,14 +210,6 @@ class FruArea:
         self._dict[key].value = value if type(value) is not list \
                                 else tuple(value)
 
-    def _set_area_length(self, val):
-        if (val % 8) != 0:
-            raise ValueError(f'area length {val} not 64-bit aligned')
-        self._set('area_length', val // 8)
-
-    def _get_area_length(self):
-        return self._get('area_length') * 8
-
     def _set_format_version(self, val):
         self._format_version.value = (0, val)
 
@@ -226,11 +218,11 @@ class FruArea:
 
     # (de)serializing
 
-    def _prologue(self):
+    def _prologue(self) -> bytearray:
         ''' return data to prepend (format version) '''
         return self._format_version.serialize()
 
-    def _epilogue(self, payload):
+    def _epilogue(self, payload: bytearray) -> bytearray:
         ''' return data to append (checksum and padding to 64 bit alignment) '''
         numPadBytes, _ = _sizeAlign(len(payload) + 1, 8)
         result = b'\x00' * numPadBytes
@@ -238,24 +230,24 @@ class FruArea:
         result += cksum.to_bytes(length=1, byteorder='little')
         return result
 
-    def size_payload(self):
+    def size_payload(self) -> int:
         # add one byte for format version
         return sum([v.size() for v in self._dict.values()]) + 1
 
-    def size_total(self):
+    def size_total(self) -> int:
         # add one byte for checksum
         _, n = _sizeAlign(self.size_payload() + 1, 8)
         return n
 
     def serialize(self) -> bytearray:
         payload = self._prologue()
-        if 'area_length' in self._dict:
-            self['area_length'] = self.size_total()
         payload += b''.join([v.serialize() for v in self._dict.values()])
         return payload + self._epilogue(payload)
 
     def deserialize(self, input: bytearray):
         remainder = self._format_version.deserialize(input)
+        if hasattr(self, '_deserialize_area_length'):
+            remainder = self._deserialize_area_length(remainder)
         for v in self._dict.values():
             remainder = v.deserialize(remainder)
         payload = input[:-len(remainder)]
@@ -264,3 +256,31 @@ class FruArea:
         if ep != vfy:
             raise RuntimeError(f'padding or checksum verify error (expected {ep}, received {vfy}')
         return remainder
+
+
+class FruArea(FruAreaBase):
+    ''' FRU area with size field '''
+
+    def __init__(self, initdict=None):
+        self._area_length = FixedField('u8')
+        super().__init__(initdict=initdict)
+
+    def _set_area_length(self, val):
+        if (val % 8) != 0:
+            raise ValueError(f'area length {val} not 64-bit aligned')
+        self._area_length.value = val // 8
+
+    def _get_area_length(self):
+        return self._area_length.value * 8
+
+    def _deserialize_area_length(self, input):
+        return self._area_length.deserialize(input)
+
+    def size_payload(self) -> int:
+        # add one byte for size field
+        return super().size_payload() + 1
+
+    def _prologue(self) -> bytearray:
+        ''' return data to prepend (size field) '''
+        self._set_area_length(self.size_total())
+        return super()._prologue() + self._area_length.serialize()
