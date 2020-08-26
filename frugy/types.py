@@ -358,7 +358,5 @@ class MultirecordEntry(FruAreaBase):
                                 super().size_payload(),
                                 payload_cksum)
         header_cksum = (-sum(header)) & 0xff
-        print(header)
         header += header_cksum.to_bytes(length=1, byteorder='little')
-        print(header)
         return header + payload
