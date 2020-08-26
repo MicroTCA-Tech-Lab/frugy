@@ -1,10 +1,7 @@
 from frugy.types import FruAreaBase, FruArea, FixedField, StringField
 from datetime import datetime, timedelta
 
-_delimiter_field = ('delimiter',
-                    FixedField('u8', value=0xc1))
 _language_code = 25  # Use English and UTF-8 as default encoding
-
 
 class CommonHeader(FruAreaBase):
     _schema = [
@@ -33,7 +30,6 @@ class ChassisInfo(FruArea):
         ('chassis_part_number', StringField()),
         ('chassis_serial_number', StringField()),
         # TODO: do we need custom chassis info fields?
-        _delimiter_field
     ]
 
 
@@ -47,7 +43,6 @@ class BoardInfo(FruArea):
         ('board_part_number', StringField()),
         ('fru_file_id', StringField()),
         # TODO: do we need custom manufacturing info fields?
-        _delimiter_field
     ]
 
     _time_ref = datetime(1996, 1, 1)
@@ -74,5 +69,4 @@ class ProductInfo(FruArea):
         ('asset_tag', StringField()),
         ('fru_file_id', StringField()),
         # TODO: do we need custom manufacturing info fields?
-        _delimiter_field
     ]

@@ -259,7 +259,8 @@ class FruAreaBase:
 
 
 class FruArea(FruAreaBase):
-    ''' FRU area with size field '''
+    ''' FRU area with size field and delimiter '''
+    _delimiter_code = b'\xc1'
 
     def __init__(self, initdict=None):
         self._area_length = FixedField('u8')
@@ -277,10 +278,14 @@ class FruArea(FruAreaBase):
         return self._area_length.deserialize(input)
 
     def size_payload(self) -> int:
-        # add one byte for size field
-        return super().size_payload() + 1
+        # add one byte for size field and one for delimiter
+        return super().size_payload() + 2
 
     def _prologue(self) -> bytearray:
         ''' return data to prepend (size field) '''
         self._set_area_length(self.size_total())
         return super()._prologue() + self._area_length.serialize()
+
+    def _epilogue(self, payload: bytearray) -> bytearray:
+        ''' append delimiter and let superclass handle the rest '''
+        return self._delimiter_code + super()._epilogue(payload + self._delimiter_code)
