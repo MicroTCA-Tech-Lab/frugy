@@ -336,7 +336,7 @@ class MultirecordEntry(FruAreaBase):
 
     def size_payload(self):
         # Add header size
-        return super().size_payload + 5 + len(self._payload_prologue())
+        return super().size_payload() + 5 + len(self._payload_prologue())
     
     def _payload_prologue(self):
         # data prepended before actual payload by subclasses

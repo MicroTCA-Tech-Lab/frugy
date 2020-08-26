@@ -32,3 +32,38 @@ class TestFru(unittest.TestCase):
         tmp2 = Fru()
         tmp2.load_yaml("mmc_breakout.yml")
         self.assertEqual(fru.to_dict(), tmp2.to_dict())
+
+    def test_foo(self):
+        initdict = {
+            'BoardInfo': {
+                'board_manufacturer': 'Foo',
+                'board_product_name': 'Foo-Dings',
+                'board_serial_number': '1234',
+                'board_part_number': '5678',
+                'fru_file_id': 'N/A',
+            },
+            'ProductInfo': {
+                'manufacturer_name': 'FooBar',
+                'product_name': 'Superfoo',
+                'product_part_number': '4711',
+                'product_version': 'V0.00-alpha',
+                'product_serial_number': '0815',
+                'asset_tag': 'N/A',
+                'fru_file_id': 'N/A',
+            },
+            'MultirecordArea': {
+                'ModuleCurrentRequirements': {
+                    'current_draw': 7.5
+                }
+            }
+        }
+        fru = Fru(initdict)
+        fru.save_bin("foo.bin")
+        fru.save_yaml("foo.yml")
+        # We don't support deserializing multirecords (yet)
+        # tmp1 = Fru()
+        # tmp1.load_bin("foo.bin")
+        # self.assertEqual(fru.to_dict(), tmp1.to_dict())
+        tmp2 = Fru()
+        tmp2.load_yaml("foo.yml")
+        self.assertEqual(fru.to_dict(), tmp2.to_dict())

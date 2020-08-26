@@ -27,6 +27,9 @@ class MultirecordArea:
             v.end_of_list = 1 if i == len(rec)-1 else 0
             result += v.serialize()
         return result
+    
+    def size_total(self):
+        return sum([v.size_total() for v in self.records.values()])
 
 
 class PicmgEntry(MultirecordEntry):
