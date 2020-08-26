@@ -155,9 +155,12 @@ class StringField():
 
 class FruArea:
     ''' Common base class for FRU areas '''
+    _schema = None
 
     def __init__(self, initdict=None):
         self._dict = OrderedDict(self._schema)
+        if initdict is not None:
+            self.update(initdict)
 
     # dict interface
 
@@ -183,11 +186,14 @@ class FruArea:
         return hasattr(self, f'_set_{key}') or key in self._dict
 
     def __repr__(self):
-        return repr({k: self[k] for k in self._dict.keys()})
+        return repr(self.to_dict())
 
     def update(self, src):
         for k, v in src.items():
             self[k] = v
+
+    def to_dict(self):
+        return {k: self[k] for k in self._dict.keys()}
 
     # accessors
 
