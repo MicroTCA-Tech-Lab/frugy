@@ -46,8 +46,7 @@ class TestAreas(unittest.TestCase):
             'board_part_number': '54750893',
             'fru_file_id': 'N/A',
         }
-        b = b'\x01\x07\x19\xae\x9f\xc0\xc6FabLab\xc9FooGadget\xca1234-rev42' \
-            b'\xc854750893\xc3N/A\xc1\x00\x00\x00\x00\x00\x00\x00\x94'
+        b = b'\x01\x07\x00\xae\x9f\xc0\xc6FabLab\xc9FooGadget\xca1234-rev42\xc854750893\xc3N/A\xc1\x00\x00\x00\x00\x00\x00\x00\xad'
         self.do_test_area(BoardInfo, a, b, 56)
 
     def test_productinfo(self):
@@ -60,8 +59,7 @@ class TestAreas(unittest.TestCase):
             'asset_tag': 'Unknown',
             'fru_file_id': 'N/A',
         }
-        b = b'\x01\x07\x19\xc4DESY\xccTest Product\xc5P1234\xc4V9.0' \
-            b'\xc7SN98765\xc7Unknown\xc3N/A\xc1\x00\x00u'
+        b = b'\x01\x07\x00\xc4DESY\xccTest Product\xc5P1234\xc4V9.0\xc7SN98765\xc7Unknown\xc3N/A\xc1\x00\x00\x8e'
         self.do_test_area(ProductInfo, a, b, 56)
 
 

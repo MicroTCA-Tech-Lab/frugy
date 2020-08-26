@@ -1,7 +1,7 @@
 from frugy.types import FruAreaBase, FruArea, FixedField, StringField
 from datetime import datetime, timedelta
 
-_language_code = 25  # Use English and UTF-8 as default encoding
+_language_code = 0  # Use English and UTF-8 as default encoding
 
 class CommonHeader(FruAreaBase):
     _schema = [
