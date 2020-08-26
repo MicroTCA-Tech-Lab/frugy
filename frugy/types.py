@@ -216,6 +216,12 @@ class FruArea:
     def _get_area_length(self):
         return self._get('area_length') * 8
 
+    def _set_format_version(self, val):
+        self._set('format_version', (0, val))
+
+    def _get_format_version(self):
+        return self._get('format_version')[1]
+
     # (de)serializing
 
     def _epilogue(self, payload):

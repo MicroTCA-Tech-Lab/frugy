@@ -28,7 +28,7 @@ class Fru:
     
     def save_yaml(self, fname):
         with open(fname, 'w') as outfile:
-            yaml.dump(self.to_dict(), outfile)
+            yaml.dump(self.to_dict(), outfile, default_flow_style=False)
 
     def to_dict(self):
         return {k: v.to_dict() for k, v in self.areas.items()}
