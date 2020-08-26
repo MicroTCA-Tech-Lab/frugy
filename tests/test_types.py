@@ -101,9 +101,9 @@ class TestFruArea(unittest.TestCase):
 
     def test_serialize(self):
         foo = FooArea()
-        self.assertEqual(foo.size_payload(), 6)
+        self.assertEqual(foo.size_payload(), 7)
         self.assertEqual(foo.size_total(), 8)
-        self.assertEqual(foo.serialize(), b'\x57\x2a\x37\x13\x00\x00\x00\x35')
+        self.assertEqual(foo.serialize(), b'\x01\x57\x2a\x37\x13\x00\x00\x34')
 
 
 if __name__ == '__main__':

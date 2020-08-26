@@ -34,4 +34,4 @@ class TestFru(unittest.TestCase):
 
         tmp = Fru()
         tmp.load_yaml("fru.yml")
-        print(tmp)
+        # print(tmp)

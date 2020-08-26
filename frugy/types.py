@@ -3,6 +3,7 @@ from collections import OrderedDict
 from enum import Enum
 from itertools import zip_longest
 
+_format_version_default = 1
 
 def _sizeAlign(size: int, alignment: int) -> int:
     ''' return number of padding bytes & total length after padding '''
@@ -158,6 +159,7 @@ class FruArea:
     _schema = None
 
     def __init__(self, initdict=None):
+        self._format_version = FixedField('u4u4', value=(0, _format_version_default))
         self._dict = OrderedDict(self._schema)
         if initdict is not None:
             self.update(initdict)
@@ -217,15 +219,19 @@ class FruArea:
         return self._get('area_length') * 8
 
     def _set_format_version(self, val):
-        self._set('format_version', (0, val))
+        self._format_version.value = (0, val)
 
     def _get_format_version(self):
-        return self._get('format_version')[1]
+        return self._format_version.value[1]
 
     # (de)serializing
 
+    def _prologue(self):
+        ''' return data to prepend (format version) '''
+        return self._format_version.serialize()
+
     def _epilogue(self, payload):
-        ''' return checksum and padding to 64 bit alignment '''
+        ''' return data to append (checksum and padding to 64 bit alignment) '''
         numPadBytes, _ = _sizeAlign(len(payload) + 1, 8)
         result = b'\x00' * numPadBytes
         cksum = (-sum(payload)) & 0xff
@@ -233,25 +239,28 @@ class FruArea:
         return result
 
     def size_payload(self):
-        return sum([v.size() for v in self._dict.values()])
+        # add one byte for format version
+        return sum([v.size() for v in self._dict.values()]) + 1
 
     def size_total(self):
+        # add one byte for checksum
         _, n = _sizeAlign(self.size_payload() + 1, 8)
         return n
 
     def serialize(self) -> bytearray:
+        payload = self._prologue()
         if 'area_length' in self._dict:
             self['area_length'] = self.size_total()
-        payload = b''.join([v.serialize() for v in self._dict.values()])
+        payload += b''.join([v.serialize() for v in self._dict.values()])
         return payload + self._epilogue(payload)
 
     def deserialize(self, input: bytearray):
-        remainder = input
+        remainder = self._format_version.deserialize(input)
         for v in self._dict.values():
             remainder = v.deserialize(remainder)
         payload = input[:-len(remainder)]
         ep = self._epilogue(payload)
         vfy, remainder = remainder[:len(ep)], remainder[len(ep):]
         if ep != vfy:
-            raise RuntimeError('Checksum verify error')
+            raise RuntimeError(f'padding or checksum verify error (expected {ep}, received {vfy}')
         return remainder
