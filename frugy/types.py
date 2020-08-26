@@ -158,7 +158,6 @@ class FruAreaBase:
     ''' Common base class for FRU areas '''
 
     def __init__(self, schema, initdict=None):
-        self._format_version = FixedField('u4u4', value=(0, _format_version_default))
         self._dict = OrderedDict(schema)
         if initdict is not None:
             self.update(initdict)
@@ -209,17 +208,10 @@ class FruAreaBase:
         self._dict[key].value = value if type(value) is not list \
                                 else tuple(value)
 
-    def _set_format_version(self, val):
-        self._format_version.value = (0, val)
-
-    def _get_format_version(self):
-        return self._format_version.value[1]
-
     # (de)serializing
 
     def _prologue(self) -> bytearray:
-        ''' return data to prepend (format version) '''
-        return self._format_version.serialize()
+        return b''
 
     def _epilogue(self, payload: bytearray) -> bytearray:
         ''' return data to append (checksum and padding to 64 bit alignment) '''
@@ -230,8 +222,7 @@ class FruAreaBase:
         return result
 
     def size_payload(self) -> int:
-        # add one byte for format version
-        return sum([v.size() for v in self._dict.values()]) + 1
+        return sum([v.size() for v in self._dict.values()])
 
     def size_total(self) -> int:
         # add one byte for checksum
@@ -243,21 +234,52 @@ class FruAreaBase:
         payload += b''.join([v.serialize() for v in self._dict.values()])
         return payload + self._epilogue(payload)
 
-    def deserialize(self, input: bytearray):
-        remainder = self._format_version.deserialize(input)
-        if hasattr(self, '_deserialize_area_length'):
-            remainder = self._deserialize_area_length(remainder)  # pylint: disable=no-member
-        for v in self._dict.values():
-            remainder = v.deserialize(remainder)
-        payload = input[:-len(remainder)]
+    def _verify_epilogue(self, input: bytearray, offs: int) -> bytearray:
+        payload = input[:offs]
         ep = self._epilogue(payload)
-        vfy, remainder = remainder[:len(ep)], remainder[len(ep):]
+        vfy, remainder = input[offs:offs+len(ep)], input[offs+len(ep):]
         if ep != vfy:
             raise RuntimeError(f'padding or checksum verify error (expected {ep}, received {vfy}')
         return remainder
 
+    def _deserialize(self, input: bytearray):
+        remainder = input
+        for v in self._dict.values():
+            remainder = v.deserialize(remainder)
+        return remainder
 
-class FruArea(FruAreaBase):
+    def deserialize(self, input: bytearray):
+        remainder = self._deserialize(input)
+        return self._verify_epilogue(input, len(input) - len(remainder))
+
+class FruAreaVersioned(FruAreaBase):
+    ''' FRU area featuring a version field '''
+
+    def __init__(self, schema, initdict=None):
+        self._format_version = FixedField('u4u4', value=(0, _format_version_default))
+        super().__init__(schema, initdict=initdict)
+
+    def _set_format_version(self, val):
+        self._format_version.value = (0, val)
+
+    def _get_format_version(self):
+        return self._format_version.value[1]
+
+    def _prologue(self) -> bytearray:
+        ''' return data to prepend (format version) '''
+        return super()._prologue() + self._format_version.serialize()
+
+    def size_payload(self) -> int:
+        # add one byte for format version
+        return super().size_payload() + 1
+
+    def deserialize(self, input: bytearray):
+        remainder = self._format_version.deserialize(input)
+        remainder = self._deserialize(remainder)
+        return self._verify_epilogue(input, len(input) - len(remainder))
+
+
+class FruArea(FruAreaVersioned):
     ''' FRU area with size field and delimiter '''
     _delimiter_code = b'\xc1'
 
@@ -273,9 +295,6 @@ class FruArea(FruAreaBase):
     def _get_area_length(self):
         return self._area_length.value * 8
 
-    def _deserialize_area_length(self, input):
-        return self._area_length.deserialize(input)
-
     def size_payload(self) -> int:
         # add one byte for size field and one for delimiter
         return super().size_payload() + 2
@@ -288,3 +307,9 @@ class FruArea(FruAreaBase):
     def _epilogue(self, payload: bytearray) -> bytearray:
         ''' append delimiter and let superclass handle the rest '''
         return self._delimiter_code + super()._epilogue(payload + self._delimiter_code)
+
+    def deserialize(self, input: bytearray):
+        remainder = self._format_version.deserialize(input)
+        remainder = self._area_length.deserialize(remainder)
+        remainder = self._deserialize(remainder)
+        return self._verify_epilogue(input, len(input) - len(remainder))

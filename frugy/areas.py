@@ -1,9 +1,9 @@
-from frugy.types import FruAreaBase, FruArea, FixedField, StringField
+from frugy.types import FruAreaVersioned, FruArea, FixedField, StringField
 from datetime import datetime, timedelta
 
 _language_code = 0  # Use English and UTF-8 as default encoding
 
-class CommonHeader(FruAreaBase):
+class CommonHeader(FruAreaVersioned):
     def __init__(self, initdict=None):
         super().__init__([
         ('internal_use_offs', FixedField('u8', value=0)),
