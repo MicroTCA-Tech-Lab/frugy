@@ -156,11 +156,10 @@ class StringField():
 
 class FruAreaBase:
     ''' Common base class for FRU areas '''
-    _schema = None
 
-    def __init__(self, initdict=None):
+    def __init__(self, schema, initdict=None):
         self._format_version = FixedField('u4u4', value=(0, _format_version_default))
-        self._dict = OrderedDict(self._schema)
+        self._dict = OrderedDict(schema)
         if initdict is not None:
             self.update(initdict)
 
@@ -262,9 +261,9 @@ class FruArea(FruAreaBase):
     ''' FRU area with size field and delimiter '''
     _delimiter_code = b'\xc1'
 
-    def __init__(self, initdict=None):
+    def __init__(self, schema, initdict=None):
         self._area_length = FixedField('u8')
-        super().__init__(initdict=initdict)
+        super().__init__(schema, initdict=initdict)
 
     def _set_area_length(self, val):
         if (val % 8) != 0:
