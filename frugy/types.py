@@ -210,6 +210,27 @@ class FruAreaBase:
 
     # (de)serializing
 
+    def size_payload(self) -> int:
+        return sum([v.size() for v in self._dict.values()])
+
+    def size_total(self) -> int:
+        return self.size_payload()
+
+    def serialize(self) -> bytearray:
+        return b''.join([v.serialize() for v in self._dict.values()])
+
+    def _deserialize(self, input: bytearray):
+        remainder = input
+        for v in self._dict.values():
+            remainder = v.deserialize(remainder)
+        return remainder
+
+    def deserialize(self, input: bytearray):
+        return self._deserialize(input)
+
+class FruAreaChecksummed(FruAreaBase):
+    ''' FRU area featuring a checksum in the epilogue '''
+
     def _prologue(self) -> bytearray:
         return b''
 
@@ -220,9 +241,6 @@ class FruAreaBase:
         cksum = (-sum(payload)) & 0xff
         result += cksum.to_bytes(length=1, byteorder='little')
         return result
-
-    def size_payload(self) -> int:
-        return sum([v.size() for v in self._dict.values()])
 
     def size_total(self) -> int:
         # add one byte for checksum
@@ -242,17 +260,11 @@ class FruAreaBase:
             raise RuntimeError(f'padding or checksum verify error (expected {ep}, received {vfy}')
         return remainder
 
-    def _deserialize(self, input: bytearray):
-        remainder = input
-        for v in self._dict.values():
-            remainder = v.deserialize(remainder)
-        return remainder
-
     def deserialize(self, input: bytearray):
         remainder = self._deserialize(input)
         return self._verify_epilogue(input, len(input) - len(remainder))
 
-class FruAreaVersioned(FruAreaBase):
+class FruAreaVersioned(FruAreaChecksummed):
     ''' FRU area featuring a version field '''
 
     def __init__(self, schema, initdict=None):
@@ -279,8 +291,8 @@ class FruAreaVersioned(FruAreaBase):
         return self._verify_epilogue(input, len(input) - len(remainder))
 
 
-class FruArea(FruAreaVersioned):
-    ''' FRU area with size field and delimiter '''
+class FruAreaDelimited(FruAreaVersioned):
+    ''' FRU area featuring version, length and delimiter fields '''
     _delimiter_code = b'\xc1'
 
     def __init__(self, schema, initdict=None):

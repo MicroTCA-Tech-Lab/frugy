@@ -1,4 +1,4 @@
-from frugy.types import FruAreaVersioned, FruArea, FixedField, StringField
+from frugy.types import FruAreaVersioned, FruAreaDelimited, FixedField, StringField
 from datetime import datetime, timedelta
 
 _language_code = 0  # Use English and UTF-8 as default encoding
@@ -22,7 +22,7 @@ class CommonHeader(FruAreaVersioned):
             self._set(key, value // 8)
 
 
-class ChassisInfo(FruArea):
+class ChassisInfo(FruAreaDelimited):
     def __init__(self, initdict=None):
         super().__init__([
         ('chassis_type', FixedField('u8')),
@@ -32,7 +32,7 @@ class ChassisInfo(FruArea):
         ], initdict)
 
 
-class BoardInfo(FruArea):
+class BoardInfo(FruAreaDelimited):
     def __init__(self, initdict=None):
         super().__init__([
         ('language_code', FixedField('u8', value=_language_code)),
@@ -63,7 +63,7 @@ class BoardInfo(FruArea):
         else:
             return None
 
-class ProductInfo(FruArea):
+class ProductInfo(FruAreaDelimited):
     def __init__(self, initdict=None):
         super().__init__([
         ('language_code', FixedField('u8', value=_language_code)),

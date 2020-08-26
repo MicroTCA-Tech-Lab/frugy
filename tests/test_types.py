@@ -2,7 +2,7 @@
 
 import unittest
 
-from frugy.types import FixedField, StringField, StringFmt, FruArea
+from frugy.types import FixedField, StringField, StringFmt
 
 
 class TestFixedField(unittest.TestCase):
