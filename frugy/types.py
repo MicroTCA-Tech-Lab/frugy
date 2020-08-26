@@ -350,7 +350,7 @@ class MultirecordEntry(FruAreaBase):
                                 self.end_of_list,
                                 0,
                                 self.format_version,
-                                super().size_payload(),
+                                len(payload),
                                 payload_cksum)
         header_cksum = (-sum(header)) & 0xff
         header += header_cksum.to_bytes(length=1, byteorder='little')

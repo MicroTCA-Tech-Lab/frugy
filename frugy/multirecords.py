@@ -38,7 +38,7 @@ class PicmgEntry(MultirecordEntry):
         super().__init__(0xc0, schema, initdict=initdict, format_version=format_version)
     
     def _payload_prologue(self):
-        return b'\x00\x31\x5a' + self.record_id.to_bytes(length=1, byteorder='little') + b'\x00'
+        return b'\x5a\x31\x00' + self.record_id.to_bytes(length=1, byteorder='little') + b'\x00'
 
 
 class ModuleCurrentRequirements(PicmgEntry):
