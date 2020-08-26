@@ -48,15 +48,20 @@ class BoardInfo(FruArea):
     _time_ref = datetime(1996, 1, 1)
 
     def _set_mfg_date_time(self, timestamp):
-        td = timestamp - BoardInfo._time_ref
-        minutes = td.seconds // 60 + td.days * (60*24)
-        self._set('mfg_date_time', minutes)
+        if timestamp is not None:
+            td = timestamp - BoardInfo._time_ref
+            minutes = td.seconds // 60 + td.days * (60*24)
+            self._set('mfg_date_time', minutes)
+        else:
+            self._set('mfg_date_time', 0)
 
     def _get_mfg_date_time(self):
         minutes = self._get('mfg_date_time')
-        timestamp = BoardInfo._time_ref + timedelta(minutes=minutes)
-        return timestamp
-
+        if minutes != 0:
+            timestamp = BoardInfo._time_ref + timedelta(minutes=minutes)
+            return timestamp
+        else:
+            return None
 
 class ProductInfo(FruArea):
     def __init__(self, initdict=None):
