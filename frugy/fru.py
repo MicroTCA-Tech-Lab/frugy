@@ -2,13 +2,20 @@ from frugy.areas import CommonHeader, ChassisInfo, BoardInfo, ProductInfo
 import yaml
 
 class Fru:
+    _area_table_lookup = {
+        'ChassisInfo': 'chassis_info_offs',
+        'BoardInfo': 'board_info_offs',
+        'ProductInfo': 'product_info_offs',
+    }
+    _area_table_lookup_rev = {v: k for k, v in _area_table_lookup.items()}
+
     def __init__(self, initdict=None):
         self.header = CommonHeader()
         self.areas = {}
         if initdict is not None:
             self.update(initdict)
 
-    def factory(self, cls_name, cls_args):
+    def factory(self, cls_name, cls_args=None):
         map = {
             'ChassisInfo': ChassisInfo,
             'BoardInfo': BoardInfo,
@@ -35,25 +42,31 @@ class Fru:
             'product_info_offs',
             'multirecord_offs'
         ]})
-        area_table = (('ChassisInfo', 'chassis_info_offs'),
-                      ('BoardInfo', 'board_info_offs'),
-                      ('ProductInfo', 'product_info_offs'))
 
         # Determine offsets for areas
         curr_offs = self.header.size_total()
-        for area, offs in area_table:
+        for area, offs in self._area_table_lookup.items():
             if area in self.areas:
                 self.header[offs] = curr_offs
                 curr_offs += self.areas[area].size_total()
 
         # Serialize everything
         result = self.header.serialize()
-        for area, _ in area_table:
+        for area in self._area_table_lookup.keys():
             if area in self.areas:
                 result += self.areas[area].serialize()
 
         return result
 
+    def deserialize(self, input):
+        self.areas = {}
+        self.header.deserialize(input)
+        for k, v in self.header.to_dict().items():
+            if v:
+                obj_name = self._area_table_lookup_rev[k]
+                obj = self.factory(obj_name)
+                obj.deserialize(input[v:])
+                self.areas[obj_name] = obj
 
     def load_yaml(self, fname):
         with open(fname, 'r') as infile:
@@ -66,7 +79,7 @@ class Fru:
 
     def load_bin(self, fname):
         with open(fname, 'rb') as infile:
-            print('not implemented yet :-(')
+            self.deserialize(infile.read())
 
     def save_bin(self, fname):
         with open(fname, 'wb') as outfile:
