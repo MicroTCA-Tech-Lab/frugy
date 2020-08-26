@@ -1,4 +1,5 @@
 from frugy.areas import CommonHeader, ChassisInfo, BoardInfo, ProductInfo
+from frugy.multirecords import MultirecordArea
 import yaml
 
 class Fru:
@@ -6,6 +7,7 @@ class Fru:
         'ChassisInfo': 'chassis_info_offs',
         'BoardInfo': 'board_info_offs',
         'ProductInfo': 'product_info_offs',
+        'MultirecordArea': 'multirecord_offs',
     }
     _area_table_lookup_rev = {v: k for k, v in _area_table_lookup.items()}
 
@@ -19,7 +21,8 @@ class Fru:
         map = {
             'ChassisInfo': ChassisInfo,
             'BoardInfo': BoardInfo,
-            'ProductInfo': ProductInfo
+            'ProductInfo': ProductInfo,
+            'MultirecordArea': MultirecordArea
         }
         if cls_name not in map:
             raise ValueError(f"unknown FRU area: {cls_name}")

@@ -327,11 +327,6 @@ class FruAreaDelimited(FruAreaVersioned):
         return self._verify_epilogue(input, len(input) - len(remainder))
 
 
-class FruAreaMultirecord:
-    def __init__(self):
-        self.records = {}
-    
-
 class MultirecordEntry(FruAreaBase):
     def __init__(self, type_id: int, schema, initdict=None, format_version=2):
         self.type_id = type_id

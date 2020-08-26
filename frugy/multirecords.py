@@ -1,6 +1,34 @@
 from frugy.types import MultirecordEntry, FixedField
 
 
+class MultirecordArea:
+    def __init__(self, initdict=None):
+        self.records = {}
+        if initdict is not None:
+            self.update(initdict)
+    
+    def update(self, initdict):
+        self.records = {}
+        for k, v in initdict.items():
+            constructor = globals()[k]
+            self.records[k] = constructor(v)
+    
+    def __repr__(self):
+        return self.to_dict().__repr__()
+
+    def to_dict(self):
+        return {k: v.to_dict() for k, v in self.records.items()}
+    
+    def serialize(self):
+        result = b''
+        rec = list(self.records.keys())
+        for i, k in enumerate(rec):
+            v = self.records[k]
+            v.end_of_list = 1 if i == len(rec)-1 else 0
+            result += v.serialize()
+        return result
+
+
 class PicmgEntry(MultirecordEntry):
     def __init__(self, record_id, schema, initdict=None, format_version=2):
         self.record_id = record_id
