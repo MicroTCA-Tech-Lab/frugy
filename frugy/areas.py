@@ -13,15 +13,12 @@ class CommonHeader(FruAreaBase):
     ]
 
     def __getitem__(self, key):
-        return self._get(key) * 8 if key.endswith('offs') else self._get(key)
+        return self._get(key) * 8
 
     def __setitem__(self, key, value):
-        if key.endswith('offs'):
             if value % 8 != 0:
                 raise RuntimeError("Offset not aligned to 64 bit")
             self._set(key, value // 8)
-        else:
-            self._set(key, value)
 
 
 class ChassisInfo(FruArea):
