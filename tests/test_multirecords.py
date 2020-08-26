@@ -7,8 +7,7 @@ class TestPicmg(unittest.TestCase):
         mcr = ModuleCurrentRequirements({
             'current_draw': 7.5
         })
-        with open("test.bin", "wb") as f:
-            f.write(mcr.serialize())
+        self.assertEqual(mcr.serialize(), b'\xc0\x02\x01\x14\x29\x00\x31\x5a\x16\x00\x4b')
 
 
 class TestMultirecord(unittest.TestCase):
@@ -18,5 +17,4 @@ class TestMultirecord(unittest.TestCase):
                 'current_draw': 7.5
             }
         })
-        with open("test1.bin", "wb") as f:
-            f.write(mr.serialize())
+        self.assertEqual(mr.serialize(), b'\xc0\x82\x01\x14\xa9\x00\x31\x5a\x16\x00\x4b')
