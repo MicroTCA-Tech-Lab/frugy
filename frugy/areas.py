@@ -20,6 +20,10 @@ class CommonHeader(FruAreaVersioned):
             if value % 8 != 0:
                 raise RuntimeError("Offset not aligned to 64 bit")
             self._set(key, value // 8)
+    
+    def reset(self):
+        for item in self._dict:
+            self._set(item, 0)
 
 
 class ChassisInfo(FruAreaDelimited):

@@ -35,13 +35,7 @@ class Fru:
         return repr(self.to_dict())
 
     def serialize(self):
-        self.header.update({k: 0 for k in [
-            'internal_use_offs',
-            'chassis_info_offs',
-            'board_info_offs',
-            'product_info_offs',
-            'multirecord_offs'
-        ]})
+        self.header.reset()
 
         # Determine offsets for areas
         curr_offs = self.header.size_total()
