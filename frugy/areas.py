@@ -7,7 +7,7 @@ class CommonHeader(FruAreaBase):
     _schema = [
         ('internal_use_offs', FixedField('u8', value=0)),
         ('chassis_info_offs', FixedField('u8', value=0)),
-        ('board_area_offs', FixedField('u8', value=0)),
+        ('board_info_offs', FixedField('u8', value=0)),
         ('product_info_offs', FixedField('u8', value=0)),
         ('multirecord_offs', FixedField('u8', value=0)),
     ]

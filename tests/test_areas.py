@@ -21,7 +21,7 @@ class TestAreas(unittest.TestCase):
         a = {
             'internal_use_offs': 0,
             'chassis_info_offs': 8,
-            'board_area_offs': 16,
+            'board_info_offs': 16,
             'product_info_offs': 80,
             'multirecord_offs': 160
         }
