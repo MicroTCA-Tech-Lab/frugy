@@ -247,7 +247,7 @@ class FruAreaBase:
     def deserialize(self, input: bytearray):
         remainder = self._format_version.deserialize(input)
         if hasattr(self, '_deserialize_area_length'):
-            remainder = self._deserialize_area_length(remainder)
+            remainder = self._deserialize_area_length(remainder)  # pylint: disable=no-member
         for v in self._dict.values():
             remainder = v.deserialize(remainder)
         payload = input[:-len(remainder)]
