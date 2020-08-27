@@ -61,6 +61,13 @@ class TestFru(unittest.TestCase):
             ]
         }, 'dmmc-stamp')
 
-    def test_opalkelly(self):
+    def test_cern_img(self):
+        # uses test file generated from:
+        # https://www.ohwr.org/project/fmc-dac-600m-12b-1cha-tst/blob/master/software/spec-sw/fmc-bus/tools/fru-generator
         tmp = Fru()
-        tmp.load_bin("tests/opalkelly_default.bin")
+        tmp.load_bin("tests/cern.bin")
+        tmp.save_yaml("cern.yml")
+
+        tmp1 = Fru()
+        tmp1.load_yaml("cern.yml")
+        tmp1.save_bin("cern2.bin")
