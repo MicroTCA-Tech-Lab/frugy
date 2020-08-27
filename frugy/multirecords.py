@@ -130,38 +130,26 @@ class DCOutput(MultirecordEntry):
     def __init__(self, initdict=None):
         super().__init__(_multirecord_types_lookup_rev[self.__class__.__name__], [
             ('output_information', FixedField('u1u3u4')),
-            ('nominal_voltage', FixedField('u16')),     # 10mV
-            ('max_neg_voltage', FixedField('u16')),     # 10mV
-            ('max_pos_voltage', FixedField('u16')),     # 10mV
+            ('nominal_voltage', FixedField('u16', div=10)),     # 10mV
+            ('max_neg_voltage', FixedField('u16', div=10)),     # 10mV
+            ('max_pos_voltage', FixedField('u16', div=10)),     # 10mV
             ('max_noise_pk2pk', FixedField('u16')),     # mV
             ('min_current_draw', FixedField('u16')),    # mA
             ('max_current_draw', FixedField('u16')),    # mA
         ], initdict)
-
-        self.div_values = {
-            ('nominal_voltage', 10),  # mV to 10mV
-            ('max_neg_voltage', 10),  # mV to 10mV
-            ('max_pos_voltage', 10),  # mV to 10mV
-        }
 
 
 class DCLoad(MultirecordEntry):
     def __init__(self, initdict=None):
         super().__init__(_multirecord_types_lookup_rev[self.__class__.__name__], [
             ('voltage_required', FixedField('u4u4')),
-            ('nominal_voltage', FixedField('u16')),     # 10mV
-            ('min_voltage', FixedField('u16')),         # 10mV
-            ('max_voltage', FixedField('u16')),         # 10mV
+            ('nominal_voltage', FixedField('u16', div=10)),     # 10mV
+            ('min_voltage', FixedField('u16', div=10)),         # 10mV
+            ('max_voltage', FixedField('u16', div=10)),         # 10mV
             ('max_noise_pk2pk', FixedField('u16')),     # mV
             ('min_current_load', FixedField('u16')),    # mA
             ('max_current_load', FixedField('u16')),    # mA
         ], initdict)
-
-        self.div_values = {
-            ('nominal_voltage', 10),  # mV to 10mV
-            ('min_voltage', 10),      # mV to 10mV
-            ('max_voltage', 10),      # mV to 10mV
-        }
 
     def _set_voltage_required(self, value):
         self._set('voltage_required', (0, value))
@@ -210,14 +198,8 @@ class PicmgEntry(MultirecordEntry):
 class ModuleCurrentRequirements(PicmgEntry):
     def __init__(self, initdict=None):
         super().__init__(_picmg_types_lookup_rev[self.__class__.__name__], [
-            ('current_draw', FixedField('u8', value=0))
+            ('current_draw', FixedField('u8', value=0, div=0.1))
         ], initdict)
-
-    def _set_current_draw(self, value):
-        self._set('current_draw', int(value * 10.0))
-
-    def _get_current_draw(self):
-        return float(self._get('current_draw') / 10.0)
 
 
 _fmc_types_lookup = {
@@ -241,7 +223,6 @@ class FmcEntry(MultirecordEntry):
     
     @classmethod
     def from_payload(cls, payload):
-        print(payload)
         fmc_id, payload = payload[:len(cls._fmc_identifier)], payload[len(cls._fmc_identifier):]
         rec_id, payload = payload[:1], payload[1:]
         if fmc_id != cls._fmc_identifier:
@@ -250,9 +231,7 @@ class FmcEntry(MultirecordEntry):
         try:
             cls_inst = globals()[_fmc_types_lookup[rec_id]]()
         except KeyError:
-            print(_fmc_types_lookup[rec_id])
             raise RuntimeError(f"Unknown FMC entry 0x{rec_id:02x}")
-        print(payload)
         cls_inst._deserialize(payload)
         return cls_inst
 

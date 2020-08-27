@@ -19,9 +19,10 @@ def _grouper(n, iterable, padvalue=None):
 class FixedField():
     ''' Fixed length field for numbers & bitfields '''
 
-    def __init__(self, format: str, value=None):
+    def __init__(self, format: str, value=None, div=None):
         self.format = format
         self.value = value
+        self.div = div
 
     def size(self) -> int:
         numBits = bitstruct.calcsize(self.format)
@@ -33,7 +34,10 @@ class FixedField():
         if type(self.value) is tuple:
             return bitstruct.pack(self.format + '<', *self.value)
         else:
-            return bitstruct.pack(self.format + '<', self.value)
+            tmp = self.value
+            if self.div is not None:
+                tmp = int(tmp / self.div)
+            return bitstruct.pack(self.format + '<', tmp)
 
     def deserialize(self, input: bytearray) -> bytearray:
         n = self.size()
@@ -42,7 +46,10 @@ class FixedField():
         if len(result) > 1:
             self.value = result
         else:
-            self.value = result[0]
+            tmp = result[0]
+            if self.div is not None:
+                tmp = (float(tmp) if self.div < 1 else tmp) * self.div
+            self.value = tmp
         return remainder
 
 
@@ -169,9 +176,6 @@ class FruAreaBase:
         fname = f'_get_{key}'
         if hasattr(self, fname):
             return getattr(self, fname)()
-        elif hasattr(self, 'div_values') and key in self.div_values:
-            # use div accessor
-            return self._get_div(self, key, self.div_values[key])
         else:
             # use generic accessor
             return self._get(key)
@@ -181,9 +185,6 @@ class FruAreaBase:
         fname = f'_set_{key}'
         if hasattr(self, fname):
             getattr(self, fname)(value)
-        elif hasattr(self, 'div_values') and key in self.div_values:
-            # use div accessor
-            self._set_div(self, key, value, self.div_values[key])
         else:
             # use generic accessor
             self._set(key, value)
