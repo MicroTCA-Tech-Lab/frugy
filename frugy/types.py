@@ -169,6 +169,9 @@ class FruAreaBase:
         fname = f'_get_{key}'
         if hasattr(self, fname):
             return getattr(self, fname)()
+        elif hasattr(self, 'div_values') and key in self.div_values:
+            # use div accessor
+            return self._get_div(self, key, self.div_values[key])
         else:
             # use generic accessor
             return self._get(key)
@@ -178,6 +181,9 @@ class FruAreaBase:
         fname = f'_set_{key}'
         if hasattr(self, fname):
             getattr(self, fname)(value)
+        elif hasattr(self, 'div_values') and key in self.div_values:
+            # use div accessor
+            self._set_div(self, key, value, self.div_values[key])
         else:
             # use generic accessor
             self._set(key, value)
@@ -207,6 +213,14 @@ class FruAreaBase:
     def _set(self, key, value):
         self._dict[key].value = value if type(value) is not list \
                                 else tuple(value)
+
+    # Fixed point integer helpers
+
+    def _set_div(self, key, value, div):
+        self._set(key, int(value / div))
+    
+    def _get_div(self, key, div):
+        return float(self._get(key)) * div
 
     # (de)serializing
 
