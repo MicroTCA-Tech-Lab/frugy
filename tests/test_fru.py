@@ -4,8 +4,19 @@ from frugy.fru import Fru
 
 
 class TestFru(unittest.TestCase):
+    def fru_test_from_dict(self, initdict, test_name):
+        fru = Fru(initdict)
+        fru.save_bin(f"{test_name}.bin")
+        fru.save_yaml(f"{test_name}.yml")
+        tmp1 = Fru()
+        tmp1.load_bin(f"{test_name}.bin")
+        self.assertEqual(fru.to_dict(), tmp1.to_dict())
+        tmp2 = Fru()
+        tmp2.load_yaml(f"{test_name}.yml")
+        self.assertEqual(fru.to_dict(), tmp2.to_dict())
+    
     def test_damc_mmc_breakout(self):
-        initdict = {
+        self.fru_test_from_dict({
             'BoardInfo': {
                 'board_manufacturer': 'DESY',
                 'board_product_name': 'DAMC-MMC-Breakout',
@@ -22,19 +33,10 @@ class TestFru(unittest.TestCase):
                 'asset_tag': 'none',
                 'fru_file_id': 'none',
             }
-        }
-        fru = Fru(initdict)
-        fru.save_bin("mmc_breakout.bin")
-        fru.save_yaml("mmc_breakout.yml")
-        tmp1 = Fru()
-        tmp1.load_bin("mmc_breakout.bin")
-        self.assertEqual(fru.to_dict(), tmp1.to_dict())
-        tmp2 = Fru()
-        tmp2.load_yaml("mmc_breakout.yml")
-        self.assertEqual(fru.to_dict(), tmp2.to_dict())
+        }, 'dmmc-breakout')
 
     def test_dmmc_stamp(self):
-        initdict = {
+        self.fru_test_from_dict({
             'BoardInfo': {
                 'board_manufacturer': 'DESY',
                 'board_product_name': 'DMMC-STAMP Rev.A',
@@ -56,13 +58,4 @@ class TestFru(unittest.TestCase):
                     'current_draw': 6.5
                 }
             }
-        }
-        fru = Fru(initdict)
-        fru.save_bin("dmmc-stamp.bin")
-        fru.save_yaml("dmmc-stamp.yml")
-        tmp1 = Fru()
-        tmp1.load_bin("dmmc-stamp.bin")
-        self.assertEqual(fru.to_dict(), tmp1.to_dict())
-        tmp2 = Fru()
-        tmp2.load_yaml("dmmc-stamp.yml")
-        self.assertEqual(fru.to_dict(), tmp2.to_dict())
+        }, 'dmmc-stamp')
