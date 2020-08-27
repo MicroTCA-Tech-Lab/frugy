@@ -325,33 +325,3 @@ class FruAreaDelimited(FruAreaVersioned):
         remainder = self._area_length.deserialize(remainder)
         remainder = self._deserialize(remainder)
         return self._verify_epilogue(input, len(input) - len(remainder))
-
-
-class MultirecordEntry(FruAreaBase):
-    def __init__(self, type_id: int, schema, initdict=None, format_version=2):
-        self.type_id = type_id
-        self.end_of_list = 0
-        self.format_version = format_version
-        super().__init__(schema, initdict=initdict)
-
-    def size_payload(self):
-        # Add header size
-        return super().size_payload() + 5 + len(self._payload_prologue())
-    
-    def _payload_prologue(self):
-        # data prepended before actual payload by subclasses
-        return b''
-
-    def serialize(self):
-        payload = self._payload_prologue() + super().serialize()
-        payload_cksum = (-sum(payload)) & 0xff
-        header = bitstruct.pack("u8u1u3u4u8u8",
-                                self.type_id,
-                                self.end_of_list,
-                                0,
-                                self.format_version,
-                                len(payload),
-                                payload_cksum)
-        header_cksum = (-sum(header)) & 0xff
-        header += header_cksum.to_bytes(length=1, byteorder='little')
-        return header + payload
