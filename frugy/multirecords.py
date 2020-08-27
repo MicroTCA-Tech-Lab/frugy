@@ -51,7 +51,7 @@ _multirecord_types_lookup = {
     0x01: 'DCOutput',
     0x02: 'DCLoad',
     0xc0: 'PicmgEntry',
-    0xc0: 'PicmgEntry'
+    0xfa: 'FmcEntry',
 }
 
 _multirecord_types_lookup_rev = {
@@ -213,3 +213,53 @@ class ModuleCurrentRequirements(PicmgEntry):
 
     def _get_current_draw(self):
         return float(self._get('current_draw') / 10.0)
+
+
+_fmc_types_lookup = {
+    0x00: 'FmcMainDefinition'
+}
+
+_fmc_types_lookup_rev = {
+    v: k for k, v in _fmc_types_lookup.items()
+}
+
+class FmcEntry(MultirecordEntry):
+    _fmc_identifier = b'\xa2\x12\x00'
+
+    def __init__(self, record_id, schema, initdict=None, format_version=2):
+        self.record_id = record_id
+        super().__init__(_multirecord_types_lookup_rev['FmcEntry'],
+                         schema, initdict=initdict, format_version=format_version)
+    
+    def _payload_prologue(self):
+        return self._fmc_identifier + self.record_id.to_bytes(length=1, byteorder='little')
+    
+    @classmethod
+    def from_payload(cls, payload):
+        print(payload)
+        fmc_id, payload = payload[:len(cls._fmc_identifier)], payload[len(cls._fmc_identifier):]
+        rec_id, payload = payload[:1], payload[1:]
+        if fmc_id != cls._fmc_identifier:
+            print(f"FMC identifier mismatch: expected {cls._fmc_identifier}, received {fmc_id}")
+        rec_id = int.from_bytes(rec_id, byteorder='little')
+        try:
+            cls_inst = globals()[_fmc_types_lookup[rec_id]]()
+        except KeyError:
+            print(_fmc_types_lookup[rec_id])
+            raise RuntimeError(f"Unknown FMC entry 0x{rec_id:02x}")
+        print(payload)
+        cls_inst._deserialize(payload)
+        return cls_inst
+
+
+class FmcMainDefinition(FmcEntry):
+    def __init__(self, initdict=None):
+        super().__init__(_fmc_types_lookup_rev[self.__class__.__name__], [
+            ('sizes_clockdir', FixedField('u2u2u2u1u1')),
+            ('p1_a_num_signals', FixedField('u8')),
+            ('p1_b_num_signals', FixedField('u8')),
+            ('p2_a_num_signals', FixedField('u8')),
+            ('p2_b_num_signals', FixedField('u8')),
+            ('gbt_num_trcv', FixedField('u4u4')),
+            ('tck_max_clock', FixedField('u8'))
+        ], initdict)
