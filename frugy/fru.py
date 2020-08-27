@@ -67,7 +67,7 @@ class Fru:
 
     def load_yaml(self, fname):
         with open(fname, 'r') as infile:
-            fru_dict = yaml.load(infile)
+            fru_dict = yaml.safe_load(infile)
         self.update(fru_dict)
     
     def save_yaml(self, fname):
