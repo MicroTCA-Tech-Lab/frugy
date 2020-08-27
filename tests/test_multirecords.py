@@ -12,9 +12,9 @@ class TestPicmg(unittest.TestCase):
 
 class TestMultirecord(unittest.TestCase):
     def test_multi(self):
-        mr = MultirecordArea({
-            'ModuleCurrentRequirements': {
+        mr = MultirecordArea([{
+                'type': 'ModuleCurrentRequirements',
                 'current_draw': 7.5
             }
-        })
+        ])
         self.assertEqual(mr.serialize(), b'\xc0\x82\x06\x14\xa4Z1\x00\x16\x00K')

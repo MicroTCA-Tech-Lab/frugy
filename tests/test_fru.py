@@ -53,11 +53,12 @@ class TestFru(unittest.TestCase):
                 'asset_tag': 'none',
                 'fru_file_id': 'none',
             },
-            'MultirecordArea': {
-                'ModuleCurrentRequirements': {
+            'MultirecordArea': [
+                {
+                    'type': 'ModuleCurrentRequirements',
                     'current_draw': 6.5
                 }
-            }
+            ]
         }, 'dmmc-stamp')
 
     def test_opalkelly(self):

@@ -4,31 +4,29 @@ import bitstruct
 
 class MultirecordArea:
     def __init__(self, initdict=None):
-        self.records = {}
+        self.records = []
         if initdict is not None:
             self.update(initdict)
     
     def update(self, initdict):
-        self.records = {}
-        for k, v in initdict.items():
+        self.records = []
+        for v in initdict:
             try:
-                constructor = globals()[k]
+                constructor = globals()[v['type']]
             except KeyError:
-                raise RuntimeError(f"Unknown multirecord entry {k}")
-            self.records[k] = constructor(v)
+                raise RuntimeError(f"Unknown multirecord entry {v['type']}")
+            self.records.append(constructor(v))
     
     def __repr__(self):
         return self.to_dict().__repr__()
 
     def to_dict(self):
-        return {k: v.to_dict() for k, v in self.records.items()}
+        return [v.to_dict() for v in self.records]
     
     def serialize(self):
         result = b''
-        rec = list(self.records.keys())
-        for i, k in enumerate(rec):
-            v = self.records[k]
-            v.end_of_list = 1 if i == len(rec)-1 else 0
+        for i, v in enumerate(self.records):
+            v.end_of_list = 1 if i == len(self.records)-1 else 0
             result += v.serialize()
         return result
     
@@ -36,15 +34,14 @@ class MultirecordArea:
         remainder = input
         while len(remainder):
             new_entry, remainder = MultirecordEntry.deserialize(remainder)
-            self.records[new_entry.__class__.__name__] = new_entry
-            print(new_entry)
+            self.records.append(new_entry)
             if new_entry.end_of_list:
                 break
 
         return remainder
 
     def size_total(self):
-        return sum([v.size_total() for v in self.records.values()])
+        return sum([v.size_total() for v in self.records])
 
 
 _multirecord_types_lookup = {
@@ -65,6 +62,8 @@ class MultirecordEntry(FruAreaBase):
         self.type_id = type_id
         self.end_of_list = 0
         self.format_version = format_version
+        if initdict is not None:
+            initdict.pop('type', None)  # for MultirecordEntry, type is used for type identification, not for the fields
         super().__init__(schema, initdict=initdict)
 
     def size_payload(self):
@@ -74,6 +73,12 @@ class MultirecordEntry(FruAreaBase):
     def _payload_prologue(self):
         # data prepended before actual payload by subclasses
         return b''
+
+    def to_dict(self):
+        # save type identification
+        result = {'type': self.__class__.__name__}
+        result.update(super().to_dict())
+        return result
 
     def serialize(self):
         payload = self._payload_prologue() + super().serialize()
