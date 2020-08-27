@@ -54,7 +54,11 @@ class MultirecordEntry(FruAreaBase):
         if (sum(payload) + payload_cksum) & 0xff != 0:
             raise RuntimeError("MultirecordEntry payload checksum invalid")
 
-        cls_id = globals()[_multirecord_types_lookup[type_id]]
+        try:
+            cls_id = globals()[_multirecord_types_lookup[type_id]]
+        except KeyError:
+            raise RuntimeError(f"Unknown multirecord type {type_id}")
+
         new_entry = cls_id.from_payload(payload)
         new_entry.type_id = type_id
         new_entry.format_version = format_version
@@ -72,7 +76,10 @@ class MultirecordArea:
     def update(self, initdict):
         self.records = {}
         for k, v in initdict.items():
-            constructor = globals()[k]
+            try:
+                constructor = globals()[k]
+            except KeyError:
+                raise RuntimeError(f"Unknown multirecord entry {k}")
             self.records[k] = constructor(v)
     
     def __repr__(self):
@@ -133,7 +140,10 @@ class PicmgEntry(MultirecordEntry):
         if zero_byte != b'\x00':
             raise RuntimeError("PICMG zero byte not found")
         rec_id = int.from_bytes(rec_id, byteorder='little')
-        cls_inst = globals()[_picmg_types_lookup[rec_id]]()
+        try:
+            cls_inst = globals()[_picmg_types_lookup[rec_id]]()
+        except KeyError:
+            raise RuntimeError(f"Unknown PICMG entry {rec_id}")
         cls_inst._deserialize(payload)
         return cls_inst
 
