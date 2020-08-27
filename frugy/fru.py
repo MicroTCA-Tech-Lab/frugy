@@ -72,7 +72,7 @@ class Fru:
     
     def save_yaml(self, fname):
         with open(fname, 'w') as outfile:
-            yaml.dump(self.to_dict(), outfile, default_flow_style=False)
+            yaml.dump(self.to_dict(), outfile, default_flow_style=False, sort_keys=False)
 
     def load_bin(self, fname):
         with open(fname, 'rb') as infile:
