@@ -1,7 +1,56 @@
 from frugy.types import FruAreaBase, FixedField
 import bitstruct
 
+
+class MultirecordArea:
+    def __init__(self, initdict=None):
+        self.records = {}
+        if initdict is not None:
+            self.update(initdict)
+    
+    def update(self, initdict):
+        self.records = {}
+        for k, v in initdict.items():
+            try:
+                constructor = globals()[k]
+            except KeyError:
+                raise RuntimeError(f"Unknown multirecord entry {k}")
+            self.records[k] = constructor(v)
+    
+    def __repr__(self):
+        return self.to_dict().__repr__()
+
+    def to_dict(self):
+        return {k: v.to_dict() for k, v in self.records.items()}
+    
+    def serialize(self):
+        result = b''
+        rec = list(self.records.keys())
+        for i, k in enumerate(rec):
+            v = self.records[k]
+            v.end_of_list = 1 if i == len(rec)-1 else 0
+            result += v.serialize()
+        return result
+    
+    def deserialize(self, input):
+        remainder = input
+        while len(remainder):
+            new_entry, remainder = MultirecordEntry.deserialize(remainder)
+            self.records[new_entry.__class__.__name__] = new_entry
+            print(new_entry)
+            if new_entry.end_of_list:
+                break
+
+        return remainder
+
+    def size_total(self):
+        return sum([v.size_total() for v in self.records.values()])
+
+
 _multirecord_types_lookup = {
+    0x01: 'DCOutput',
+    0x02: 'DCLoad',
+    0xc0: 'PicmgEntry',
     0xc0: 'PicmgEntry'
 }
 
@@ -57,58 +106,63 @@ class MultirecordEntry(FruAreaBase):
         try:
             cls_id = globals()[_multirecord_types_lookup[type_id]]
         except KeyError:
-            raise RuntimeError(f"Unknown multirecord type {type_id}")
+            raise RuntimeError(f"Unknown multirecord type 0x{type_id:02x}")
 
-        new_entry = cls_id.from_payload(payload)
+        if hasattr(cls_id, 'from_payload'):
+            new_entry = cls_id.from_payload(payload)
+        else:
+            new_entry = cls_id()
+            new_entry._deserialize(payload)
+
         new_entry.type_id = type_id
         new_entry.format_version = format_version
         new_entry.end_of_list = end_of_list
-        
+
         return new_entry, remainder
 
 
-class MultirecordArea:
+class DCOutput(MultirecordEntry):
     def __init__(self, initdict=None):
-        self.records = {}
-        if initdict is not None:
-            self.update(initdict)
-    
-    def update(self, initdict):
-        self.records = {}
-        for k, v in initdict.items():
-            try:
-                constructor = globals()[k]
-            except KeyError:
-                raise RuntimeError(f"Unknown multirecord entry {k}")
-            self.records[k] = constructor(v)
-    
-    def __repr__(self):
-        return self.to_dict().__repr__()
+        super().__init__(_multirecord_types_lookup_rev[self.__class__.__name__], [
+            ('output_information', FixedField('u1u3u4')),
+            ('nominal_voltage', FixedField('u16')),     # 10mV
+            ('max_neg_voltage', FixedField('u16')),     # 10mV
+            ('max_pos_voltage', FixedField('u16')),     # 10mV
+            ('max_noise_pk2pk', FixedField('u16')),     # mV
+            ('min_current_draw', FixedField('u16')),    # mA
+            ('max_current_draw', FixedField('u16')),    # mA
+        ], initdict)
 
-    def to_dict(self):
-        return {k: v.to_dict() for k, v in self.records.items()}
-    
-    def serialize(self):
-        result = b''
-        rec = list(self.records.keys())
-        for i, k in enumerate(rec):
-            v = self.records[k]
-            v.end_of_list = 1 if i == len(rec)-1 else 0
-            result += v.serialize()
-        return result
-    
-    def deserialize(self, input):
-        remainder = input
-        while len(remainder):            
-            new_entry, remainder = MultirecordEntry.deserialize(input)
-            self.records[new_entry.__class__.__name__] = new_entry
-            if new_entry.end_of_list:
-                break
+        self.div_values = {
+            ('nominal_voltage', 10),  # mV to 10mV
+            ('max_neg_voltage', 10),  # mV to 10mV
+            ('max_pos_voltage', 10),  # mV to 10mV
+        }
 
-        return remainder
 
-    def size_total(self):
-        return sum([v.size_total() for v in self.records.values()])
+class DCLoad(MultirecordEntry):
+    def __init__(self, initdict=None):
+        super().__init__(_multirecord_types_lookup_rev[self.__class__.__name__], [
+            ('voltage_required', FixedField('u4u4')),
+            ('nominal_voltage', FixedField('u16')),     # 10mV
+            ('min_voltage', FixedField('u16')),         # 10mV
+            ('max_voltage', FixedField('u16')),         # 10mV
+            ('max_noise_pk2pk', FixedField('u16')),     # mV
+            ('min_current_load', FixedField('u16')),    # mA
+            ('max_current_load', FixedField('u16')),    # mA
+        ], initdict)
+
+        self.div_values = {
+            ('nominal_voltage', 10),  # mV to 10mV
+            ('min_voltage', 10),      # mV to 10mV
+            ('max_voltage', 10),      # mV to 10mV
+        }
+
+    def _set_voltage_required(self, value):
+        self._set('voltage_required', (0, value))
+
+    def _get_voltage_required(self):
+        return self._get('voltage_required')[1]
 
 
 _picmg_types_lookup = {
@@ -136,14 +190,14 @@ class PicmgEntry(MultirecordEntry):
         rec_id, payload = payload[:1], payload[1:]
         zero_byte, payload = payload[:1], payload[1:]
         if picmg_id != cls._picmg_identifier:
-            raise RuntimeError("PICMG identifier not found")
+            raise RuntimeError(f"PICMG identifier mismatch: expected {cls._picmg_identifier}, received {picmg_id}")
         if zero_byte != b'\x00':
             raise RuntimeError("PICMG zero byte not found")
         rec_id = int.from_bytes(rec_id, byteorder='little')
         try:
             cls_inst = globals()[_picmg_types_lookup[rec_id]]()
         except KeyError:
-            raise RuntimeError(f"Unknown PICMG entry {rec_id}")
+            raise RuntimeError(f"Unknown PICMG entry 0x{rec_id:02x}")
         cls_inst._deserialize(payload)
         return cls_inst
 
