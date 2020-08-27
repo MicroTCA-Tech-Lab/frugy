@@ -59,3 +59,7 @@ class TestFru(unittest.TestCase):
                 }
             }
         }, 'dmmc-stamp')
+
+    def test_opalkelly(self):
+        tmp = Fru()
+        tmp.load_bin("tests/opalkelly_default.bin")
