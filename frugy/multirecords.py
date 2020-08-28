@@ -129,7 +129,9 @@ class MultirecordEntry(FruAreaBase):
 class DCOutput(MultirecordEntry):
     def __init__(self, initdict=None):
         super().__init__(_multirecord_types_lookup_rev[self.__class__.__name__], [
-            ('output_information', FixedField('u1u3u4')),
+            ('output_inf1', FixedField('u1')),
+            ('output_inf2', FixedField('u3')),
+            ('output_inf3', FixedField('u4')),
             ('nominal_voltage', FixedField('u16', div=10)),     # 10mV
             ('max_neg_voltage', FixedField('u16', div=10)),     # 10mV
             ('max_pos_voltage', FixedField('u16', div=10)),     # 10mV
@@ -142,7 +144,8 @@ class DCOutput(MultirecordEntry):
 class DCLoad(MultirecordEntry):
     def __init__(self, initdict=None):
         super().__init__(_multirecord_types_lookup_rev[self.__class__.__name__], [
-            ('voltage_required', FixedField('u4u4')),
+            ('voltage_required1', FixedField('u4')),
+            ('voltage_required2', FixedField('u4')),
             ('nominal_voltage', FixedField('u16', div=10)),     # 10mV
             ('min_voltage', FixedField('u16', div=10)),         # 10mV
             ('max_voltage', FixedField('u16', div=10)),         # 10mV
@@ -150,12 +153,6 @@ class DCLoad(MultirecordEntry):
             ('min_current_load', FixedField('u16')),    # mA
             ('max_current_load', FixedField('u16')),    # mA
         ], initdict)
-
-    def _set_voltage_required(self, value):
-        self._set('voltage_required', (0, value))
-
-    def _get_voltage_required(self):
-        return self._get('voltage_required')[1]
 
 
 _picmg_types_lookup = {
@@ -239,11 +236,16 @@ class FmcEntry(MultirecordEntry):
 class FmcMainDefinition(FmcEntry):
     def __init__(self, initdict=None):
         super().__init__(_fmc_types_lookup_rev[self.__class__.__name__], [
-            ('sizes_clockdir', FixedField('u2u2u2u1u1')),
+            ('sizes_clockdir1', FixedField('u2')),
+            ('sizes_clockdir2', FixedField('u2')),
+            ('sizes_clockdir3', FixedField('u2')),
+            ('sizes_clockdir4', FixedField('u1')),
+            ('sizes_clockdir5', FixedField('u1')),
             ('p1_a_num_signals', FixedField('u8')),
             ('p1_b_num_signals', FixedField('u8')),
             ('p2_a_num_signals', FixedField('u8')),
             ('p2_b_num_signals', FixedField('u8')),
-            ('gbt_num_trcv', FixedField('u4u4')),
+            ('gbt_num_trcv1', FixedField('u4')),
+            ('gbt_num_trcv2', FixedField('u4')),
             ('tck_max_clock', FixedField('u8'))
         ], initdict)

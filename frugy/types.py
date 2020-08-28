@@ -24,33 +24,22 @@ class FixedField():
         self.value = value
         self.div = div
 
-    def size(self) -> int:
-        numBits = bitstruct.calcsize(self.format)
-        if numBits % 8 != 0:
-            raise RuntimeError("Bitfield not aligned to bytes")
-        return numBits // 8
+    def bit_fmt(self) -> str:
+        return self.format
 
-    def serialize(self) -> bytearray:
-        if type(self.value) is tuple:
-            return bitstruct.pack(self.format + '<', *self.value)
-        else:
-            tmp = self.value
-            if self.div is not None:
-                tmp = int(tmp / self.div)
-            return bitstruct.pack(self.format + '<', tmp)
+    def bit_size(self) -> int:
+        return bitstruct.calcsize(self.format)
 
-    def deserialize(self, input: bytearray) -> bytearray:
-        n = self.size()
-        tmp, remainder = input[:n], input[n:]
-        result = bitstruct.unpack(self.format + '<', tmp)
-        if len(result) > 1:
-            self.value = result
-        else:
-            tmp = result[0]
-            if self.div is not None:
-                tmp = (float(tmp) if self.div < 1 else tmp) * self.div
-            self.value = tmp
-        return remainder
+    def to_serialized(self):
+        tmp = self.value
+        if self.div is not None:
+            tmp = int(tmp / self.div)
+        return tmp
+
+    def from_serialized(self, value):
+        if self.div is not None:
+            value = (float(value) if self.div < 1 else value) * self.div
+        self.value = value
 
 
 class StringFmt(Enum):
@@ -73,7 +62,7 @@ class StringField():
     }
     bcdplus_lookup_rev = {v: k for k, v in bcdplus_lookup.items()}
 
-    def size(self) -> int:
+    def bit_size(self) -> int:
         def size_plain(val: str) -> int:
             return len(val)
 
@@ -91,7 +80,7 @@ class StringField():
             StringFmt.ASCII_6BIT: size_6bit,
             StringFmt.ASCII_8BIT: size_plain
         }[self.format]
-        return size_fn(self.value) + 1
+        return (size_fn(self.value) + 1) * 8
 
     def serialize(self) -> bytearray:
         def ser_plain(val: str) -> bytearray:
@@ -205,15 +194,10 @@ class FruAreaBase:
     # accessors
 
     def _get(self, key):
-        v = self._dict[key].value
-        if type(v) is tuple:
-            return list(v)
-        else:
-            return v
+        return self._dict[key].value
 
     def _set(self, key, value):
-        self._dict[key].value = value if type(value) is not list \
-                                else tuple(value)
+        self._dict[key].value = value
 
     # Fixed point integer helpers
 
@@ -226,18 +210,63 @@ class FruAreaBase:
     # (de)serializing
 
     def size_payload(self) -> int:
-        return sum([v.size() for v in self._dict.values()])
+        return sum([v.bit_size() for v in self._dict.values()]) // 8
 
     def size_total(self) -> int:
         return self.size_payload()
 
+    def _serialize(self) -> bytearray:
+        result = b''
+        bit_fmt = ''
+        bit_values = []
+
+        def serialize_bitfield():
+            nonlocal bit_fmt, bit_values
+            bits = bitstruct.pack(bit_fmt + '<', *bit_values)
+            bit_fmt = ''
+            bit_values = []
+            return bits
+
+        for v in self._dict.values():
+            if hasattr(v, 'bit_fmt'):
+                bit_fmt += v.bit_fmt()
+                bit_values.append(v.to_serialized())
+            else:
+                # before any other type is serialized, serialize bitfield first
+                result += serialize_bitfield()
+                result += v.serialize()
+        # finish serializing bitfield, if anything is left
+        result += serialize_bitfield()
+        return result
+
     def serialize(self) -> bytearray:
-        return b''.join([v.serialize() for v in self._dict.values()])
+        return self._serialize()
 
     def _deserialize(self, input: bytearray):
         remainder = input
+        bit_fmt = ''
+        bit_fields = []
+
+        def deserialize_bitfield():
+            nonlocal bit_fmt, bit_fields, remainder
+            bit_length = bitstruct.calcsize(bit_fmt) // 8
+            bit_data, remainder = remainder[:bit_length], remainder[bit_length:]
+            values = bitstruct.unpack(bit_fmt + '<', bit_data)
+            for f, v in zip(bit_fields, values):
+                f.from_serialized(v)
+            bit_fmt = ''
+            bit_fields = []
+
         for v in self._dict.values():
-            remainder = v.deserialize(remainder)
+            if hasattr(v, 'bit_fmt'):
+                bit_fmt += v.bit_fmt()
+                bit_fields.append(v)
+            else:
+                # before any other type is deserialized, deserialize bitfield first
+                deserialize_bitfield()
+                remainder = v.deserialize(remainder)
+        # finish serializing bitfield, if anything is left
+        deserialize_bitfield()
         return remainder
 
     def deserialize(self, input: bytearray):
@@ -264,7 +293,7 @@ class FruAreaChecksummed(FruAreaBase):
 
     def serialize(self) -> bytearray:
         payload = self._prologue()
-        payload += b''.join([v.serialize() for v in self._dict.values()])
+        payload += self._serialize()
         return payload + self._epilogue(payload)
 
     def _verify_epilogue(self, input: bytearray, offs: int) -> bytearray:
@@ -283,26 +312,26 @@ class FruAreaVersioned(FruAreaChecksummed):
     ''' FRU area featuring a version field '''
 
     def __init__(self, schema, initdict=None):
-        self._format_version = FixedField('u4u4', value=(0, _format_version_default))
+        self._format_version = _format_version_default
         super().__init__(schema, initdict=initdict)
 
     def _set_format_version(self, val):
-        self._format_version.value = (0, val)
+        self._format_version = val
 
     def _get_format_version(self):
-        return self._format_version.value[1]
+        return self._format_version
 
     def _prologue(self) -> bytearray:
         ''' return data to prepend (format version) '''
-        return super()._prologue() + self._format_version.serialize()
+        return super()._prologue() + self._format_version.to_bytes(1, 'little')
 
     def size_payload(self) -> int:
         # add one byte for format version
         return super().size_payload() + 1
 
     def deserialize(self, input: bytearray):
-        remainder = self._format_version.deserialize(input)
-        remainder = self._deserialize(remainder)
+        self._format_version = int.from_bytes(input[0:1], 'little')
+        remainder = self._deserialize(input[1:])
         return self._verify_epilogue(input, len(input) - len(remainder))
 
 
@@ -311,16 +340,15 @@ class FruAreaDelimited(FruAreaVersioned):
     _delimiter_code = b'\xc1'
 
     def __init__(self, schema, initdict=None):
-        self._area_length = FixedField('u8')
         super().__init__(schema, initdict=initdict)
 
     def _set_area_length(self, val):
         if (val % 8) != 0:
             raise ValueError(f'area length {val} not 64-bit aligned')
-        self._area_length.value = val // 8
+        self._area_length = val // 8
 
     def _get_area_length(self):
-        return self._area_length.value * 8
+        return self._area_length * 8
 
     def size_payload(self) -> int:
         # add one byte for size field and one for delimiter
@@ -329,14 +357,14 @@ class FruAreaDelimited(FruAreaVersioned):
     def _prologue(self) -> bytearray:
         ''' return data to prepend (size field) '''
         self._set_area_length(self.size_total())
-        return super()._prologue() + self._area_length.serialize()
+        return super()._prologue() + self._area_length.to_bytes(1, 'little')
 
     def _epilogue(self, payload: bytearray) -> bytearray:
         ''' append delimiter and let superclass handle the rest '''
         return self._delimiter_code + super()._epilogue(payload + self._delimiter_code)
 
     def deserialize(self, input: bytearray):
-        remainder = self._format_version.deserialize(input)
-        remainder = self._area_length.deserialize(remainder)
-        remainder = self._deserialize(remainder)
+        self._format_version = int.from_bytes(input[0:1], 'little')
+        self._area_length = int.from_bytes(input[1:2], 'little')
+        remainder = self._deserialize(input[2:])
         return self._verify_epilogue(input, len(input) - len(remainder))

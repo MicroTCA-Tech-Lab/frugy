@@ -3,7 +3,17 @@
 import unittest
 from datetime import datetime
 from frugy.areas import CommonHeader, ChassisInfo, BoardInfo, ProductInfo
+from frugy.types import FruAreaBase, FixedField
 
+
+class foo(FruAreaBase):
+    def __init__(self, initdict=None):
+        super().__init__([
+            ('first2', FixedField('u2', value=0)),
+            ('second2', FixedField('u2', value=0)),
+            ('then4', FixedField('u4', value=0)),
+            ('lastone', FixedField('u8', value=0)),
+        ], initdict)
 
 class TestAreas(unittest.TestCase):
     def do_test_area(self, cls, src_dict, ser_vfy, sz):
@@ -62,6 +72,20 @@ class TestAreas(unittest.TestCase):
         b = b'\x01\x07\x00\xc4DESY\xccTest Product\xc5P1234\xc4V9.0\xc7SN98765\xc7Unknown\xc3N/A\xc1\x00\x00\x8e'
         self.do_test_area(ProductInfo, a, b, 56)
 
+    def test_bitfield(self):
+        f = foo({
+            'first2': 2,
+            'second2': 1,
+            'then4': 5,
+            'lastone': 7,
+        })
+        v = f.serialize()
+        self.assertEqual(v, b'\x95\x07')
+        v += b'remainder'
+        e = foo()
+        v = e.deserialize(v)
+        self.assertEqual(v, b'remainder')
+        self.assertEqual(e.to_dict(), {'first2': 2, 'second2': 1, 'then4': 5, 'lastone': 7})
 
 if __name__ == '__main__':
     unittest.main()
