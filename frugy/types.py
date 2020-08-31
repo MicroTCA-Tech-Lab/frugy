@@ -240,8 +240,9 @@ class ArrayField():
 class FruAreaBase:
     ''' Common base class for FRU areas '''
 
-    def __init__(self, schema, initdict=None):
+    def __init__(self, schema, initdict=None, mergeBitfield=None):
         self._dict = OrderedDict(schema)
+        self._mergeBitfield = mergeBitfield
         if initdict is not None:
             self.update(initdict)
 
@@ -310,7 +311,12 @@ class FruAreaBase:
 
         def serialize_bitfield():
             nonlocal bit_fmt, bit_values
-            bits = bitstruct.pack(bit_fmt + '<', *bit_values)
+            if bit_fmt == '':
+                return b''
+            if not self._mergeBitfield:
+                bits = bitstruct.pack(bit_fmt + '<', *bit_values)
+            else:
+                bits = bitstruct.pack(bit_fmt, *bit_values)[::-1]
             bit_fmt = ''
             bit_values = []
             return bits
@@ -337,9 +343,14 @@ class FruAreaBase:
 
         def deserialize_bitfield():
             nonlocal bit_fmt, bit_fields, remainder
+            if bit_fmt == '':
+                return
             bit_length = bitstruct.calcsize(bit_fmt) // 8
             bit_data, remainder = remainder[:bit_length], remainder[bit_length:]
-            values = bitstruct.unpack(bit_fmt + '<', bit_data)
+            if not self._mergeBitfield:
+                values = bitstruct.unpack(bit_fmt + '<', bit_data)
+            else:
+                values = bitstruct.unpack(bit_fmt, bit_data[::-1])
             for f, v in zip(bit_fields, values):
                 f.from_serialized(v)
             bit_fmt = ''
