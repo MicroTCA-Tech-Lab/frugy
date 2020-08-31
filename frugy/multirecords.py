@@ -3,6 +3,8 @@ import bitstruct
 
 
 class MultirecordArea:
+    ''' This is just a daisy-chain of MultirecordEntry objects '''
+
     def __init__(self, initdict=None):
         self.records = []
         if initdict is not None:
@@ -45,9 +47,13 @@ class MultirecordArea:
 
 
 _multirecord_types_lookup = {
+    # Standard IPMI multirecord entries
     0x01: 'DCOutput',
     0x02: 'DCLoad',
+    # 'OEM' (non-standard) multirecord entries
+    # PICMG Advanced Mezzanine Card AMC.0 Specification R2.0
     0xc0: 'PicmgEntry',
+    # ANSI/VITA 57.1 FPGA Mezzanine Card (FMC) Standard
     0xfa: 'FmcEntry',
 }
 
@@ -56,6 +62,8 @@ _multirecord_types_lookup_rev = {
 }
 
 class MultirecordEntry(FruAreaBase):
+    ''' Platform Management FRU Information Storage Definition, Table 16-1 '''
+
     _multirecord_header_fmt = 'u8u1u3u4u8u8'
 
     def __init__(self, type_id: int, schema, initdict=None, format_version=2):
@@ -127,11 +135,13 @@ class MultirecordEntry(FruAreaBase):
 
 
 class DCOutput(MultirecordEntry):
+    ''' Platform Management FRU Information Storage Definition, Table 18-2 '''
+
     def __init__(self, initdict=None):
         super().__init__(_multirecord_types_lookup_rev[self.__class__.__name__], [
-            ('output_inf1', FixedField('u1')),
-            ('output_inf2', FixedField('u3')),
-            ('output_inf3', FixedField('u4')),
+            ('standby_enable', FixedField('u1')),
+            ('_reserved', FixedField('u3', value=0)),
+            ('output_number', FixedField('u4')),
             ('nominal_voltage', FixedField('u16', div=10)),     # 10mV
             ('max_neg_voltage', FixedField('u16', div=10)),     # 10mV
             ('max_pos_voltage', FixedField('u16', div=10)),     # 10mV
@@ -142,10 +152,12 @@ class DCOutput(MultirecordEntry):
 
 
 class DCLoad(MultirecordEntry):
+    ''' Platform Management FRU Information Storage Definition, Table 18-4 '''
+
     def __init__(self, initdict=None):
         super().__init__(_multirecord_types_lookup_rev[self.__class__.__name__], [
-            ('voltage_required1', FixedField('u4')),
-            ('voltage_required2', FixedField('u4')),
+            ('_reserved', FixedField('u4', value=0)),
+            ('output_number', FixedField('u4')),
             ('nominal_voltage', FixedField('u16', div=10)),     # 10mV
             ('min_voltage', FixedField('u16', div=10)),         # 10mV
             ('max_voltage', FixedField('u16', div=10)),         # 10mV
@@ -164,6 +176,9 @@ _picmg_types_lookup_rev = {
 }
 
 class PicmgEntry(MultirecordEntry):
+    ''' PICMG Advanced Mezzanine Card AMC.0 Specification R2.0 '''
+    ''' This stuff is shared between all instances of PICMG OEM multirecord entries '''
+
     _picmg_identifier = b'\x5a\x31\x00'
 
     def __init__(self, record_id, schema, initdict=None, format_version=2):
@@ -193,6 +208,8 @@ class PicmgEntry(MultirecordEntry):
 
 
 class ModuleCurrentRequirements(PicmgEntry):
+    ''' PICMG AMC.0 Specification R2.0, Module Current Requirements record, Table 3-10 '''
+
     def __init__(self, initdict=None):
         super().__init__(_picmg_types_lookup_rev[self.__class__.__name__], [
             ('current_draw', FixedField('u8', value=0, div=0.1))
@@ -208,6 +225,8 @@ _fmc_types_lookup_rev = {
 }
 
 class FmcEntry(MultirecordEntry):
+    ''' This stuff is shared between all instances of ANSI/VITA FMC OEM multirecord entries '''
+
     _fmc_identifier = b'\xa2\x12\x00'
 
     def __init__(self, record_id, schema, initdict=None, format_version=2):
@@ -234,18 +253,20 @@ class FmcEntry(MultirecordEntry):
 
 
 class FmcMainDefinition(FmcEntry):
+    ''' ANSI/VITA 57.1 FMC Standard, Table 7. Subtype 0: Base Definition (fixed length and mandatory) '''
+
     def __init__(self, initdict=None):
         super().__init__(_fmc_types_lookup_rev[self.__class__.__name__], [
-            ('sizes_clockdir1', FixedField('u2')),
-            ('sizes_clockdir2', FixedField('u2')),
-            ('sizes_clockdir3', FixedField('u2')),
-            ('sizes_clockdir4', FixedField('u1')),
-            ('sizes_clockdir5', FixedField('u1')),
+            ('module_size', FixedField('u2')),
+            ('p1_connector_size', FixedField('u2')),
+            ('p2_connector_size', FixedField('u2')),
+            ('clock_direction', FixedField('u1')),
+            ('_reserved', FixedField('u1', value=0)),
             ('p1_a_num_signals', FixedField('u8')),
             ('p1_b_num_signals', FixedField('u8')),
             ('p2_a_num_signals', FixedField('u8')),
             ('p2_b_num_signals', FixedField('u8')),
-            ('gbt_num_trcv1', FixedField('u4')),
-            ('gbt_num_trcv2', FixedField('u4')),
+            ('p1_gbt_num_trcv', FixedField('u4')),
+            ('p2_gbt_num_trcv', FixedField('u4')),
             ('tck_max_clock', FixedField('u8'))
         ], initdict)
