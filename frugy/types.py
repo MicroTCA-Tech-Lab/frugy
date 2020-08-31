@@ -189,6 +189,53 @@ class GuidField():
         self._value = uuid.UUID(value)
 
 
+class ArrayField():
+    ''' Field containing an array of instances of another record '''
+
+    def __init__(self, cls, initdict=None):
+        self._cls = cls
+        self._records = []
+        if initdict is not None:
+            self.update(initdict)
+
+    def update(self, initdict):
+        self._records = []
+        for v in initdict:
+            self._records.append(self._cls(v))
+    
+    def __repr__(self):
+        return self.to_dict().__repr__()
+
+    def to_dict(self):
+        return [v.to_dict() for v in self._records]
+    
+    def serialize(self):
+        result = b''
+        for f in self._records:
+            result += f.serialize()
+        return result
+    
+    def deserialize(self, input, num_elems = None):
+        remainder = input
+        while len(remainder):
+            record = self._cls()
+            remainder = record.deserialize(remainder)
+            self._records.append(record)
+            if num_elems is not None:
+                num_elems -= 1
+                if num_elems == 0:
+                    break
+
+        return remainder
+
+    def size_total(self):
+        return sum([v.size_total() for v in self._records])
+
+
+    def num_elems(self):
+        return len(self._records)
+
+
 class FruAreaBase:
     ''' Common base class for FRU areas '''
 

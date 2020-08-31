@@ -33,6 +33,7 @@ class MultirecordArea:
         return result
     
     def deserialize(self, input):
+        self.records = []
         remainder = input
         while len(remainder):
             new_entry, remainder = MultirecordEntry.deserialize(remainder)
