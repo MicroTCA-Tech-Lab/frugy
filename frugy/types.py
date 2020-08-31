@@ -21,26 +21,32 @@ class FixedField():
     ''' Fixed length field for numbers & bitfields '''
 
     def __init__(self, format: str, value=None, div=None):
-        self.format = format
-        self.value = value
-        self.div = div
+        self._format = format
+        self._value = value
+        self._div = div
 
     def bit_fmt(self) -> str:
-        return self.format
+        return self._format
 
     def bit_size(self) -> int:
-        return bitstruct.calcsize(self.format)
+        return bitstruct.calcsize(self._format)
 
     def to_serialized(self):
-        tmp = self.value
-        if self.div is not None:
-            tmp = int(tmp / self.div)
+        tmp = self._value
+        if self._div is not None:
+            tmp = int(tmp / self._div)
         return tmp
 
     def from_serialized(self, value):
-        if self.div is not None:
-            value = (float(value) if self.div < 1 else value) * self.div
-        self.value = value
+        if self._div is not None:
+            value = (float(value) if self._div < 1 else value) * self._div
+        self._value = value
+
+    def get(self):
+        return self._value
+    
+    def set(self, value):
+        self._value = value
 
 
 class StringFmt(Enum):
@@ -54,8 +60,8 @@ class StringField():
     ''' Variable length field for strings'''
 
     def __init__(self, value='', format: StringFmt=StringFmt.ASCII_8BIT):
-        self.format = format
-        self.value = value
+        self._format = format
+        self._value = value
 
     bcdplus_lookup = {
         '0': 0, '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7,
@@ -80,8 +86,8 @@ class StringField():
             StringFmt.BCD_PLUS: size_bcd_plus,
             StringFmt.ASCII_6BIT: size_6bit,
             StringFmt.ASCII_8BIT: size_plain
-        }[self.format]
-        return (size_fn(self.value) + 1) * 8
+        }[self._format]
+        return (size_fn(self._value) + 1) * 8
 
     def serialize(self) -> bytearray:
         def ser_plain(val: str) -> bytearray:
@@ -104,15 +110,15 @@ class StringField():
             return result
 
         def ser_type_length(val: str) -> int:
-            return bitstruct.pack('u2u6', self.format.value, len(val))
+            return bitstruct.pack('u2u6', self._format.value, len(val))
 
         ser_fn = {
             StringFmt.BIN: ser_plain,
             StringFmt.BCD_PLUS: ser_bcd_plus,
             StringFmt.ASCII_6BIT: ser_6bit,
             StringFmt.ASCII_8BIT: ser_plain
-        }[self.format]
-        result = ser_fn(self.value)
+        }[self._format]
+        result = ser_fn(self._value)
         return ser_type_length(result) + result
 
     def deserialize(self, input: bytearray) -> bytearray:
@@ -136,7 +142,7 @@ class StringField():
             return result
 
         fmt_int, payload_len = bitstruct.unpack('u2u6', input[0:1])
-        self.format = StringFmt(fmt_int)
+        self._format = StringFmt(fmt_int)
         remainder = input[1:]
         payload, remainder = remainder[:payload_len], remainder[payload_len:]
 
@@ -145,10 +151,16 @@ class StringField():
             StringFmt.BCD_PLUS: deser_bcd_plus,
             StringFmt.ASCII_6BIT: deser_6bit,
             StringFmt.ASCII_8BIT: deser_plain
-        }[self.format]
-        self.value = deser_fn(payload)
+        }[self._format]
+        self._value = deser_fn(payload)
 
         return remainder
+
+    def get(self):
+        return self._value
+    
+    def set(self, value):
+        self._value = value
 
 
 class GuidField():
@@ -157,18 +169,25 @@ class GuidField():
     _uuid_len = 16
 
     def __init__(self, value=None):
-        self.value = value if value is not None else str(uuid.uuid4())
-    
+        self._value = uuid.UUID(value) if value is not None else uuid.uuid4()
+
     def bit_size(self) -> int:
         return GuidField._uuid_len * 8
 
     def serialize(self) -> bytearray:
-        return uuid.UUID(self.value).bytes_le
+        return self._value.bytes_le
 
     def deserialize(self, input: bytearray) -> bytearray:
         payload, remainder = input[:GuidField._uuid_len], input[GuidField._uuid_len:]
-        self.value = str(uuid.UUID(bytes_le=payload))
+        self._value = uuid.UUID(bytes_le=payload)
         return remainder
+
+    def get(self):
+        return str(self._value)
+    
+    def set(self, value):
+        self._value = uuid.UUID(value)
+
 
 class FruAreaBase:
     ''' Common base class for FRU areas '''
@@ -215,10 +234,10 @@ class FruAreaBase:
     # accessors
 
     def _get(self, key):
-        return self._dict[key].value
+        return self._dict[key].get()
 
     def _set(self, key, value):
-        self._dict[key].value = value
+        self._dict[key].set(value)
 
     # Fixed point integer helpers
 

@@ -13,7 +13,7 @@ class TestString(unittest.TestCase):
         ser += b'remainder'
         tmp = StringField()
         self.assertEqual(tmp.deserialize(ser), b'remainder')
-        self.assertEqual(tmp.value, '')
+        self.assertEqual(tmp.get(), '')
 
     def test_plain(self):
         testStr = 'Hello world'
@@ -24,8 +24,7 @@ class TestString(unittest.TestCase):
         ser += b'remainder'
         tmp2 = StringField()
         self.assertEqual(tmp2.deserialize(ser), b'remainder')
-        self.assertEqual(tmp2.format, StringFmt.ASCII_8BIT)
-        self.assertEqual(tmp2.value, testStr)
+        self.assertEqual(tmp2.get(), testStr)
 
     def test_bcd_plus(self):
         testStr = '123.45-67 890'
@@ -36,8 +35,7 @@ class TestString(unittest.TestCase):
         ser += b'remainder'
         tmp2 = StringField()
         self.assertEqual(tmp2.deserialize(ser), b'remainder')
-        self.assertEqual(tmp2.format, StringFmt.BCD_PLUS)
-        self.assertEqual(tmp2.value, testStr + ' ')  # append padding space
+        self.assertEqual(tmp2.get(), testStr + ' ')  # append padding space
 
     def test_ascii_6bit(self):
         testStr = 'IPMI Hello world'
@@ -49,8 +47,7 @@ class TestString(unittest.TestCase):
         ser += b'remainder'
         tmp2 = StringField()
         self.assertEqual(tmp2.deserialize(ser), b'remainder')
-        self.assertEqual(tmp2.format, StringFmt.ASCII_6BIT)
-        self.assertEqual(tmp2.value, 'IPMI HELLO WORLD')
+        self.assertEqual(tmp2.get(), 'IPMI HELLO WORLD')
 
     def test_uuid(self):
         testUid = 'cafebabe-1234-5678-d00f-deadbeef4711'
@@ -61,7 +58,7 @@ class TestString(unittest.TestCase):
         ser += b'remainder'
         tmp2 = GuidField()
         self.assertEqual(tmp2.deserialize(ser), b'remainder')
-        self.assertEqual(tmp2.value, testUid)
+        self.assertEqual(tmp2.get(), testUid)
 
 if __name__ == '__main__':
     unittest.main()
