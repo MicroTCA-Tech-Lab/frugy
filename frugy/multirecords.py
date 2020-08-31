@@ -1,4 +1,4 @@
-from frugy.types import FruAreaBase, FixedField
+from frugy.types import FruAreaBase, FixedField, GuidField, ArrayField
 import bitstruct
 
 
@@ -199,7 +199,8 @@ _multirecord_types_lookup_rev = {
 
 
 _picmg_types_lookup = {
-    0x16: 'ModuleCurrentRequirements'
+    0x16: 'ModuleCurrentRequirements',
+    0x19: 'PointToPointConnectivity'
 }
 
 _picmg_types_lookup_rev = {
@@ -258,6 +259,57 @@ class ModuleCurrentRequirements(PicmgEntry):
         super().__init__(_picmg_types_lookup_rev[self.__class__.__name__], [
             ('current_draw', FixedField('u8', value=0, div=0.1))
         ], initdict)
+
+
+# Array entry classes for PointToPointConnectivity
+
+class AmcChannelDescriptor(FruAreaBase):
+    ''' PICMG AMC.0 Specification R2.0, AMC Channel Descriptor, Table 3-17 '''
+
+    def __init__(self, initdict=None):
+        super().__init__([
+            ('_reserved', FixedField('u4', value=0b1111)),
+            ('lane3_port', FixedField('u5', value=0b11111)),
+            ('lane2_port', FixedField('u5', value=0b11111)),
+            ('lane1_port', FixedField('u5', value=0b11111)),
+            ('lane0_port', FixedField('u5', value=0b11111)),
+        ], initdict)
+
+
+class AmcLinkDescriptor(FruAreaBase):
+    ''' PICMG AMC.0 Specification R2.0, AMC Link Descriptor, Table 3-19 '''
+
+    def __init__(self, initdict=None):
+        super().__init__([
+            ('_reserved', FixedField('u6', value=0b111111)),
+            ('asymm_match', FixedField('u2')),
+            ('grouping_id', FixedField('u8')),
+            ('link_type_ext', FixedField('u4')),
+            ('link_type', FixedField('u8')),
+            ('link_designator', FixedField('u12')),            
+        ], initdict)
+
+
+class PointToPointConnectivity(PicmgEntry):
+    ''' PICMG AMC.0 Specification R2.0, AdvancedMC Point-to-Point Connectivity record, Table 3-16 '''
+
+    def __init__(self, initdict=None):
+        super().__init__(_picmg_types_lookup_rev[self.__class__.__name__], [
+            ('_guid_count', FixedField('u8', value=0)),
+            ('guids', ArrayField(GuidField, num_elems_getter=lambda: self['_guid_count'])),
+            ('amc_module_flag', FixedField('u1')),
+            ('_reserved', FixedField('u3', value=0)),
+            ('conn_dev_id', FixedField('u4', value=0)),
+            ('_channel_desc_count', FixedField('u8', value=0)),
+            ('channel_descriptors', ArrayField(AmcChannelDescriptor, num_elems_getter=lambda:self['_channel_desc_count'])),
+            ('link_descriptors', ArrayField(AmcLinkDescriptor)),
+        ], initdict)
+    
+    def serialize(self):
+        self['_guid_count'] = self._dict['guids'].num_elems()
+        self['_channel_desc_count'] = self._dict['channel_descriptors'].num_elems()
+        return super().serialize()
+
 
 # FMC multirecords
 

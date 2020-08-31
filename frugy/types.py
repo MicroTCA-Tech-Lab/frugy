@@ -192,9 +192,10 @@ class GuidField():
 class ArrayField():
     ''' Field containing an array of instances of another record '''
 
-    def __init__(self, cls, initdict=None):
+    def __init__(self, cls, initdict=None, num_elems_getter = None):
         self._cls = cls
         self._records = []
+        self.num_elems_getter = num_elems_getter if num_elems_getter is not None else lambda: None
         if initdict is not None:
             self.update(initdict)
 
@@ -215,8 +216,9 @@ class ArrayField():
             result += f.serialize()
         return result
     
-    def deserialize(self, input, num_elems = None):
+    def deserialize(self, input):
         remainder = input
+        num_elems = self.num_elems_getter()
         while len(remainder):
             record = self._cls()
             remainder = record.deserialize(remainder)
@@ -230,7 +232,6 @@ class ArrayField():
 
     def size_total(self):
         return sum([v.size_total() for v in self._records])
-
 
     def num_elems(self):
         return len(self._records)
