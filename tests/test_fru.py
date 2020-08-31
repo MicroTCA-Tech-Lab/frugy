@@ -71,3 +71,9 @@ class TestFru(unittest.TestCase):
         tmp1 = Fru()
         tmp1.load_yaml("cern.yml")
         tmp1.save_bin("cern2.bin")
+
+    def test_damc_zup(self):
+        tmp = Fru()
+        tmp.load_bin("tests/fru_damc-fmc2zup.bin")
+        print(tmp)
+        tmp.save_yaml("damc-fmc2zup.yml")
