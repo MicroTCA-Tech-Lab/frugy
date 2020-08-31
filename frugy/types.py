@@ -189,7 +189,8 @@ class FruAreaBase:
             self[k] = v
 
     def to_dict(self):
-        return {k: self[k] for k in self._dict.keys()}
+        # Fields starting with _ are ignored by convention (reserved values).
+        return {k: self[k] for k in self._dict.keys() if not k.startswith('_')}
 
     # accessors
 
