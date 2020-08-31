@@ -13,7 +13,7 @@ class TestString(unittest.TestCase):
         ser += b'remainder'
         tmp = StringField()
         self.assertEqual(tmp.deserialize(ser), b'remainder')
-        self.assertEqual(tmp.get(), '')
+        self.assertEqual(tmp.to_dict(), '')
 
     def test_plain(self):
         testStr = 'Hello world'
@@ -24,7 +24,7 @@ class TestString(unittest.TestCase):
         ser += b'remainder'
         tmp2 = StringField()
         self.assertEqual(tmp2.deserialize(ser), b'remainder')
-        self.assertEqual(tmp2.get(), testStr)
+        self.assertEqual(tmp2.to_dict(), testStr)
 
     def test_bcd_plus(self):
         testStr = '123.45-67 890'
@@ -35,7 +35,7 @@ class TestString(unittest.TestCase):
         ser += b'remainder'
         tmp2 = StringField()
         self.assertEqual(tmp2.deserialize(ser), b'remainder')
-        self.assertEqual(tmp2.get(), testStr + ' ')  # append padding space
+        self.assertEqual(tmp2.to_dict(), testStr + ' ')  # append padding space
 
     def test_ascii_6bit(self):
         testStr = 'IPMI Hello world'
@@ -47,7 +47,7 @@ class TestString(unittest.TestCase):
         ser += b'remainder'
         tmp2 = StringField()
         self.assertEqual(tmp2.deserialize(ser), b'remainder')
-        self.assertEqual(tmp2.get(), 'IPMI HELLO WORLD')
+        self.assertEqual(tmp2.to_dict(), 'IPMI HELLO WORLD')
 
 
 class ArrayTest(FruAreaBase):
@@ -69,7 +69,7 @@ class TestMisc(unittest.TestCase):
         ser += b'remainder'
         tmp2 = GuidField()
         self.assertEqual(tmp2.deserialize(ser), b'remainder')
-        self.assertEqual(tmp2.get(), testUid)
+        self.assertEqual(tmp2.to_dict(), testUid)
 
     def test_array(self):
         tmp = ArrayField(ArrayTest, [

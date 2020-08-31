@@ -42,10 +42,10 @@ class FixedField():
             value = (float(value) if self._div < 1 else value) * self._div
         self._value = value
 
-    def get(self):
+    def to_dict(self):
         return self._value
     
-    def set(self, value):
+    def update(self, value):
         self._value = value
 
 
@@ -156,10 +156,10 @@ class StringField():
 
         return remainder
 
-    def get(self):
+    def to_dict(self):
         return self._value
     
-    def set(self, value):
+    def update(self, value):
         self._value = value
 
 
@@ -182,10 +182,10 @@ class GuidField():
         self._value = uuid.UUID(bytes_le=payload)
         return remainder
 
-    def get(self):
+    def to_dict(self):
         return str(self._value)
     
-    def set(self, value):
+    def update(self, value):
         self._value = uuid.UUID(value)
 
 
@@ -281,10 +281,10 @@ class FruAreaBase:
     # accessors
 
     def _get(self, key):
-        return self._dict[key].get()
+        return self._dict[key].to_dict()
 
     def _set(self, key, value):
-        self._dict[key].set(value)
+        self._dict[key].update(value)
 
     # Fixed point integer helpers
 
