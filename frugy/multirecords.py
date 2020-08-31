@@ -266,18 +266,30 @@ class ModuleCurrentRequirements(PicmgEntry):
 class AmcChannelDescriptor(FruAreaBase):
     ''' PICMG AMC.0 Specification R2.0, AMC Channel Descriptor, Table 3-17 '''
 
+    _lanes = [f'_lane{n}_port' for n in range(4)]
+    _lane_unused = 0b11111
+
     def __init__(self, initdict=None):
         super().__init__([
             ('_reserved', FixedField('u4', value=0b1111)),
-            ('lane3_port', FixedField('u5', value=0b11111)),
-            ('lane2_port', FixedField('u5', value=0b11111)),
-            ('lane1_port', FixedField('u5', value=0b11111)),
-            ('lane0_port', FixedField('u5', value=0b11111)),
-        ], initdict)
+            ('_lane3_port', FixedField('u5', value=AmcChannelDescriptor._lane_unused)),
+            ('_lane2_port', FixedField('u5', value=AmcChannelDescriptor._lane_unused)),
+            ('_lane1_port', FixedField('u5', value=AmcChannelDescriptor._lane_unused)),
+            ('_lane0_port', FixedField('u5', value=AmcChannelDescriptor._lane_unused)),
+        ], initdict, mergeBitfield=True)
+    
+    def to_dict(self):
+        return [self[l] for l in AmcChannelDescriptor._lanes if self[l] != AmcChannelDescriptor._lane_unused]
+    
+    def update(self, val):
+        for i, l in enumerate(AmcChannelDescriptor._lanes):
+            self[l] = val[i] if i < len(val) else AmcChannelDescriptor._lane_unused
 
 
 class AmcLinkDescriptor(FruAreaBase):
     ''' PICMG AMC.0 Specification R2.0, AMC Link Descriptor, Table 3-19 '''
+
+    _lane_flags = [f'_lane{n}_flag' for n in range(4)]
 
     def __init__(self, initdict=None):
         super().__init__([
@@ -286,8 +298,23 @@ class AmcLinkDescriptor(FruAreaBase):
             ('grouping_id', FixedField('u8')),
             ('link_type_ext', FixedField('u4')),
             ('link_type', FixedField('u8')),
-            ('link_designator', FixedField('u12')),            
-        ], initdict)
+            ('_lane3_flag', FixedField('u1')),
+            ('_lane2_flag', FixedField('u1')),
+            ('_lane1_flag', FixedField('u1')),
+            ('_lane0_flag', FixedField('u1')),
+            ('channel_id', FixedField('u8')),
+        ], initdict, mergeBitfield=True)
+
+    def to_dict(self):
+        result = super().to_dict()
+        result['lane_flags'] = [self[f] for f in self._lane_flags]
+        return result
+    
+    def update(self, val):
+        for n, f in enumerate(self._lane_flags):
+            self[f] = val['lane_flags'][n]
+        del val['lane_flags']
+        super().update(val)
 
 
 class PointToPointConnectivity(PicmgEntry):
