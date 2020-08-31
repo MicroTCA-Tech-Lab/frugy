@@ -47,21 +47,6 @@ class MultirecordArea:
         return sum([v.size_total() for v in self.records])
 
 
-_multirecord_types_lookup = {
-    # Standard IPMI multirecord entries
-    0x01: 'DCOutput',
-    0x02: 'DCLoad',
-    # 'OEM' (non-standard) multirecord entries
-    # PICMG Advanced Mezzanine Card AMC.0 Specification R2.0
-    0xc0: 'PicmgEntry',
-    # ANSI/VITA 57.1 FPGA Mezzanine Card (FMC) Standard
-    0xfa: 'FmcEntry',
-}
-
-_multirecord_types_lookup_rev = {
-    v: k for k, v in _multirecord_types_lookup.items()
-}
-
 class MultirecordEntry(FruAreaBase):
     ''' Platform Management FRU Information Storage Definition, Table 16-1 '''
 
@@ -135,6 +120,102 @@ class MultirecordEntry(FruAreaBase):
         return new_entry, remainder
 
 
+class PicmgEntry(MultirecordEntry):
+    ''' PICMG Advanced Mezzanine Card AMC.0 Specification R2.0 '''
+    ''' This stuff is shared between all instances of PICMG OEM multirecord entries '''
+
+    _picmg_identifier = b'\x5a\x31\x00'
+
+    def __init__(self, record_id, schema, initdict=None, format_version=2):
+        self.record_id = record_id
+        super().__init__(_multirecord_types_lookup_rev['PicmgEntry'],
+                         schema, initdict=initdict, format_version=format_version)
+    
+    def _payload_prologue(self):
+        return self._picmg_identifier + self.record_id.to_bytes(length=1, byteorder='little') + b'\x00'
+    
+    @classmethod
+    def from_payload(cls, payload):
+        picmg_id, payload = payload[:len(cls._picmg_identifier)], payload[len(cls._picmg_identifier):]
+        rec_id, payload = payload[:1], payload[1:]
+        zero_byte, payload = payload[:1], payload[1:]
+        if picmg_id != cls._picmg_identifier:
+            raise RuntimeError(f"PICMG identifier mismatch: expected {cls._picmg_identifier}, received {picmg_id}")
+        if zero_byte != b'\x00':
+            raise RuntimeError("PICMG zero byte not found")
+        rec_id = int.from_bytes(rec_id, byteorder='little')
+        try:
+            cls_inst = globals()[_picmg_types_lookup[rec_id]]()
+        except KeyError:
+            raise RuntimeError(f"Unknown PICMG entry 0x{rec_id:02x}")
+        cls_inst._deserialize(payload)
+        return cls_inst
+
+
+class FmcEntry(MultirecordEntry):
+    ''' This stuff is shared between all instances of ANSI/VITA FMC OEM multirecord entries '''
+
+    _fmc_identifier = b'\xa2\x12\x00'
+
+    def __init__(self, record_id, schema, initdict=None, format_version=2):
+        self.record_id = record_id
+        super().__init__(_multirecord_types_lookup_rev['FmcEntry'],
+                         schema, initdict=initdict, format_version=format_version)
+    
+    def _payload_prologue(self):
+        return self._fmc_identifier + self.record_id.to_bytes(length=1, byteorder='little')
+    
+    @classmethod
+    def from_payload(cls, payload):
+        fmc_id, payload = payload[:len(cls._fmc_identifier)], payload[len(cls._fmc_identifier):]
+        rec_id, payload = payload[:1], payload[1:]
+        if fmc_id != cls._fmc_identifier:
+            print(f"FMC identifier mismatch: expected {cls._fmc_identifier}, received {fmc_id}")
+        rec_id = int.from_bytes(rec_id, byteorder='little')
+        try:
+            cls_inst = globals()[_fmc_types_lookup[rec_id]]()
+        except KeyError:
+            raise RuntimeError(f"Unknown FMC entry 0x{rec_id:02x}")
+        cls_inst._deserialize(payload)
+        return cls_inst
+
+
+# Lookup tables for multirecords
+
+_multirecord_types_lookup = {
+    # Standard IPMI multirecord entries
+    0x01: 'DCOutput',
+    0x02: 'DCLoad',
+    # 'OEM' (non-standard) multirecord entries
+    # PICMG Advanced Mezzanine Card AMC.0 Specification R2.0
+    0xc0: 'PicmgEntry',
+    # ANSI/VITA 57.1 FPGA Mezzanine Card (FMC) Standard
+    0xfa: 'FmcEntry',
+}
+
+_multirecord_types_lookup_rev = {
+    v: k for k, v in _multirecord_types_lookup.items()
+}
+
+
+_picmg_types_lookup = {
+    0x16: 'ModuleCurrentRequirements'
+}
+
+_picmg_types_lookup_rev = {
+    v: k for k, v in _picmg_types_lookup.items()
+}
+
+_fmc_types_lookup = {
+    0x00: 'FmcMainDefinition'
+}
+
+_fmc_types_lookup_rev = {
+    v: k for k, v in _fmc_types_lookup.items()
+}
+
+# IPMI standard multirecords
+
 class DCOutput(MultirecordEntry):
     ''' Platform Management FRU Information Storage Definition, Table 18-2 '''
 
@@ -168,45 +249,7 @@ class DCLoad(MultirecordEntry):
         ], initdict)
 
 
-_picmg_types_lookup = {
-    0x16: 'ModuleCurrentRequirements'
-}
-
-_picmg_types_lookup_rev = {
-    v: k for k, v in _picmg_types_lookup.items()
-}
-
-class PicmgEntry(MultirecordEntry):
-    ''' PICMG Advanced Mezzanine Card AMC.0 Specification R2.0 '''
-    ''' This stuff is shared between all instances of PICMG OEM multirecord entries '''
-
-    _picmg_identifier = b'\x5a\x31\x00'
-
-    def __init__(self, record_id, schema, initdict=None, format_version=2):
-        self.record_id = record_id
-        super().__init__(_multirecord_types_lookup_rev['PicmgEntry'],
-                         schema, initdict=initdict, format_version=format_version)
-    
-    def _payload_prologue(self):
-        return self._picmg_identifier + self.record_id.to_bytes(length=1, byteorder='little') + b'\x00'
-    
-    @classmethod
-    def from_payload(cls, payload):
-        picmg_id, payload = payload[:len(cls._picmg_identifier)], payload[len(cls._picmg_identifier):]
-        rec_id, payload = payload[:1], payload[1:]
-        zero_byte, payload = payload[:1], payload[1:]
-        if picmg_id != cls._picmg_identifier:
-            raise RuntimeError(f"PICMG identifier mismatch: expected {cls._picmg_identifier}, received {picmg_id}")
-        if zero_byte != b'\x00':
-            raise RuntimeError("PICMG zero byte not found")
-        rec_id = int.from_bytes(rec_id, byteorder='little')
-        try:
-            cls_inst = globals()[_picmg_types_lookup[rec_id]]()
-        except KeyError:
-            raise RuntimeError(f"Unknown PICMG entry 0x{rec_id:02x}")
-        cls_inst._deserialize(payload)
-        return cls_inst
-
+# PICMG AMC.0 multirecords
 
 class ModuleCurrentRequirements(PicmgEntry):
     ''' PICMG AMC.0 Specification R2.0, Module Current Requirements record, Table 3-10 '''
@@ -216,42 +259,7 @@ class ModuleCurrentRequirements(PicmgEntry):
             ('current_draw', FixedField('u8', value=0, div=0.1))
         ], initdict)
 
-
-_fmc_types_lookup = {
-    0x00: 'FmcMainDefinition'
-}
-
-_fmc_types_lookup_rev = {
-    v: k for k, v in _fmc_types_lookup.items()
-}
-
-class FmcEntry(MultirecordEntry):
-    ''' This stuff is shared between all instances of ANSI/VITA FMC OEM multirecord entries '''
-
-    _fmc_identifier = b'\xa2\x12\x00'
-
-    def __init__(self, record_id, schema, initdict=None, format_version=2):
-        self.record_id = record_id
-        super().__init__(_multirecord_types_lookup_rev['FmcEntry'],
-                         schema, initdict=initdict, format_version=format_version)
-    
-    def _payload_prologue(self):
-        return self._fmc_identifier + self.record_id.to_bytes(length=1, byteorder='little')
-    
-    @classmethod
-    def from_payload(cls, payload):
-        fmc_id, payload = payload[:len(cls._fmc_identifier)], payload[len(cls._fmc_identifier):]
-        rec_id, payload = payload[:1], payload[1:]
-        if fmc_id != cls._fmc_identifier:
-            print(f"FMC identifier mismatch: expected {cls._fmc_identifier}, received {fmc_id}")
-        rec_id = int.from_bytes(rec_id, byteorder='little')
-        try:
-            cls_inst = globals()[_fmc_types_lookup[rec_id]]()
-        except KeyError:
-            raise RuntimeError(f"Unknown FMC entry 0x{rec_id:02x}")
-        cls_inst._deserialize(payload)
-        return cls_inst
-
+# FMC multirecords
 
 class FmcMainDefinition(FmcEntry):
     ''' ANSI/VITA 57.1 FMC Standard, Table 7. Subtype 0: Base Definition (fixed length and mandatory) '''
