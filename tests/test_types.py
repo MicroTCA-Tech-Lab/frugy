@@ -2,7 +2,7 @@
 
 import unittest
 
-from frugy.types import FixedField, StringField, StringFmt
+from frugy.types import FixedField, StringField, StringFmt, GuidField
 
 
 class TestString(unittest.TestCase):
@@ -52,6 +52,16 @@ class TestString(unittest.TestCase):
         self.assertEqual(tmp2.format, StringFmt.ASCII_6BIT)
         self.assertEqual(tmp2.value, 'IPMI HELLO WORLD')
 
+    def test_uuid(self):
+        testUid = 'cafebabe-1234-5678-d00f-deadbeef4711'
+        tmp = GuidField(testUid)
+        self.assertEqual(tmp.bit_size(), 128)
+        ser = tmp.serialize()
+        self.assertEqual(ser, b'\xbe\xba\xfe\xca4\x12xV\xd0\x0f\xde\xad\xbe\xefG\x11')
+        ser += b'remainder'
+        tmp2 = GuidField()
+        self.assertEqual(tmp2.deserialize(ser), b'remainder')
+        self.assertEqual(tmp2.value, testUid)
 
 if __name__ == '__main__':
     unittest.main()

@@ -2,6 +2,7 @@ import bitstruct
 from collections import OrderedDict
 from enum import Enum
 from itertools import zip_longest
+import uuid
 
 _format_version_default = 1
 
@@ -149,6 +150,25 @@ class StringField():
 
         return remainder
 
+
+class GuidField():
+    ''' Field containing a 128-bit GUID '''
+
+    _uuid_len = 16
+
+    def __init__(self, value=None):
+        self.value = value if value is not None else str(uuid.uuid4())
+    
+    def bit_size(self) -> int:
+        return GuidField._uuid_len * 8
+
+    def serialize(self) -> bytearray:
+        return uuid.UUID(self.value).bytes_le
+
+    def deserialize(self, input: bytearray) -> bytearray:
+        payload, remainder = input[:GuidField._uuid_len], input[GuidField._uuid_len:]
+        self.value = str(uuid.UUID(bytes_le=payload))
+        return remainder
 
 class FruAreaBase:
     ''' Common base class for FRU areas '''
