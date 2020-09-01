@@ -7,7 +7,7 @@ BoardInfo:
   fru_file_id: '2020-08-27 13:36:47.385748'
 MultirecordArea:
 - type: DCLoad
-  output_number: 2
+  output_number: P1_12P0V
   nominal_voltage: 12000
   min_voltage: 11400
   max_voltage: 12600
@@ -15,7 +15,7 @@ MultirecordArea:
   min_current_load: 0
   max_current_load: 1000
 - type: DCLoad
-  output_number: 1
+  output_number: P1_3P3V
   nominal_voltage: 3300
   min_voltage: 3130
   max_voltage: 3460
@@ -23,7 +23,7 @@ MultirecordArea:
   min_current_load: 0
   max_current_load: 3000
 - type: DCLoad
-  output_number: 0
+  output_number: P1_VADJ
   nominal_voltage: 2500
   min_voltage: 2370
   max_voltage: 2620
@@ -32,7 +32,7 @@ MultirecordArea:
   max_current_load: 4000
 - type: DCOutput
   standby_enable: 0
-  output_number: 5
+  output_number: P1_VREF_B_M2C
   nominal_voltage: 0
   max_neg_voltage: 0
   max_pos_voltage: 0
@@ -41,7 +41,7 @@ MultirecordArea:
   max_current_draw: 0
 - type: DCOutput
   standby_enable: 0
-  output_number: 4
+  output_number: P1_VREF_A_M2C
   nominal_voltage: 0
   max_neg_voltage: 0
   max_pos_voltage: 0
@@ -50,7 +50,7 @@ MultirecordArea:
   max_current_draw: 0
 - type: DCOutput
   standby_enable: 0
-  output_number: 3
+  output_number: P1_VIO_B_M2C
   nominal_voltage: 0
   max_neg_voltage: 0
   max_pos_voltage: 0

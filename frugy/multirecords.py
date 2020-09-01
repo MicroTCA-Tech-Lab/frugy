@@ -217,6 +217,17 @@ _fmc_types_lookup_rev = {
 
 # IPMI standard multirecords
 
+fmc_voltages_per_port = [
+    'VADJ',
+    '3P3V',
+    '12P0V',
+    'VIO_B_M2C',
+    'VREF_A_M2C',
+    'VREF_B_M2C'
+]
+fmc_voltages_total = [f'{p}_{v}' for p in ['P1', 'P2'] for v in fmc_voltages_per_port]
+fmc_output_constants = {name: idx for idx, name in enumerate(fmc_voltages_total)}
+
 class DCOutput(MultirecordEntry):
     ''' Platform Management FRU Information Storage Definition, Table 18-2 '''
 
@@ -224,7 +235,7 @@ class DCOutput(MultirecordEntry):
         super().__init__(_multirecord_types_lookup_rev[self.__class__.__name__], [
             ('standby_enable', FixedField('u1')),
             ('_reserved', FixedField('u3', default=0)),
-            ('output_number', FixedField('u4')),
+            ('output_number', FixedField('u4', constants=fmc_output_constants)),
             ('nominal_voltage', FixedField('u16', div=10)),     # 10mV
             ('max_neg_voltage', FixedField('u16', div=10)),     # 10mV
             ('max_pos_voltage', FixedField('u16', div=10)),     # 10mV
@@ -240,7 +251,7 @@ class DCLoad(MultirecordEntry):
     def __init__(self, initdict=None):
         super().__init__(_multirecord_types_lookup_rev[self.__class__.__name__], [
             ('_reserved', FixedField('u4', default=0)),
-            ('output_number', FixedField('u4')),
+            ('output_number', FixedField('u4', constants=fmc_output_constants)),
             ('nominal_voltage', FixedField('u16', div=10)),     # 10mV
             ('min_voltage', FixedField('u16', div=10)),         # 10mV
             ('max_voltage', FixedField('u16', div=10)),         # 10mV
