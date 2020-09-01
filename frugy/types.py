@@ -20,9 +20,10 @@ def _grouper(n, iterable, padvalue=None):
 class FixedField():
     ''' Fixed length field for numbers & bitfields '''
 
-    def __init__(self, format: str, value=None, div=None, constants=None):
+    def __init__(self, format: str, default=None, div=None, constants=None):
         self._format = format
-        self._value = value
+        self._default = default
+        self._value = default
         self._div = div
         self._constants_lookup = constants
         self._constants_lookup_rev = {v: k for k, v in constants.items()} if constants is not None else None
@@ -56,6 +57,9 @@ class FixedField():
         else:
             self._value = value
 
+    def val_not_default(self):
+        return self.to_dict() != self._default
+
 
 class StringFmt(Enum):
     BIN = 0b00
@@ -67,9 +71,10 @@ class StringFmt(Enum):
 class StringField():
     ''' Variable length field for strings'''
 
-    def __init__(self, value='', format: StringFmt=StringFmt.ASCII_8BIT):
+    def __init__(self, default='', format: StringFmt=StringFmt.ASCII_8BIT):
         self._format = format
-        self._value = value
+        self._default = default
+        self._value = default
 
     bcdplus_lookup = {
         '0': 0, '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7,
@@ -170,6 +175,9 @@ class StringField():
     def update(self, value):
         self._value = value
 
+    def val_not_default(self):
+        return self.to_dict() != self._default
+
 
 class GuidField():
     ''' Field containing a 128-bit GUID '''
@@ -244,6 +252,9 @@ class ArrayField():
     def num_elems(self):
         return len(self._records)
 
+    def val_not_default(self):
+        return self.num_elems() != 0
+
 
 class FruAreaBase:
     ''' Common base class for FRU areas '''
@@ -286,7 +297,10 @@ class FruAreaBase:
 
     def to_dict(self):
         # Fields starting with _ are ignored by convention (reserved values).
-        return {k: self[k] for k in self._dict.keys() if not k.startswith('_')}
+        return {
+            k: self[k] for k in self._dict.keys()
+            if not k.startswith('_') and self._dict[k].val_not_default()
+        }
 
     # accessors
 

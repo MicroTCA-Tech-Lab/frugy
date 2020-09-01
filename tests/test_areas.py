@@ -9,10 +9,10 @@ from frugy.types import FruAreaBase, FixedField
 class foo(FruAreaBase):
     def __init__(self, initdict=None):
         super().__init__([
-            ('first2', FixedField('u2', value=0)),
-            ('second2', FixedField('u2', value=0)),
-            ('then4', FixedField('u4', value=0)),
-            ('lastone', FixedField('u8', value=0)),
+            ('first2', FixedField('u2', default=0)),
+            ('second2', FixedField('u2', default=0)),
+            ('then4', FixedField('u4', default=0)),
+            ('lastone', FixedField('u8', default=0)),
         ], initdict)
 
 class TestAreas(unittest.TestCase):

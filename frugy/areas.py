@@ -6,11 +6,11 @@ _language_code = 0  # Use English and UTF-8 as default encoding
 class CommonHeader(FruAreaVersioned):
     def __init__(self, initdict=None):
         super().__init__([
-        ('internal_use_offs', FixedField('u8', value=0)),
-        ('chassis_info_offs', FixedField('u8', value=0)),
-        ('board_info_offs', FixedField('u8', value=0)),
-        ('product_info_offs', FixedField('u8', value=0)),
-        ('multirecord_offs', FixedField('u8', value=0)),
+        ('internal_use_offs', FixedField('u8', default=0)),
+        ('chassis_info_offs', FixedField('u8', default=0)),
+        ('board_info_offs', FixedField('u8', default=0)),
+        ('product_info_offs', FixedField('u8', default=0)),
+        ('multirecord_offs', FixedField('u8', default=0)),
         ], initdict)
 
     def __getitem__(self, key):
@@ -39,8 +39,8 @@ class ChassisInfo(FruAreaDelimited):
 class BoardInfo(FruAreaDelimited):
     def __init__(self, initdict=None):
         super().__init__([
-        ('language_code', FixedField('u8', value=_language_code)),
-        ('mfg_date_time', FixedField('u24', value=0)),
+        ('language_code', FixedField('u8', default=_language_code)),
+        ('mfg_date_time', FixedField('u24', default=0)),
         ('board_manufacturer', StringField()),
         ('board_product_name', StringField()),
         ('board_serial_number', StringField()),
@@ -70,7 +70,7 @@ class BoardInfo(FruAreaDelimited):
 class ProductInfo(FruAreaDelimited):
     def __init__(self, initdict=None):
         super().__init__([
-        ('language_code', FixedField('u8', value=_language_code)),
+        ('language_code', FixedField('u8', default=_language_code)),
         ('manufacturer_name', StringField()),
         ('product_name', StringField()),
         ('product_part_number', StringField()),

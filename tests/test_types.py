@@ -53,10 +53,10 @@ class TestString(unittest.TestCase):
 class ArrayTest(FruAreaBase):
     def __init__(self, initdict=None):
         super().__init__((
-            ('first_byte', FixedField('u8', value=0)),
-            ('second_byte', FixedField('u8', value=0)),
-            ('bits1', FixedField('u4', value=0)),
-            ('bits2', FixedField('u4', value=0)),
+            ('first_byte', FixedField('u8', default=0)),
+            ('second_byte', FixedField('u8', default=0)),
+            ('bits1', FixedField('u4', default=0)),
+            ('bits2', FixedField('u4', default=0)),
         ), initdict)
 
 class TestMisc(unittest.TestCase):

@@ -223,7 +223,7 @@ class DCOutput(MultirecordEntry):
     def __init__(self, initdict=None):
         super().__init__(_multirecord_types_lookup_rev[self.__class__.__name__], [
             ('standby_enable', FixedField('u1')),
-            ('_reserved', FixedField('u3', value=0)),
+            ('_reserved', FixedField('u3', default=0)),
             ('output_number', FixedField('u4')),
             ('nominal_voltage', FixedField('u16', div=10)),     # 10mV
             ('max_neg_voltage', FixedField('u16', div=10)),     # 10mV
@@ -239,7 +239,7 @@ class DCLoad(MultirecordEntry):
 
     def __init__(self, initdict=None):
         super().__init__(_multirecord_types_lookup_rev[self.__class__.__name__], [
-            ('_reserved', FixedField('u4', value=0)),
+            ('_reserved', FixedField('u4', default=0)),
             ('output_number', FixedField('u4')),
             ('nominal_voltage', FixedField('u16', div=10)),     # 10mV
             ('min_voltage', FixedField('u16', div=10)),         # 10mV
@@ -257,7 +257,7 @@ class ModuleCurrentRequirements(PicmgEntry):
 
     def __init__(self, initdict=None):
         super().__init__(_picmg_types_lookup_rev[self.__class__.__name__], [
-            ('current_draw', FixedField('u8', value=0, div=0.1))
+            ('current_draw', FixedField('u8', div=0.1))
         ], initdict)
 
 
@@ -271,11 +271,11 @@ class AmcChannelDescriptor(FruAreaBase):
 
     def __init__(self, initdict=None):
         super().__init__([
-            ('_reserved', FixedField('u4', value=0b1111)),
-            ('_lane3_port', FixedField('u5', value=AmcChannelDescriptor._lane_unused)),
-            ('_lane2_port', FixedField('u5', value=AmcChannelDescriptor._lane_unused)),
-            ('_lane1_port', FixedField('u5', value=AmcChannelDescriptor._lane_unused)),
-            ('_lane0_port', FixedField('u5', value=AmcChannelDescriptor._lane_unused)),
+            ('_reserved', FixedField('u4', default=0b1111)),
+            ('_lane3_port', FixedField('u5', default=AmcChannelDescriptor._lane_unused)),
+            ('_lane2_port', FixedField('u5', default=AmcChannelDescriptor._lane_unused)),
+            ('_lane1_port', FixedField('u5', default=AmcChannelDescriptor._lane_unused)),
+            ('_lane0_port', FixedField('u5', default=AmcChannelDescriptor._lane_unused)),
         ], initdict, mergeBitfield=True)
     
     def to_dict(self):
@@ -304,7 +304,7 @@ class AmcLinkDescriptor(FruAreaBase):
             f'oem_guid_{n}': n+0xf0 for n in range(15)
         })
         super().__init__([
-            ('_reserved', FixedField('u6', value=0b111111)),
+            ('_reserved', FixedField('u6', default=0b111111)),
             ('asymm_match', FixedField('u2', constants={
                 'match_exact': 0b00,
                 'match_10b': 0b01,
@@ -337,12 +337,15 @@ class PointToPointConnectivity(PicmgEntry):
 
     def __init__(self, initdict=None):
         super().__init__(_picmg_types_lookup_rev[self.__class__.__name__], [
-            ('_guid_count', FixedField('u8', value=0)),
+            ('_guid_count', FixedField('u8', default=0)),
             ('guids', ArrayField(GuidField, num_elems_getter=lambda: self['_guid_count'])),
-            ('amc_module_flag', FixedField('u1')),
-            ('_reserved', FixedField('u3', value=0)),
-            ('conn_dev_id', FixedField('u4', value=0)),
-            ('_channel_desc_count', FixedField('u8', value=0)),
+            ('record_type', FixedField('u1', constants={
+                'amc_module': 1,
+                'on_carrier_device': 0
+            })),
+            ('_reserved', FixedField('u3', default=0)),
+            ('connected_dev_id', FixedField('u4', default=0)),
+            ('_channel_desc_count', FixedField('u8', default=0)),
             ('channel_descriptors', ArrayField(AmcChannelDescriptor, num_elems_getter=lambda:self['_channel_desc_count'])),
             ('link_descriptors', ArrayField(AmcLinkDescriptor)),
         ], initdict)
@@ -364,7 +367,7 @@ class FmcMainDefinition(FmcEntry):
             ('p1_connector_size', FixedField('u2')),
             ('p2_connector_size', FixedField('u2')),
             ('clock_direction', FixedField('u1')),
-            ('_reserved', FixedField('u1', value=0)),
+            ('_reserved', FixedField('u1', default=0)),
             ('p1_a_num_signals', FixedField('u8')),
             ('p1_b_num_signals', FixedField('u8')),
             ('p2_a_num_signals', FixedField('u8')),
