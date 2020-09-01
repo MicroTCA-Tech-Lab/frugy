@@ -78,8 +78,8 @@ class Fru:
         with open(fname, 'r') as infile:
             fru_dict = yaml.safe_load(infile)
         self.update(fru_dict)
-    
-    def save_yaml(self, fname):
+
+    def dump_yaml(self):
         def fmt_tree(part):
             ''' Set lists at edges of tree to YAML flow style '''
             if type(part) is list:
@@ -97,9 +97,11 @@ class Fru:
 
         yaml_dict = self.to_dict()
         yaml_dict, _ = fmt_tree(yaml_dict)
+        return yaml.dump(yaml_dict, sort_keys=False)
 
+    def save_yaml(self, fname):
         with open(fname, 'w') as outfile:
-            yaml.dump(yaml_dict, outfile, sort_keys=False)
+            outfile.write(self.dump_yaml())
 
     def load_bin(self, fname):
         with open(fname, 'rb') as infile:
