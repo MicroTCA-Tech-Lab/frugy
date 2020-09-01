@@ -11,7 +11,7 @@ pip3 install git+https://msktechvcs.desy.de/techlab/tools/frugy.git
 ## Usage
 
 ```
-frugy --help
+$ frugy --help
 usage: frugy [-h] [-v] [-o OUTPUT] [-w] [-r] [-e EEPROM_SIZE] [-d] srcfile
 
 FRU Generator YAML
@@ -48,6 +48,11 @@ Generate `fmc2zup_fru_eeprom.bin` from `damc-fmc2zup.yml` configuration, make it
 frugy damc-fmc2zup.bin -r
 ```
 Read and parse FRU image `damc-fmc2zup.bin`, generate `damc-fmc2zup.yml` from it.
+
+```
+frugy dmmc-stamp.yml -s BoardInfo.board_serial_number=Rev.A -s ProductInfo.product_version=0.01-alpha
+```
+Generate `dmmc-stamp.bin`, setting `board_serial_number` to *REV_A* and `product_version` to *0.01-alpha*.
 
 ## Supported FRU records
 

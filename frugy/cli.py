@@ -1,6 +1,7 @@
 import argparse
 import os
 import sys
+import yaml
 
 from frugy.__init__ import __version__
 from frugy.fru import Fru
@@ -14,6 +15,15 @@ def writer(fname, content, bin_mode=False):
             os.write(sys.stdout.fileno(), content)
         else:
             sys.stdout.write(content)
+
+def dict_set(d, keys, item):
+    if len(keys) > 1:
+        key, rest = keys[0], keys[1:]
+        if key not in d:
+            d[key] = {}
+        dict_set(d[key], rest, item)
+    else:
+        d[keys[0]] = item
 
 def main():
     parser = argparse.ArgumentParser(
@@ -46,6 +56,11 @@ def main():
     parser.add_argument('-d', '--dump',
                         action='store_true',
                         help='dump FRU information to stdout (same as -r -o -)'
+    )
+    parser.add_argument('-s', '--set',
+                        type=str,
+                        action='append',
+                        help='set FRU record field to a value'
     )
     args = parser.parse_args()
 
@@ -84,7 +99,15 @@ def main():
         fru.load_bin(args.srcfile)
         writer(outfile, fru.dump_yaml())
     else:
-        fru.load_yaml(args.srcfile)
+        with open(args.srcfile, 'r') as infile:
+            fru_dict = yaml.safe_load(infile)
+
+        if args.set is not None:
+            for s in args.set:
+                k, v = s.split('=')
+                dict_set(fru_dict, k.split('.'), v)
+
+        fru.update(fru_dict)
         img = fru.serialize()
         if args.eeprom_size is not None:
             if len(img) <= args.eeprom_size:
