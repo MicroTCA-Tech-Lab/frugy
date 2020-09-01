@@ -363,10 +363,23 @@ class FmcMainDefinition(FmcEntry):
 
     def __init__(self, initdict=None):
         super().__init__(_fmc_types_lookup_rev[self.__class__.__name__], [
-            ('module_size', FixedField('u2')),
-            ('p1_connector_size', FixedField('u2')),
-            ('p2_connector_size', FixedField('u2')),
-            ('clock_direction', FixedField('u1')),
+            ('module_size', FixedField('u2', constants={
+                'single_width': 0b00,
+                'double_width': 0b01
+            })),
+            ('p1_connector_size', FixedField('u2', constants={
+                'lpc': 0b00,
+                'hpc': 0b01
+            })),
+            ('p2_connector_size', FixedField('u2', constants={
+                'lpc': 0b00,
+                'hpc': 0b01,
+                'not_fitted': 0b11,
+            })),
+            ('clock_direction', FixedField('u1', constants={
+                'mezzanine_to_carrier': 0b0,
+                'carrier_to_mezzanine': 0b1,
+            })),
             ('_reserved', FixedField('u1', default=0)),
             ('p1_a_num_signals', FixedField('u8')),
             ('p1_b_num_signals', FixedField('u8')),

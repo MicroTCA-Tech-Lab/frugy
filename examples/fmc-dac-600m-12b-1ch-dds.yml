@@ -58,10 +58,10 @@ MultirecordArea:
   min_current_draw: 0
   max_current_draw: 0
 - type: FmcMainDefinition
-  module_size: 0
-  p1_connector_size: 1
-  p2_connector_size: 3
-  clock_direction: 1
+  module_size: single_width
+  p1_connector_size: hpc
+  p2_connector_size: not_fitted
+  clock_direction: carrier_to_mezzanine
   p1_a_num_signals: 68
   p1_b_num_signals: 0
   p2_a_num_signals: 0
