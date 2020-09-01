@@ -75,5 +75,5 @@ class TestFru(unittest.TestCase):
     def test_damc_zup(self):
         tmp = Fru()
         tmp.load_bin("tests/fru_damc-fmc2zup.bin")
-        print(tmp)
+#        print(tmp)
         tmp.save_yaml("damc-fmc2zup.yml")

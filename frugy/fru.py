@@ -2,6 +2,15 @@ from frugy.areas import CommonHeader, ChassisInfo, BoardInfo, ProductInfo
 from frugy.multirecords import MultirecordArea
 import yaml
 
+# YAML formatting helpers
+class YamlFlowstyleList(list):
+    pass
+
+def yaml_flowstyle_list_rep(dumper, data):
+    return dumper.represent_sequence(u'tag:yaml.org,2002:seq', data, flow_style=True)
+
+yaml.add_representer(YamlFlowstyleList, yaml_flowstyle_list_rep)
+
 class Fru:
     _area_table_lookup = {
         'ChassisInfo': 'chassis_info_offs',
@@ -71,8 +80,26 @@ class Fru:
         self.update(fru_dict)
     
     def save_yaml(self, fname):
+        def fmt_tree(part):
+            ''' Set lists at edges of tree to YAML flow style '''
+            if type(part) is list:
+                part, edge_flags = zip(*[fmt_tree(elem) for elem in part])
+                part = list(part)
+                if all(edge_flags):
+                    part = YamlFlowstyleList(part)
+                return part, False
+            elif type(part) is dict:
+                part = { k: fmt_tree(part[k])[0] for k in part.keys() }
+                return part, False
+            else:
+                # no dict or list ==> reached edge of tree
+                return part, True
+
+        yaml_dict = self.to_dict()
+        yaml_dict, _ = fmt_tree(yaml_dict)
+
         with open(fname, 'w') as outfile:
-            yaml.dump(self.to_dict(), outfile, default_flow_style=False, sort_keys=False)
+            yaml.dump(yaml_dict, outfile, sort_keys=False)
 
     def load_bin(self, fname):
         with open(fname, 'rb') as infile:
