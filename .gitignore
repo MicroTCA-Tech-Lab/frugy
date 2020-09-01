@@ -3,3 +3,6 @@ __pycache__
 /*.yaml
 /*.yml
 /*.bin
+/build
+/dist
+/*.egg-info
