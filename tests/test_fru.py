@@ -89,7 +89,7 @@ class TestFru(unittest.TestCase):
             print(f'Error while converting {src_name}')
 
     def test_bin_files(self):
-        for root, _, files in os.walk('tests'):
+        for root, _, files in os.walk('tests/bin_files'):
             for name in files:
                 name_base, name_ext = os.path.splitext(name)
                 if name_ext == '.bin':
