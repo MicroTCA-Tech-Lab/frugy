@@ -6,7 +6,7 @@ from frugy import __version__
 
 readme_contents = path('./README.md').read_text()
 requirements = path('./requirements.txt').read_text().splitlines()
-packages=setuptools.find_packages(include=['frugy', 'frugy.*']),
+packages=setuptools.find_packages(include=['frugy'])
 
 setuptools.setup(
     name='frugy',
@@ -28,7 +28,7 @@ setuptools.setup(
     ],
     entry_points={
         'console_scripts': [
-            'frugy=frugy:__main__',
+            'frugy=frugy.cli:main',
         ],
     },
     python_requires='>=3.6'
