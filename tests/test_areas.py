@@ -40,9 +40,9 @@ class TestAreas(unittest.TestCase):
 
     def test_chassisinfo(self):
         a = {
-            'chassis_type': 0x05,
-            'chassis_part_number': 'Test1234',
-            'chassis_serial_number': 'SN-4711'
+            'type': 0x05,
+            'part_number': 'Test1234',
+            'serial_number': 'SN-4711'
         }
         b = b'\x01\x03\x05\xc8Test1234\xc7SN-4711\xc1\x00\x00\xa2'
         self.do_test_area(ChassisInfo, a, b, 24)
@@ -50,10 +50,10 @@ class TestAreas(unittest.TestCase):
     def test_boardinfo(self):
         a = {
             'mfg_date_time': datetime(2020, 1, 1, 12, 30, 0),
-            'board_manufacturer': 'FabLab',
-            'board_product_name': 'FooGadget',
-            'board_serial_number': '1234-rev42',
-            'board_part_number': '54750893',
+            'manufacturer': 'FabLab',
+            'product_name': 'FooGadget',
+            'serial_number': '1234-rev42',
+            'part_number': '54750893',
             'fru_file_id': 'N/A',
         }
         b = b'\x01\x07\x00\xae\x9f\xc0\xc6FabLab\xc9FooGadget\xca1234-rev42\xc854750893\xc3N/A\xc1\x00\x00\x00\x00\x00\x00\x00\xad'
@@ -61,11 +61,11 @@ class TestAreas(unittest.TestCase):
 
     def test_productinfo(self):
         a = {
-            'manufacturer_name': 'DESY',
+            'manufacturer': 'DESY',
             'product_name': 'Test Product',
-            'product_part_number': 'P1234',
-            'product_version': 'V9.0',
-            'product_serial_number': 'SN98765',
+            'part_number': 'P1234',
+            'version': 'V9.0',
+            'serial_number': 'SN98765',
             'asset_tag': 'Unknown',
             'fru_file_id': 'N/A',
         }

@@ -1,14 +1,14 @@
 BoardInfo:
-  board_manufacturer: DESY
-  board_product_name: DAMC-MMC-Breakout
-  board_serial_number: '0000'
-  board_part_number: '0000'
+  manufacturer: DESY
+  product_name: DAMC-MMC-Breakout
+  serial_number: '0000'
+  part_number: '0000'
   fru_file_id: none
 ProductInfo:
-  manufacturer_name: DESY
+  manufacturer: DESY
   product_name: DAMC-MMC-Breakout
-  product_part_number: '0000'
-  product_version: '0000'
-  product_serial_number: '0000'
+  part_number: '0000'
+  version: '0000'
+  serial_number: '0000'
   asset_tag: none
   fru_file_id: none

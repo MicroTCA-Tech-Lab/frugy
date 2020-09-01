@@ -29,9 +29,9 @@ class CommonHeader(FruAreaVersioned):
 class ChassisInfo(FruAreaDelimited):
     def __init__(self, initdict=None):
         super().__init__([
-        ('chassis_type', FixedField('u8')),
-        ('chassis_part_number', StringField()),
-        ('chassis_serial_number', StringField()),
+        ('type', FixedField('u8')),
+        ('part_number', StringField()),
+        ('serial_number', StringField()),
         # TODO: do we need custom chassis info fields?
         ], initdict)
 
@@ -41,10 +41,10 @@ class BoardInfo(FruAreaDelimited):
         super().__init__([
         ('language_code', FixedField('u8', default=_language_code)),
         ('mfg_date_time', FixedField('u24', default=0)),
-        ('board_manufacturer', StringField()),
-        ('board_product_name', StringField()),
-        ('board_serial_number', StringField()),
-        ('board_part_number', StringField()),
+        ('manufacturer', StringField()),
+        ('product_name', StringField()),
+        ('serial_number', StringField()),
+        ('part_number', StringField()),
         ('fru_file_id', StringField()),
         # TODO: do we need custom manufacturing info fields?
         ], initdict)
@@ -71,11 +71,11 @@ class ProductInfo(FruAreaDelimited):
     def __init__(self, initdict=None):
         super().__init__([
         ('language_code', FixedField('u8', default=_language_code)),
-        ('manufacturer_name', StringField()),
+        ('manufacturer', StringField()),
         ('product_name', StringField()),
-        ('product_part_number', StringField()),
-        ('product_version', StringField()),
-        ('product_serial_number', StringField()),
+        ('part_number', StringField()),
+        ('version', StringField()),
+        ('serial_number', StringField()),
         ('asset_tag', StringField()),
         ('fru_file_id', StringField()),
         # TODO: do we need custom manufacturing info fields?

@@ -1,9 +1,9 @@
 BoardInfo:
   mfg_date_time: 2020-08-27 13:36:00
-  board_manufacturer: fmc-example
-  board_product_name: mezzanine
-  board_serial_number: '0001'
-  board_part_number: sample-part
+  manufacturer: fmc-example
+  product_name: mezzanine
+  serial_number: '0001'
+  part_number: sample-part
   fru_file_id: '2020-08-27 13:36:47.385748'
 MultirecordArea:
 - type: DCLoad
