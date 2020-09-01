@@ -2,6 +2,7 @@ import argparse
 import os
 import sys
 import yaml
+from datetime import datetime
 
 from frugy.__init__ import __version__
 from frugy.fru import Fru
@@ -49,18 +50,22 @@ def main():
                         action='store_true',
                         help='FRU read mode (convert FRU image to YAML)'
     )
-    parser.add_argument('-e', '--eeprom-size',
-                        type=int,
-                        help='pad FRU image to match EEPROM size in bytes (only valid in write mode)'
-    )
     parser.add_argument('-d', '--dump',
                         action='store_true',
                         help='dump FRU information to stdout (same as -r -o -)'
     )
+    parser.add_argument('-e', '--eeprom-size',
+                        type=int,
+                        help='pad FRU image to match EEPROM size in bytes (only valid in write mode)'
+    )
     parser.add_argument('-s', '--set',
                         type=str,
                         action='append',
-                        help='set FRU record field to a value'
+                        help='set FRU record field to a value (only valid in write mode)'
+    )
+    parser.add_argument('-t', '--timestamp',
+                        action='store_true',
+                        help='set BoardInfo.mfg_date_time timestamp to current UTC time (only valid in write mode)'
     )
     args = parser.parse_args()
 
@@ -69,7 +74,7 @@ def main():
         parser.print_help(sys.stderr)
         sys.exit(1)
 
-    if args.eeprom_size is not None and read_mode:
+    if read_mode and (args.eeprom_size is not None or args.set or args.timestamp):
         parser.print_help(sys.stderr)
         sys.exit(1)
 
@@ -106,6 +111,13 @@ def main():
             for s in args.set:
                 k, v = s.split('=')
                 dict_set(fru_dict, k.split('.'), v)
+
+        if args.timestamp:
+            if 'BoardInfo' in fru_dict:
+                fru_dict['BoardInfo']['mfg_date_time'] = datetime.utcnow()
+            else:
+                print('Error: FRU needs BoardInfo area to carry the timestamp', file=sys.stderr)
+                sys.exit(1)
 
         fru.update(fru_dict)
         img = fru.serialize()

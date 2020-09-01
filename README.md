@@ -26,10 +26,14 @@ optional arguments:
                         output file (derived from input file if not set)
   -w, --write           FRU write mode (convert YAML to FRU image), default
   -r, --read            FRU read mode (convert FRU image to YAML)
+  -d, --dump            dump FRU information to stdout (same as -r -o -)
   -e EEPROM_SIZE, --eeprom-size EEPROM_SIZE
                         pad FRU image to match EEPROM size in bytes (only
                         valid in write mode)
-  -d, --dump            dump FRU information to stdout (same as -r -o -)
+  -s SET, --set SET     set FRU record field to a value (only valid in write
+                        mode)
+  -t, --timestamp       set BoardInfo.mfg_date_time timestamp to current UTC
+                        time (only valid in write mode)
 ```
 
 ## Examples
@@ -50,9 +54,9 @@ frugy damc-fmc2zup.bin -r
 Read and parse FRU image `damc-fmc2zup.bin`, generate `damc-fmc2zup.yml` from it.
 
 ```
-frugy dmmc-stamp.yml -s BoardInfo.board_serial_number=Rev.A -s ProductInfo.product_version=0.01-alpha
+frugy dmmc-stamp.yml -s BoardInfo.board_serial_number=Rev.A -s ProductInfo.product_version=0.01-alpha -t
 ```
-Generate `dmmc-stamp.bin`, setting `board_serial_number` to *REV_A* and `product_version` to *0.01-alpha*.
+Generate `dmmc-stamp.bin`, setting `board_serial_number` to *REV_A*, `product_version` to *0.01-alpha* and `mfg_date_time` to current UTC time.
 
 ## Supported FRU records
 
