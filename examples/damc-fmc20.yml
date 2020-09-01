@@ -1,0 +1,57 @@
+BoardInfo:
+  board_manufacturer: DESY
+  board_product_name: DAMC-FMC20
+  board_serial_number: '0000'
+  board_part_number: '0000'
+  fru_file_id: none
+ProductInfo:
+  manufacturer_name: DESY
+  product_name: DAMC-FMC20
+  product_part_number: '0000'
+  product_version: '0000'
+  product_serial_number: '0000'
+  asset_tag: none
+  fru_file_id: none
+MultirecordArea:
+- type: ModuleCurrentRequirements
+  current_draw: 6.5
+- type: PointToPointConnectivity
+  guids: [6b636f52-7465-4920-4f20-496e74666365]
+  record_type: amc_module
+  channel_descriptors:
+  - [4]
+  - [12]
+  - [13]
+  - [14]
+  - [15]
+  link_descriptors:
+  - asymm_match: match_10b
+    grouping_id: 0
+    link_type_ext: 0
+    link_type: pcie
+    channel_id: 0
+    lane_flags: [1, 0, 0, 0]
+  - asymm_match: match_exact
+    grouping_id: 0
+    link_type_ext: 0
+    link_type: oem_guid_0
+    channel_id: 1
+    lane_flags: [1, 0, 0, 0]
+  - asymm_match: match_exact
+    grouping_id: 0
+    link_type_ext: 0
+    link_type: oem_guid_0
+    channel_id: 2
+    lane_flags: [1, 0, 0, 0]
+  - asymm_match: match_exact
+    grouping_id: 0
+    link_type_ext: 0
+    link_type: oem_guid_0
+    channel_id: 3
+    lane_flags: [1, 0, 0, 0]
+  - asymm_match: match_exact
+    grouping_id: 0
+    link_type_ext: 0
+    link_type: oem_guid_0
+    channel_id: 4
+    lane_flags: [1, 0, 0, 0]

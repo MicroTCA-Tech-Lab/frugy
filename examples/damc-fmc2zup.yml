@@ -1,0 +1,110 @@
+BoardInfo:
+  board_manufacturer: DESY
+  board_product_name: DAMC-FMC2ZUP
+  board_serial_number: '0000'
+  board_part_number: '0000'
+  fru_file_id: fru_damc-fmc2zup.bin
+ProductInfo:
+  manufacturer_name: DESY
+  product_name: DAMC-FMC2ZUP
+  product_part_number: '0000'
+  product_version: '0000'
+  product_serial_number: '0000'
+  asset_tag: none
+  fru_file_id: fru_damc-fmc2zup.bin
+MultirecordArea:
+- type: ModuleCurrentRequirements
+  current_draw: 6.5
+- type: PointToPointConnectivity
+  guids: [2d776f4c-616c-6574-6e63-79206c696e6b]
+  record_type: amc_module
+  channel_descriptors:
+  - [4, 5, 6, 7]
+  - [8, 9, 10, 11]
+  - [0]
+  - [1]
+  - [2]
+  - [3]
+  - [12]
+  - [13]
+  - [14]
+  - [15]
+  link_descriptors:
+  - asymm_match: match_10b
+    grouping_id: 1
+    link_type_ext: 4
+    link_type: pcie
+    channel_id: 0
+    lane_flags: [1, 1, 1, 1]
+  - asymm_match: match_10b
+    grouping_id: 1
+    link_type_ext: 4
+    link_type: pcie
+    channel_id: 1
+    lane_flags: [1, 1, 1, 1]
+  - asymm_match: match_10b
+    grouping_id: 0
+    link_type_ext: 4
+    link_type: pcie
+    channel_id: 0
+    lane_flags: [1, 1, 1, 1]
+  - asymm_match: match_10b
+    grouping_id: 0
+    link_type_ext: 4
+    link_type: pcie
+    channel_id: 0
+    lane_flags: [1, 1, 0, 0]
+  - asymm_match: match_10b
+    grouping_id: 0
+    link_type_ext: 4
+    link_type: pcie
+    channel_id: 0
+    lane_flags: [1, 0, 0, 0]
+  - asymm_match: match_exact
+    grouping_id: 0
+    link_type_ext: 0
+    link_type: ethernet
+    channel_id: 2
+    lane_flags: [1, 0, 0, 0]
+  - asymm_match: match_exact
+    grouping_id: 0
+    link_type_ext: 0
+    link_type: ethernet
+    channel_id: 3
+    lane_flags: [1, 0, 0, 0]
+  - asymm_match: match_01b
+    grouping_id: 0
+    link_type_ext: 1
+    link_type: storage
+    channel_id: 4
+    lane_flags: [1, 0, 0, 0]
+  - asymm_match: match_01b
+    grouping_id: 0
+    link_type_ext: 1
+    link_type: storage
+    channel_id: 5
+    lane_flags: [1, 0, 0, 0]
+  - asymm_match: match_exact
+    grouping_id: 0
+    link_type_ext: 0
+    link_type: oem_guid_0
+    channel_id: 6
+    lane_flags: [1, 0, 0, 0]
+  - asymm_match: match_exact
+    grouping_id: 0
+    link_type_ext: 0
+    link_type: oem_guid_0
+    channel_id: 7
+    lane_flags: [1, 0, 0, 0]
+  - asymm_match: match_exact
+    grouping_id: 0
+    link_type_ext: 0
+    link_type: oem_guid_0
+    channel_id: 8
+    lane_flags: [1, 0, 0, 0]
+  - asymm_match: match_exact
+    grouping_id: 0
+    link_type_ext: 0
+    link_type: oem_guid_0
+    channel_id: 9
+    lane_flags: [1, 0, 0, 0]

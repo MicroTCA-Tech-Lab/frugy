@@ -170,7 +170,7 @@ class FmcEntry(MultirecordEntry):
         fmc_id, payload = payload[:len(cls._fmc_identifier)], payload[len(cls._fmc_identifier):]
         rec_id, payload = payload[:1], payload[1:]
         if fmc_id != cls._fmc_identifier:
-            print(f"FMC identifier mismatch: expected {cls._fmc_identifier}, received {fmc_id}")
+            raise RuntimeError(f"FMC identifier mismatch: expected {cls._fmc_identifier}, received {fmc_id}")
         rec_id = int.from_bytes(rec_id, byteorder='little')
         try:
             cls_inst = globals()[_fmc_types_lookup[rec_id]]()

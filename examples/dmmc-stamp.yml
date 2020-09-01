@@ -1,0 +1,17 @@
+BoardInfo:
+  board_manufacturer: DESY
+  board_product_name: DMMC-STAMP Rev.A
+  board_serial_number: '0000'
+  board_part_number: '0000'
+  fru_file_id: none
+ProductInfo:
+  manufacturer_name: DESY
+  product_name: DMMC-STAMP Rev.A
+  product_part_number: '0000'
+  product_version: '0000'
+  product_serial_number: '0000'
+  asset_tag: none
+  fru_file_id: none
+MultirecordArea:
+- type: ModuleCurrentRequirements
+  current_draw: 6.5

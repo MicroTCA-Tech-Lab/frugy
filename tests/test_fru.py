@@ -1,9 +1,10 @@
 import unittest
 from datetime import datetime
 from frugy.fru import Fru
-
+import os
 
 class TestFru(unittest.TestCase):
+    '''
     def fru_test_from_dict(self, initdict, test_name):
         fru = Fru(initdict)
         fru.save_bin(f"{test_name}.bin")
@@ -77,3 +78,21 @@ class TestFru(unittest.TestCase):
         tmp.load_bin("tests/fru_damc-fmc2zup.bin")
 #        print(tmp)
         tmp.save_yaml("damc-fmc2zup.yml")
+    '''
+    def bin_to_yaml(self, src_name, dest_name):
+        print(f'converting {src_name} to {dest_name}')
+        tmp = Fru()
+        try:
+            tmp.load_bin(src_name)
+            tmp.save_yaml(dest_name)
+        except RuntimeError:
+            print(f'Error while converting {src_name}')
+
+    def test_bin_files(self):
+        for root, _, files in os.walk('tests'):
+            for name in files:
+                name_base, name_ext = os.path.splitext(name)
+                if name_ext == '.bin':
+                    name_src = os.path.join(root, name)
+                    name_dest = os.path.join('examples', name_base + '.yml')
+                    self.bin_to_yaml(name_src, name_dest)
