@@ -189,6 +189,9 @@ class GuidField():
 
     def bit_size(self) -> int:
         return GuidField._uuid_len * 8
+    
+    def size_total(self) -> int:
+        return GuidField._uuid_len
 
     def serialize(self) -> bytearray:
         return self._value.bytes_le
@@ -245,6 +248,9 @@ class ArrayField():
                     break
 
         return remainder
+    
+    def bit_size(self):
+        return self.size_total() * 8
 
     def size_total(self):
         return sum([v.size_total() for v in self._records])
