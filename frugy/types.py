@@ -20,10 +20,12 @@ def _grouper(n, iterable, padvalue=None):
 class FixedField():
     ''' Fixed length field for numbers & bitfields '''
 
-    def __init__(self, format: str, value=None, div=None):
+    def __init__(self, format: str, value=None, div=None, constants=None):
         self._format = format
         self._value = value
         self._div = div
+        self._constants_lookup = constants
+        self._constants_lookup_rev = {v: k for k, v in constants.items()} if constants is not None else None
 
     def bit_fmt(self) -> str:
         return self._format
@@ -43,10 +45,16 @@ class FixedField():
         self._value = value
 
     def to_dict(self):
-        return self._value
+        if self._constants_lookup_rev is not None and self._value in self._constants_lookup_rev:
+            return self._constants_lookup_rev[self._value]
+        else:
+            return self._value
     
     def update(self, value):
-        self._value = value
+        if self._constants_lookup is not None and value in self._constants_lookup:
+            self._value = self._constants_lookup[value]
+        else:
+            self._value = value
 
 
 class StringFmt(Enum):

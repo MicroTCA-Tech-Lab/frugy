@@ -289,15 +289,30 @@ class AmcChannelDescriptor(FruAreaBase):
 class AmcLinkDescriptor(FruAreaBase):
     ''' PICMG AMC.0 Specification R2.0, AMC Link Descriptor, Table 3-19 '''
 
-    _lane_flags = [f'_lane{n}_flag' for n in range(4)]
+    _lane_flag_names = [f'_lane{n}_flag' for n in range(4)]
 
     def __init__(self, initdict=None):
+        link_type_constants = {
+                'pcie': 0x02,
+                'pcie_advanced': 0x03,
+                'pci_advanced_1': 0x04,
+                'ethernet': 0x05,
+                'serial_rapidio': 0x06,
+                'storage': 0x07
+        }
+        link_type_constants.update({
+            f'oem_guid_{n}': n+0xf0 for n in range(15)
+        })
         super().__init__([
             ('_reserved', FixedField('u6', value=0b111111)),
-            ('asymm_match', FixedField('u2')),
+            ('asymm_match', FixedField('u2', constants={
+                'match_exact': 0b00,
+                'match_10b': 0b01,
+                'match_01b': 0b10
+            })),
             ('grouping_id', FixedField('u8')),
             ('link_type_ext', FixedField('u4')),
-            ('link_type', FixedField('u8')),
+            ('link_type', FixedField('u8', constants=link_type_constants)),
             ('_lane3_flag', FixedField('u1')),
             ('_lane2_flag', FixedField('u1')),
             ('_lane1_flag', FixedField('u1')),
@@ -307,11 +322,11 @@ class AmcLinkDescriptor(FruAreaBase):
 
     def to_dict(self):
         result = super().to_dict()
-        result['lane_flags'] = [self[f] for f in self._lane_flags]
+        result['lane_flags'] = [self[f] for f in self._lane_flag_names]
         return result
     
     def update(self, val):
-        for n, f in enumerate(self._lane_flags):
+        for n, f in enumerate(self._lane_flag_names):
             self[f] = val['lane_flags'][n]
         del val['lane_flags']
         super().update(val)
