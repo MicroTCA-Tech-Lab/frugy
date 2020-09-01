@@ -41,22 +41,22 @@ optional arguments:
 ```
 frugy damc-fmc2zup.yml
 ```
-Generate FRU image `damc-fmc2zup.bin` from `damc-fmc2zup.yml` configuration file.
+Read `damc-fmc2zup.yml` configuration, generate FRU image `damc-fmc2zup.bin`.
 
 ```
 frugy damc-fmc2zup.yml -o fmc2zup_fru_eeprom.bin -e 2048
 ```
-Generate `fmc2zup_fru_eeprom.bin` from `damc-fmc2zup.yml` configuration, make it 2048 byte long (pad with 0xff).
+Read `damc-fmc2zup.yml` configuration, generate `fmc2zup_fru_eeprom.bin`, make it 2048 bytes (pad with 0xff).
 
 ```
 frugy damc-fmc2zup.bin -r
 ```
-Read and parse FRU image `damc-fmc2zup.bin`, generate `damc-fmc2zup.yml` from it.
+Read and parse FRU image `damc-fmc2zup.bin`, generate YAML file `damc-fmc2zup.yml`.
 
 ```
 frugy dmmc-stamp.yml -s BoardInfo.board_serial_number=Rev.A -s ProductInfo.product_version=0.01-alpha -t
 ```
-Generate `dmmc-stamp.bin`, setting `board_serial_number` to *REV_A*, `product_version` to *0.01-alpha* and `mfg_date_time` to current UTC time.
+Read `dmmc-stamp.yml`, generate FRU with `board_serial_number` set to *REV_A*, `product_version` to *0.01-alpha* and `mfg_date_time` to current UTC time.
 
 ## Supported FRU records
 
