@@ -311,7 +311,7 @@ class AmcLinkDescriptor(FruAreaBase):
                 'match_01b': 0b10
             })),
             ('grouping_id', FixedField('u8')),
-            ('link_type_ext', FixedField('u4')),
+            ('link_type_ext', FixedField('u4', default=0)),
             ('link_type', FixedField('u8', constants=link_type_constants)),
             ('_lane3_flag', FixedField('u1')),
             ('_lane2_flag', FixedField('u1')),

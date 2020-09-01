@@ -29,55 +29,46 @@ MultirecordArea:
   link_descriptors:
   - asymm_match: match_10b
     grouping_id: 0
-    link_type_ext: 0
     link_type: pcie
     channel_id: 0
     lane_flags: [1, 1, 1, 1]
   - asymm_match: match_10b
     grouping_id: 0
-    link_type_ext: 0
     link_type: pcie
     channel_id: 0
     lane_flags: [1, 1, 0, 0]
   - asymm_match: match_10b
     grouping_id: 0
-    link_type_ext: 0
     link_type: pcie
     channel_id: 0
     lane_flags: [1, 0, 0, 0]
   - asymm_match: match_exact
     grouping_id: 0
-    link_type_ext: 0
     link_type: ethernet
     channel_id: 1
     lane_flags: [1, 0, 0, 0]
   - asymm_match: match_exact
     grouping_id: 0
-    link_type_ext: 0
     link_type: ethernet
     channel_id: 2
     lane_flags: [1, 0, 0, 0]
   - asymm_match: match_exact
     grouping_id: 0
-    link_type_ext: 0
     link_type: oem_guid_0
     channel_id: 3
     lane_flags: [1, 0, 0, 0]
   - asymm_match: match_exact
     grouping_id: 0
-    link_type_ext: 0
     link_type: oem_guid_0
     channel_id: 4
     lane_flags: [1, 0, 0, 0]
   - asymm_match: match_exact
     grouping_id: 0
-    link_type_ext: 0
     link_type: oem_guid_0
     channel_id: 5
     lane_flags: [1, 0, 0, 0]
   - asymm_match: match_exact
     grouping_id: 0
-    link_type_ext: 0
     link_type: oem_guid_0
     channel_id: 6
     lane_flags: [1, 0, 0, 0]
