@@ -488,7 +488,7 @@ class FruAreaChecksummed(FruAreaBase):
         ep = self._epilogue(payload)
         vfy, remainder = input[offs:offs+len(ep)], input[offs+len(ep):]
         if ep != vfy:
-            raise RuntimeError(f'padding or checksum verify error (expected {ep}, received {vfy}')
+            raise RuntimeError(f'padding or checksum verify error in {self.__class__.__name__}: expected {ep}, received {vfy}')
         return remainder
 
     def deserialize(self, input: bytearray):
