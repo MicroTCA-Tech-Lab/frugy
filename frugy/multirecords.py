@@ -208,6 +208,7 @@ class FmcEntry(MultirecordEntry):
 
 _picmg_types_lookup = bidict({
     0x16: 'ModuleCurrentRequirements',
+    0x18: 'CarrierP2pConnectivity',
     0x19: 'PointToPointConnectivity',
     0x20: 'FruPartition',
     0x21: 'CarrierManagerIPLink',
@@ -617,6 +618,47 @@ class MtcaCarrierActivationPm(PicmgEntry):
         ('_num_descriptors', fixed_field('u8', default=0)),
         ('descriptors', array_field(MtcaCarrierActivCurrDescriptor, num_elems_field='_num_descriptors')),
     ]
+
+
+class P2pPortDescriptor(FruAreaBase):
+    ''' PICMG AMC.0 Specification R2.0 Table 3-15 '''
+
+    _mergeBitfield = True
+
+    _schema = [
+        ('_reserved0', fixed_field('u6', default=0)),
+        ('local_port', fixed_field('u5')),
+        ('remote_port', fixed_field('u5')),
+        ('resource_type', fixed_field('u1', constants={
+            'amc': 1,
+            'carrier': 0
+        })),
+        ('_reserved1', fixed_field('u3', default=0)),
+        ('site_no', fixed_field('u4')),
+    ]
+
+class P2pAmcResourceDescriptor(FruAreaBase):
+    ''' PICMG AMC.0 Specification R2.0 Table 3-14 '''
+
+    _schema = [
+        ('resource_type', fixed_field('u1', constants={
+            'amc': 1,
+            'carrier': 0
+        })),
+        ('_reserved', fixed_field('u3', default=0)),
+        ('site_no', fixed_field('u4')),
+        ('_port_count', fixed_field('u8')),
+        ('port_descriptors', array_field(P2pPortDescriptor, num_elems_field='_port_count')),
+    ]
+
+@picmg_record
+class CarrierP2pConnectivity(PicmgEntry):
+    ''' PICMG AMC.0 Specification R2.0 Table 3-13 '''
+
+    _schema = [
+        ('resource_descriptors', array_field(P2pAmcResourceDescriptor)),
+    ]
+
 
 # FMC multirecords
 
