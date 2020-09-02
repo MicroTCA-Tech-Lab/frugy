@@ -159,17 +159,19 @@ class PicmgEntry(MultirecordEntry):
     @classmethod
     def from_payload(cls, payload):
         picmg_id, payload = payload[:len(cls._picmg_identifier)], payload[len(cls._picmg_identifier):]
-        rec_id, payload = payload[:1], payload[1:]
-        zero_byte, payload = payload[:1], payload[1:]
+        rec_id, rec_fmt_version, payload = payload[0], payload[1], payload[2:]
+
         if picmg_id != cls._picmg_identifier:
             raise RuntimeError(f"PICMG identifier mismatch: expected {cls._picmg_identifier}, received {picmg_id}")
-        if zero_byte != b'\x00':
-            raise RuntimeError("PICMG zero byte not found")
-        rec_id = int.from_bytes(rec_id, byteorder='little')
+
+        if rec_fmt_version not in [0x00, 0x01]:
+            raise RuntimeError(f"Unexpected record format version: 0x{rec_fmt_version:02x}")
+
         try:
             cls_inst = globals()[_picmg_types_lookup[rec_id]]()
         except KeyError:
             raise RuntimeError(f"Unknown PICMG entry 0x{rec_id:02x}")
+
         cls_inst._deserialize(payload)
         return cls_inst
 
