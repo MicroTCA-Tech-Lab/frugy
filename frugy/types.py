@@ -256,19 +256,18 @@ class ArrayField():
         return result
     
     def deserialize(self, input):
+        self._records = []
         remainder = input
         num_elems = None
         if self._num_elems_field:
             num_elems = self._parent._get(self._num_elems_field)
 
-        while len(remainder):
+        while len(remainder) and num_elems != 0:
             record = self._cls()
             remainder = record.deserialize(remainder)
             self._records.append(record)
             if num_elems is not None:
                 num_elems -= 1
-                if num_elems == 0:
-                    break
 
         return remainder
     
