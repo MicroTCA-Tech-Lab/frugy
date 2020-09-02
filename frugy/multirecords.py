@@ -210,6 +210,7 @@ _picmg_types_lookup = bidict({
     0x20: 'FruPartition',
     0x21: 'CarrierManagerIPLink',
     0x22: 'MtcaCarrierInformation',
+    0x25: 'PowerPolicyRecord',
     0x2d: 'ClockConfig',
     0x30: 'Zone3InterfaceCompatibility'
 })
@@ -539,6 +540,45 @@ class MtcaCarrierInformation(PicmgEntry):
         ('_slot_entry_count', fixed_field('u7', default=0)),
         ('slot_entries', array_field(SlotEntry, num_elems_field='_slot_entry_count')),
     ]
+
+
+class PowerPolicyDescriptor(FruAreaBase):
+    ''' PICMG Specification MTCA.0 R1.0 Table 3-24 '''
+
+    _schema = [
+        ('site_no', fixed_field('u8')),
+        ('max_current_override', fixed_field('u16', div=0.1)),
+        ('pm_role', fixed_field('u8', constants={
+            'primary': 0x00,
+            'redundant': 0x01,
+            'unspecified': 0xff
+        })),
+        ('_channel_count', fixed_field('u8')),
+        ('_channels', bytearray_field(num_elems_field='_channel_count')),
+    ]
+
+    def to_dict(self):
+        ''' Convert _channels from bytearray to list of ints '''
+        result = super().to_dict()
+        result['channels'] = list(self._dict['_channels']._value)
+        return result
+    
+    def update(self, val):
+        ''' Convert channels from list of ints to bytearray '''
+        self._dict['_channels']._value = bytearray(val['channels'])
+        del val['channels']
+        super().update(val)
+
+
+@picmg_record
+class PowerPolicyRecord(PicmgEntry):
+    ''' PICMG Specification MTCA.0 R1.0 Table 3-23 '''
+
+    _schema = [
+        ('_num_descriptors', fixed_field('u8', default=0)),
+        ('descriptors', array_field(PowerPolicyDescriptor, num_elems_field='_num_descriptors')),
+    ]
+
 
 # FMC multirecords
 

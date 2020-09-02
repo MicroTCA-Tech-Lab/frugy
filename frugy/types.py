@@ -188,26 +188,37 @@ class StringField():
 
 def bytearray_field(**kwargs):
     ''' returns function to create specified object '''
-    return lambda _: BytearrayField(**kwargs)
+    return lambda parent: BytearrayField(parent, **kwargs)
 
 class BytearrayField():
     ''' Variable length field containing a transparent bytearray, to handle stupid ambiguous multirecord payloads '''
     ''' (e.g. "Zone 3 Interface Compatibility record") '''
 
-    def __init__(self, default=''):
-        self._format = format
+    def __init__(self, parent, num_elems_field=None, default=''):
+        self._parent = parent
+        self._num_elems_field = num_elems_field
         self._default = default
         self._value = default
 
     def bit_size(self) -> int:
         return len(self._value) * 8
 
+    def pre_serialize(self):
+        ''' Set number of elements in parent record, _before_ serializing it '''
+        if self._num_elems_field:
+            self._parent._set(self._num_elems_field, len(self._value))
+
     def serialize(self) -> bytearray:
         return self._value
 
     def deserialize(self, input: bytearray) -> bytearray:
-        self._value = input
-        return b''
+        if self._num_elems_field:
+            num_elems = self._parent._get(self._num_elems_field)
+            self._value = input[:num_elems]
+            return input[num_elems:]
+        else:
+            self._value = input
+            return b''
 
     def to_dict(self):
         return ' '.join(f'{v:02x}' for v in self._value)
