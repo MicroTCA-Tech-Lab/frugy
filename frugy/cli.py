@@ -101,8 +101,12 @@ def main():
     fru = Fru()
 
     if read_mode:
-        fru.load_bin(args.srcfile)
-        writer(outfile, fru.dump_yaml())
+        try:
+            fru.load_bin(args.srcfile)
+            writer(outfile, fru.dump_yaml())
+        except RuntimeError as e:
+            print(f'Error while parsing or writing: {e}')
+            return False
     else:
         with open(args.srcfile, 'r') as infile:
             fru_dict = yaml.safe_load(infile)
