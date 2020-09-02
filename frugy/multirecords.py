@@ -193,7 +193,8 @@ class FmcEntry(MultirecordEntry):
 
 _picmg_types_lookup = bidict({
     0x16: 'ModuleCurrentRequirements',
-    0x19: 'PointToPointConnectivity'
+    0x19: 'PointToPointConnectivity',
+    0x2d: 'ClockConfigRecord'
 })
 
 def picmg_record(cls):
@@ -356,10 +357,73 @@ class PointToPointConnectivity(PicmgEntry):
         ('link_descriptors', array_field(AmcLinkDescriptor)),
     ]
 
-    def serialize(self):
-        self['_guid_count'] = self._dict['guids'].num_elems()
-        self['_channel_desc_count'] = self._dict['channel_descriptors'].num_elems()
-        return super().serialize()
+
+class DirectClockDescriptor(FruAreaBase):
+    ''' PICMG AMC.0 Specification R2.0, Direct Clock descriptor, Table 3-38 '''
+
+    _schema = [
+        ('_reserved', fixed_field('u6', default=0)),
+        ('pll_connect', fixed_field('u1')),
+        ('asymm_match', fixed_field('u1', constants={
+            'clk_source': 1,
+            'clk_receiver': 0
+        })),
+        ('family', fixed_field('u8', constants={
+            'unspecified': 0,
+            'sonet_sdh_pdh': 1,
+            'pcie_reserved': 2
+        })),
+        ('accuracy', fixed_field('u8')),
+        ('frequency', fixed_field('u32')),
+        ('freq_min', fixed_field('u32')),
+        ('freq_max', fixed_field('u32')),
+    ]
+
+class IndirectClockDescriptor(FruAreaBase):
+    ''' PICMG AMC.0 Specification R2.0, Indirect Clock descriptor, Table 3-37 '''
+
+    _schema = [
+        ('_reserved', fixed_field('u6', default=0)),
+        ('pll_connect', fixed_field('u1')),
+        ('asymm_match', fixed_field('u1', constants={
+            'clk_src': 1,
+            'clk_recv': 0
+        })),
+        ('dep_clk_id', fixed_field('u8')),
+    ]
+
+class ClockConfigDescriptor(FruAreaBase):
+    ''' PICMG AMC.0 Specification R2.0, Clock Configuration descriptor, Table 3-36 '''
+    
+    _schema = [
+        ('clk_id', fixed_field('u8')),
+        ('_reserved', fixed_field('u7')),
+        ('activation', fixed_field('u1', constants={
+            'by_carrier': 0,
+            'by_application': 1
+        })),
+        ('_indirect_clk_desc_count', fixed_field('u8', default=0)),
+        ('_direct_clk_desc_count', fixed_field('u8', default=0)),
+        ('indirect_clk_desc', array_field(IndirectClockDescriptor, num_elems_field='_indirect_clk_desc_count')),
+        ('direct_clk_desc', array_field(DirectClockDescriptor, num_elems_field='_direct_clk_desc_count')),
+    ]
+
+@picmg_record
+class ClockConfigRecord(PicmgEntry):
+    ''' PICMG AMC.0 Specification R2.0, Clock Configuration record, Table 3-35 '''
+
+    _schema = [
+        # first 8 bits is 'Clock Resource ID', Table 3-31
+        ('resource_type', fixed_field('u2', constants={
+            'on_carrier': 0b00,
+            'amc_module': 0b01,
+            'backplane': 0b10
+        })),
+        ('_reserved', fixed_field('u2', default=0)),
+        ('dev_id', fixed_field('u4')),
+        ('_conf_desc_count', fixed_field('u8', default=0)),
+        ('conf_desc', array_field(ClockConfigDescriptor, num_elems_field='_conf_desc_count')),
+    ]
 
 
 # FMC multirecords
