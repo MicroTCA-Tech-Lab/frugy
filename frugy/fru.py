@@ -1,6 +1,7 @@
 from frugy.areas import CommonHeader, ChassisInfo, BoardInfo, ProductInfo
 from frugy.multirecords import MultirecordArea
 import yaml
+from bidict import bidict
 
 # YAML formatting helpers
 class YamlFlowstyleList(list):
@@ -12,13 +13,12 @@ def yaml_flowstyle_list_rep(dumper, data):
 yaml.add_representer(YamlFlowstyleList, yaml_flowstyle_list_rep)
 
 class Fru:
-    _area_table_lookup = {
+    _area_table_lookup = bidict({
         'ChassisInfo': 'chassis_info_offs',
         'BoardInfo': 'board_info_offs',
         'ProductInfo': 'product_info_offs',
         'MultirecordArea': 'multirecord_offs',
-    }
-    _area_table_lookup_rev = {v: k for k, v in _area_table_lookup.items()}
+    })
 
     def __init__(self, initdict=None):
         self.header = CommonHeader()
@@ -69,7 +69,7 @@ class Fru:
         self.header.deserialize(input)
         for k, v in self.header.to_dict().items():
             if v:
-                obj_name = self._area_table_lookup_rev[k]
+                obj_name = self._area_table_lookup.inverse[k]
                 obj = self.factory(obj_name)
                 obj.deserialize(input[v:])
                 self.areas[obj_name] = obj

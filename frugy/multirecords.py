@@ -1,5 +1,6 @@
 from frugy.types import FruAreaBase, fixed_field, GuidField, array_field
 import bitstruct
+from bidict import bidict
 
 
 class MultirecordArea:
@@ -121,7 +122,7 @@ class MultirecordEntry(FruAreaBase):
 
 # Lookup tables for multirecord type IDs
 
-_multirecord_types_lookup = {
+_multirecord_types_lookup = bidict({
     # Standard IPMI multirecord entries
     0x01: 'DCOutput',
     0x02: 'DCLoad',
@@ -130,14 +131,10 @@ _multirecord_types_lookup = {
     0xc0: 'PicmgEntry',
     # ANSI/VITA 57.1 FPGA Mezzanine Card (FMC) Standard
     0xfa: 'FmcEntry',
-}
-
-_multirecord_types_lookup_rev = {
-    v: k for k, v in _multirecord_types_lookup.items()
-}
+})
 
 def multirecord(cls):
-    cls._type_id = _multirecord_types_lookup_rev[cls.__name__]
+    cls._type_id = _multirecord_types_lookup.inverse[cls.__name__]
     return cls
 
 @multirecord
@@ -194,29 +191,21 @@ class FmcEntry(MultirecordEntry):
 
 # Lookup tables for OEM multirecord record IDs
 
-_picmg_types_lookup = {
+_picmg_types_lookup = bidict({
     0x16: 'ModuleCurrentRequirements',
     0x19: 'PointToPointConnectivity'
-}
-
-_picmg_types_lookup_rev = {
-    v: k for k, v in _picmg_types_lookup.items()
-}
+})
 
 def picmg_record(cls):
-    cls._record_id = _picmg_types_lookup_rev[cls.__name__]
+    cls._record_id = _picmg_types_lookup.inverse[cls.__name__]
     return cls
 
-_fmc_types_lookup = {
+_fmc_types_lookup = bidict({
     0x00: 'FmcMainDefinition'
-}
-
-_fmc_types_lookup_rev = {
-    v: k for k, v in _fmc_types_lookup.items()
-}
+})
 
 def fmc_record(cls):
-    cls._record_id = _fmc_types_lookup_rev[cls.__name__]
+    cls._record_id = _fmc_types_lookup.inverse[cls.__name__]
     return cls
 
 # IPMI standard multirecords
@@ -236,8 +225,6 @@ fmc_output_constants = {name: idx for idx, name in enumerate(fmc_voltages_total)
 class DCOutput(MultirecordEntry):
     ''' Platform Management FRU Information Storage Definition, Table 18-2 '''
 
-
-
     _schema = [
         ('standby_enable', fixed_field('u1')),
         ('_reserved', fixed_field('u3', default=0)),
@@ -253,8 +240,6 @@ class DCOutput(MultirecordEntry):
 @multirecord
 class DCLoad(MultirecordEntry):
     ''' Platform Management FRU Information Storage Definition, Table 18-4 '''
-
-
 
     _schema = [
         ('_reserved', fixed_field('u4', default=0)),
@@ -273,8 +258,6 @@ class DCLoad(MultirecordEntry):
 @picmg_record
 class ModuleCurrentRequirements(PicmgEntry):
     ''' PICMG AMC.0 Specification R2.0, Module Current Requirements record, Table 3-10 '''
-
-
 
     _schema = [
         ('current_draw', fixed_field('u8', div=0.1))

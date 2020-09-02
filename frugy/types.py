@@ -3,6 +3,7 @@ from collections import OrderedDict
 from enum import Enum
 from itertools import zip_longest
 import uuid
+from bidict import bidict
 
 _format_version_default = 1
 
@@ -28,8 +29,7 @@ class FixedField():
         self._default = default
         self._value = default
         self._div = div
-        self._constants_lookup = constants
-        self._constants_lookup_rev = {v: k for k, v in constants.items()} if constants is not None else None
+        self._constants_lookup = bidict(constants) if constants is not None else None
 
     def bit_fmt(self) -> str:
         return self._format
@@ -49,8 +49,8 @@ class FixedField():
         self._value = value
 
     def to_dict(self):
-        if self._constants_lookup_rev is not None and self._value in self._constants_lookup_rev:
-            return self._constants_lookup_rev[self._value]
+        if self._constants_lookup is not None and self._value in self._constants_lookup.inverse:
+            return self._constants_lookup.inverse[self._value]
         else:
             return self._value
     
@@ -83,11 +83,10 @@ class StringField():
         self._default = default
         self._value = default
 
-    bcdplus_lookup = {
+    bcdplus_lookup = bidict({
         '0': 0, '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7,
         '8': 8, '9': 9, ' ': 10, '-': 11, '.': 12
-    }
-    bcdplus_lookup_rev = {v: k for k, v in bcdplus_lookup.items()}
+    })
 
     def bit_size(self) -> int:
         def size_plain(val: str) -> int:
@@ -158,7 +157,7 @@ class StringField():
             for v in val:
                 tmp = bitstruct.unpack('u4'*2, bytes((v,)))
                 for x in tmp:
-                    result += self.bcdplus_lookup_rev[x]
+                    result += self.bcdplus_lookup.inverse[x]
             return result
 
         fmt_int, payload_len = bitstruct.unpack('u2u6', input[0:1])
