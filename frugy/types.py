@@ -46,7 +46,11 @@ class FixedField():
 
     def from_serialized(self, value):
         if self._div is not None:
-            value = (float(value) if self._div < 1 else value) * self._div
+            if self._div < 1:
+                # Stupid hack that avoids rounding issues a la 7.6000000000000005
+                value /= 1 / self._div
+            else:
+                value *= self._div
         self._value = value
 
     def to_dict(self):

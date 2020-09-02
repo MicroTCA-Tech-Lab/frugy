@@ -211,6 +211,7 @@ _picmg_types_lookup = bidict({
     0x21: 'CarrierManagerIPLink',
     0x22: 'MtcaCarrierInformation',
     0x25: 'PowerPolicyRecord',
+    0x26: 'MtcaCarrierActivationPm',
     0x2d: 'ClockConfig',
     0x30: 'Zone3InterfaceCompatibility'
 })
@@ -501,26 +502,30 @@ class CarrierManagerIPLink(PicmgEntry):
     ]
 
 
+# PICMG Specification MTCA.0 R1.0 Table 3-14
+
+_site_type_std = {
+    'cooling_unit': 0x04,
+    'advanced_mc': 0x07,
+    'rtm': 0x09,
+    'mtca_carrier_hub': 0x0a,
+    'power_module': 0x0b,
+    'unknown': 0xff
+}
+_site_type_oem = {
+    f'oem_module_{n}': 0xc0 + n for n in range(16)
+}
+_site_type_constants = {
+    **_site_type_std,
+    **_site_type_oem
+}
+
 class SlotEntry(FruAreaBase):
     ''' PICMG Specification MTCA.0 R1.0 Table 3-17 '''
 
-    _site_type_std = {
-        'cooling_unit': 0x04,
-        'advanced_mc': 0x07,
-        'rtm': 0x09,
-        'mtca_carrier_hub': 0x0a,
-        'power_module': 0x0b,
-        'unknown': 0xff
-    }
-    _site_type_oem = {
-        f'oem_module_{n}': 0xc0 + n for n in range(16)
-    }
     _schema = [
         ('site_no', fixed_field('u8')),
-        ('site_type', fixed_field('u8', constants={
-            **_site_type_std,
-            **_site_type_oem
-        })),
+        ('site_type', fixed_field('u8', constants=_site_type_constants)),
         ('slot_no', fixed_field('u8')),
         ('tier_no', fixed_field('u8')),
         ('slot_org_y', fixed_field('u16')),
@@ -579,6 +584,37 @@ class PowerPolicyRecord(PicmgEntry):
         ('descriptors', array_field(PowerPolicyDescriptor, num_elems_field='_num_descriptors')),
     ]
 
+
+class MtcaCarrierActivCurrDescriptor(FruAreaBase):
+    ''' PICMG Specification MTCA.0 R1.0 Table 3-26 '''
+
+    _mgr_constants={
+        'reserved': 0b11,
+        'shelf_mgr': 0b10,
+        'carrier_mgr': 0b01,
+        'system_mgr': 0b00
+    }
+    _schema = [
+        ('site_type', fixed_field('u8', constants=_site_type_constants)),
+        ('site_no', fixed_field('u8')),
+        ('pwr_ch', fixed_field('u8')),
+        ('max_current', fixed_field('u8', div=0.1)),
+        ('activation_ctrl', fixed_field('u2', constants=_mgr_constants)),
+        ('pwr_delay', fixed_field('u6', div=0.1)),
+        ('deactivation_ctrl', fixed_field('u2', constants=_mgr_constants)),
+        ('_reserved', fixed_field('u6', default=0))
+    ]
+
+
+@picmg_record
+class MtcaCarrierActivationPm(PicmgEntry):
+    ''' PICMG Specification MTCA.0 R1.0 Table 3-25 '''
+
+    _schema = [
+        ('readiness_allowance', fixed_field('u8')),
+        ('_num_descriptors', fixed_field('u8', default=0)),
+        ('descriptors', array_field(MtcaCarrierActivCurrDescriptor, num_elems_field='_num_descriptors')),
+    ]
 
 # FMC multirecords
 
