@@ -209,6 +209,7 @@ _picmg_types_lookup = bidict({
     0x19: 'PointToPointConnectivity',
     0x20: 'FruPartition',
     0x21: 'CarrierManagerIPLink',
+    0x22: 'MtcaCarrierInformation',
     0x2d: 'ClockConfig',
     0x30: 'Zone3InterfaceCompatibility'
 })
@@ -496,6 +497,47 @@ class CarrierManagerIPLink(PicmgEntry):
         ('gateway1', ipv4_field()),
         ('username', fixed_string_field(17, default='')),
         ('password', fixed_string_field(21, default='')),
+    ]
+
+
+class SlotEntry(FruAreaBase):
+    ''' PICMG Specification MTCA.0 R1.0 Table 3-17 '''
+
+    _site_type_std = {
+        'cooling_unit': 0x04,
+        'advanced_mc': 0x07,
+        'rtm': 0x09,
+        'mtca_carrier_hub': 0x0a,
+        'power_module': 0x0b,
+        'unknown': 0xff
+    }
+    _site_type_oem = {
+        f'oem_module_{n}': 0xc0 + n for n in range(16)
+    }
+    _schema = [
+        ('site_no', fixed_field('u8')),
+        ('site_type', fixed_field('u8', constants={
+            **_site_type_std,
+            **_site_type_oem
+        })),
+        ('slot_no', fixed_field('u8')),
+        ('tier_no', fixed_field('u8')),
+        ('slot_org_y', fixed_field('u16')),
+        ('slot_org_x', fixed_field('u16')),
+    ]
+
+@picmg_record
+class MtcaCarrierInformation(PicmgEntry):
+    ''' PICMG Specification MTCA.0 R1.0 Table 3-16 '''
+
+    _schema = [
+        ('number', fixed_field('u8', default=0xff)),
+        ('orientation', fixed_field('u1', constants={
+            'l2r': 0,
+            'b2t': 1
+        })),
+        ('_slot_entry_count', fixed_field('u7', default=0)),
+        ('slot_entries', array_field(SlotEntry, num_elems_field='_slot_entry_count')),
     ]
 
 # FMC multirecords
