@@ -1,4 +1,4 @@
-from frugy.types import FruAreaBase, fixed_field, GuidField, array_field, bytearray_field
+from frugy.types import FruAreaBase, fixed_field, fixed_string_field, GuidField, array_field, bytearray_field, ipv4_field
 import bitstruct
 from bidict import bidict
 
@@ -208,6 +208,7 @@ _picmg_types_lookup = bidict({
     0x16: 'ModuleCurrentRequirements',
     0x19: 'PointToPointConnectivity',
     0x20: 'FruPartition',
+    0x21: 'CarrierManagerIPLink',
     0x2d: 'ClockConfig',
     0x30: 'Zone3InterfaceCompatibility'
 })
@@ -479,7 +480,23 @@ class FruPartition(PicmgEntry):
     _schema = [
         ('_desc_count', fixed_field('u8', default=0)),
         ('descriptors', array_field(PartitionDescriptor, num_elems_field='_desc_count')),
-    ]    
+    ]
+
+
+@picmg_record
+class CarrierManagerIPLink(PicmgEntry):
+    ''' PICMG Specification MTCA.0 R1.0 Table 3-12 '''
+    _schema = [
+        ('shelf_manager_ip', ipv4_field()),
+        ('carrier_manager_ip', ipv4_field()),
+        ('mch1_ip', ipv4_field()),
+        ('mch2_ip', ipv4_field()),
+        ('subnet', ipv4_field()),
+        ('gateway0', ipv4_field()),
+        ('gateway1', ipv4_field()),
+        ('username', fixed_string_field(17, default='')),
+        ('password', fixed_string_field(21, default='')),
+    ]
 
 # FMC multirecords
 

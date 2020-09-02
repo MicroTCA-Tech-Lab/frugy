@@ -4,6 +4,7 @@ from enum import Enum
 from itertools import zip_longest
 import uuid
 from bidict import bidict
+from ipaddress import IPv4Address
 
 _format_version_default = 1
 
@@ -213,6 +214,78 @@ class BytearrayField():
     
     def update(self, value):
         self._value = bytearray.fromhex(value)
+
+    def val_not_default(self):
+        return self.to_dict() != self._default
+
+
+def fixed_string_field(*args, **kwargs):
+    ''' returns function to create specified object '''
+    return lambda _: FixedStringField(*args, **kwargs)
+
+class FixedStringField():
+    ''' Null-terminated string with fixed size buffer '''
+
+    _null_term = b'\x00'
+
+    def __init__(self, bufsize, default=''):
+        self._bufsize = bufsize
+        self._default = default
+        self._value = default
+
+    def bit_size(self) -> int:
+        return self._bufsize * 8
+
+    def serialize(self) -> bytearray:
+        return self._value[:self._bufsize-1].encode('utf-8') + self._null_term
+
+    def deserialize(self, input: bytearray) -> bytearray:
+        tmp, remainder = input[:self._bufsize], input[self._bufsize:]
+        if self._null_term in tmp:
+            pos = tmp.index(self._null_term)
+            tmp = tmp[:pos]
+        self._value = tmp.decode('utf-8')
+        return remainder
+
+    def to_dict(self):
+        return self._value
+    
+    def update(self, value):
+        self._value = value
+
+    def val_not_default(self):
+        return self.to_dict() != self._default
+
+
+def ipv4_field(**kwargs):
+    ''' returns function to create specified object '''
+    return lambda _: IpV4Field(**kwargs)
+
+class IpV4Field():
+    ''' Field containing a IPv4 address '''
+    _num_bytes = 4
+
+    def __init__(self, default='0.0.0.0'):
+        self._default = default
+        self._value = IPv4Address(default)
+
+    def bit_size(self) -> int:
+        return self._num_bytes * 8
+
+    def serialize(self) -> bytearray:
+        return int(self._value).to_bytes(self._num_bytes, 'big')
+
+    def deserialize(self, input: bytearray) -> bytearray:
+        tmp, remainder = input[:self._num_bytes], input[self._num_bytes:]
+        tmp = int.from_bytes(tmp, 'big')
+        self._value = IPv4Address(tmp)
+        return remainder
+
+    def to_dict(self):
+        return str(self._value)
+    
+    def update(self, value):
+        self._value = IPv4Address(value)
 
     def val_not_default(self):
         return self.to_dict() != self._default
