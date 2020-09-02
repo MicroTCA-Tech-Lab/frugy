@@ -1,4 +1,4 @@
-from frugy.types import FruAreaBase, fixed_field, GuidField, array_field
+from frugy.types import FruAreaBase, fixed_field, GuidField, array_field, bytearray_field
 import bitstruct
 from bidict import bidict
 
@@ -207,7 +207,8 @@ class FmcEntry(MultirecordEntry):
 _picmg_types_lookup = bidict({
     0x16: 'ModuleCurrentRequirements',
     0x19: 'PointToPointConnectivity',
-    0x2d: 'ClockConfigRecord'
+    0x2d: 'ClockConfig',
+    0x30: 'Zone3InterfaceCompatibility'
 })
 
 def picmg_record(cls):
@@ -430,7 +431,7 @@ class ClockConfigDescriptor(FruAreaBase):
     ]
 
 @picmg_record
-class ClockConfigRecord(PicmgEntry):
+class ClockConfig(PicmgEntry):
     ''' PICMG AMC.0 Specification R2.0, Clock Configuration record, Table 3-35 '''
 
     _schema = [
@@ -446,6 +447,21 @@ class ClockConfigRecord(PicmgEntry):
         ('conf_desc', array_field(ClockConfigDescriptor, num_elems_field='_conf_desc_count')),
     ]
 
+@picmg_record
+class Zone3InterfaceCompatibility(PicmgEntry):
+    ''' PICMG AMC.0 Specification R2.0, Clock Configuration record, Table 3-35 '''
+    ''' The identifier body is represented as transparent bytearray '''
+
+    _schema = [
+        ('identifier_type', fixed_field('u8', constants={
+            'PICMG_IRTM0_REP': 0,
+            'PICMG_OTHER': 1,
+            'GUID': 2,
+            'OEM': 3,
+            'MTCA4_REP': 4
+        })),
+        ('identifier_body', bytearray_field()),
+    ]
 
 # FMC multirecords
 

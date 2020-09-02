@@ -185,6 +185,39 @@ class StringField():
         return self.to_dict() != self._default
 
 
+def bytearray_field(**kwargs):
+    ''' returns function to create specified object '''
+    return lambda _: BytearrayField(**kwargs)
+
+class BytearrayField():
+    ''' Variable length field containing a transparent bytearray, to handle stupid ambiguous multirecord payloads '''
+    ''' (e.g. "Zone 3 Interface Compatibility record") '''
+
+    def __init__(self, default=''):
+        self._format = format
+        self._default = default
+        self._value = default
+
+    def bit_size(self) -> int:
+        return len(self._value) * 8
+
+    def serialize(self) -> bytearray:
+        return self._value
+
+    def deserialize(self, input: bytearray) -> bytearray:
+        self._value = input
+        return b''
+
+    def to_dict(self):
+        return ' '.join(f'{v:02x}' for v in self._value)
+    
+    def update(self, value):
+        self._value = bytearray.fromhex(value)
+
+    def val_not_default(self):
+        return self.to_dict() != self._default
+
+
 def guid_field(**kwargs):
     ''' returns function to create specified object '''
     return lambda _: GuidField(**kwargs)
