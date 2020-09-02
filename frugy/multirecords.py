@@ -120,7 +120,8 @@ class MultirecordEntry(FruAreaBase):
             new_entry.end_of_list = end_of_list
 
         except RuntimeError as e:
-            print(f"Failed to deserialize multirecord, type_id=0x{type_id:02x}, end_of_list={end_of_list}, format_version={format_version}")
+            print(f"Failed to deserialize multirecord, type_id=0x{type_id:02x}, end_of_list={end_of_list}, "
+                  f"format_version={format_version}, len={len(header)+len(payload)}")
             print(f"reason: {e}")
             print(f"header: {' '.join('%02x'%x for x in header)}, payload: {' '.join('%02x'%x for x in payload)}")
             new_entry = None
