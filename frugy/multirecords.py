@@ -405,7 +405,15 @@ class ClockConfigDescriptor(FruAreaBase):
     ''' PICMG AMC.0 Specification R2.0, Clock Configuration descriptor, Table 3-36 '''
     
     _schema = [
-        ('clk_id', fixed_field('u8')),
+        ('clk_id', fixed_field('u8', constants={
+            # Predefined Clock IDs for AMC clocks (Table 3-33)
+            # TODO: Are these enough, or do we also need the ATCA Backplane clocks (Table 3-34)?
+            'TCLKA': 1,
+            'TCLKB': 2,
+            'TCLKC': 3,
+            'TCLKD': 4,
+            'FCLKA': 5,
+        })),
         ('_reserved', fixed_field('u7')),
         ('activation', fixed_field('u1', constants={
             'by_carrier': 0,
