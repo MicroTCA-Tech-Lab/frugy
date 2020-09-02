@@ -484,7 +484,7 @@ class FruAreaVersioned(FruAreaChecksummed):
         return super().size_payload() + 1
 
     def deserialize(self, input: bytearray):
-        self._format_version = int.from_bytes(input[0:1], 'little')
+        self._format_version = input[0]
         remainder = self._deserialize(input[1:])
         return self._verify_epilogue(input, len(input) - len(remainder))
 
@@ -515,7 +515,7 @@ class FruAreaDelimited(FruAreaVersioned):
         return self._delimiter_code + super()._epilogue(payload + self._delimiter_code)
 
     def deserialize(self, input: bytearray):
-        self._format_version = int.from_bytes(input[0:1], 'little')
-        self._area_length = int.from_bytes(input[1:2], 'little')
+        self._format_version = input[0]
+        self._area_length = input[1]
         remainder = self._deserialize(input[2:])
         return self._verify_epilogue(input, len(input) - len(remainder))

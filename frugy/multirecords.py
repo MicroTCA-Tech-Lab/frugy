@@ -185,14 +185,16 @@ class FmcEntry(MultirecordEntry):
     @classmethod
     def from_payload(cls, payload):
         fmc_id, payload = payload[:len(cls._fmc_identifier)], payload[len(cls._fmc_identifier):]
-        rec_id, payload = payload[:1], payload[1:]
+        rec_id, payload = payload[0], payload[1:]
+
         if fmc_id != cls._fmc_identifier:
             raise RuntimeError(f"FMC identifier mismatch: expected {cls._fmc_identifier}, received {fmc_id}")
-        rec_id = int.from_bytes(rec_id, byteorder='little')
+
         try:
             cls_inst = globals()[_fmc_types_lookup[rec_id]]()
         except KeyError:
             raise RuntimeError(f"Unknown FMC entry 0x{rec_id:02x}")
+
         cls_inst._deserialize(payload)
         cls_inst._record_id = rec_id
         return cls_inst
