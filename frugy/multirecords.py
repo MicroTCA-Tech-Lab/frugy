@@ -207,6 +207,7 @@ class FmcEntry(MultirecordEntry):
 _picmg_types_lookup = bidict({
     0x16: 'ModuleCurrentRequirements',
     0x19: 'PointToPointConnectivity',
+    0x20: 'FruPartition',
     0x2d: 'ClockConfig',
     0x30: 'Zone3InterfaceCompatibility'
 })
@@ -462,6 +463,23 @@ class Zone3InterfaceCompatibility(PicmgEntry):
         })),
         ('identifier_body', bytearray_field()),
     ]
+
+class PartitionDescriptor(FruAreaBase):
+    ''' PICMG Specification MTCA.0 R1.0 Table 3-11 '''
+
+    _schema = [
+        ('offset', fixed_field('u16', div=0x10)),
+        ('length', fixed_field('u16')),
+    ]
+
+@picmg_record
+class FruPartition(PicmgEntry):
+    ''' PICMG Specification MTCA.0 R1.0 Table 3-10 '''
+
+    _schema = [
+        ('_desc_count', fixed_field('u8', default=0)),
+        ('descriptors', array_field(PartitionDescriptor, num_elems_field='_desc_count')),
+    ]    
 
 # FMC multirecords
 
