@@ -1,4 +1,4 @@
-from frugy.types import FruAreaBase, FixedField, GuidField, ArrayField
+from frugy.types import FruAreaBase, fixed_field, GuidField, array_field
 import bitstruct
 
 
@@ -50,15 +50,14 @@ class MultirecordArea:
 class MultirecordEntry(FruAreaBase):
     ''' Platform Management FRU Information Storage Definition, Table 16-1 '''
 
+    _format_version = 2
     _multirecord_header_fmt = 'u8u1u3u4u8u8'
 
-    def __init__(self, type_id: int, schema, initdict=None, format_version=2):
-        self.type_id = type_id
+    def __init__(self, initdict=None):
         self.end_of_list = 0
-        self.format_version = format_version
         if initdict is not None:
             initdict.pop('type', None)  # for MultirecordEntry, type is used for type identification, not for the fields
-        super().__init__(schema, initdict=initdict)
+        super().__init__(initdict=initdict)
 
     def size_payload(self):
         # Add header size
@@ -78,10 +77,10 @@ class MultirecordEntry(FruAreaBase):
         payload = self._payload_prologue() + super().serialize()
         payload_cksum = (-sum(payload)) & 0xff
         header = bitstruct.pack(self._multirecord_header_fmt,
-                                self.type_id,
+                                self._type_id,
                                 self.end_of_list,
                                 0,
-                                self.format_version,
+                                self._format_version,
                                 len(payload),
                                 payload_cksum)
         header_cksum = (-sum(header)) & 0xff
@@ -113,26 +112,43 @@ class MultirecordEntry(FruAreaBase):
             new_entry = cls_id()
             new_entry._deserialize(payload)
 
-        new_entry.type_id = type_id
-        new_entry.format_version = format_version
+        new_entry._type_id = type_id
+        new_entry._format_version = format_version
         new_entry.end_of_list = end_of_list
 
         return new_entry, remainder
 
 
+# Lookup tables for multirecord type IDs
+
+_multirecord_types_lookup = {
+    # Standard IPMI multirecord entries
+    0x01: 'DCOutput',
+    0x02: 'DCLoad',
+    # 'OEM' (non-standard) multirecord entries
+    # PICMG Advanced Mezzanine Card AMC.0 Specification R2.0
+    0xc0: 'PicmgEntry',
+    # ANSI/VITA 57.1 FPGA Mezzanine Card (FMC) Standard
+    0xfa: 'FmcEntry',
+}
+
+_multirecord_types_lookup_rev = {
+    v: k for k, v in _multirecord_types_lookup.items()
+}
+
+def multirecord(cls):
+    cls._type_id = _multirecord_types_lookup_rev[cls.__name__]
+    return cls
+
+@multirecord
 class PicmgEntry(MultirecordEntry):
     ''' PICMG Advanced Mezzanine Card AMC.0 Specification R2.0 '''
     ''' This stuff is shared between all instances of PICMG OEM multirecord entries '''
 
     _picmg_identifier = b'\x5a\x31\x00'
 
-    def __init__(self, record_id, schema, initdict=None, format_version=2):
-        self.record_id = record_id
-        super().__init__(_multirecord_types_lookup_rev['PicmgEntry'],
-                         schema, initdict=initdict, format_version=format_version)
-    
     def _payload_prologue(self):
-        return self._picmg_identifier + self.record_id.to_bytes(length=1, byteorder='little') + b'\x00'
+        return self._picmg_identifier + self._record_id.to_bytes(length=1, byteorder='little') + b'\x00'
     
     @classmethod
     def from_payload(cls, payload):
@@ -151,19 +167,14 @@ class PicmgEntry(MultirecordEntry):
         cls_inst._deserialize(payload)
         return cls_inst
 
-
+@multirecord
 class FmcEntry(MultirecordEntry):
     ''' This stuff is shared between all instances of ANSI/VITA FMC OEM multirecord entries '''
 
     _fmc_identifier = b'\xa2\x12\x00'
 
-    def __init__(self, record_id, schema, initdict=None, format_version=2):
-        self.record_id = record_id
-        super().__init__(_multirecord_types_lookup_rev['FmcEntry'],
-                         schema, initdict=initdict, format_version=format_version)
-    
     def _payload_prologue(self):
-        return self._fmc_identifier + self.record_id.to_bytes(length=1, byteorder='little')
+        return self._fmc_identifier + self._record_id.to_bytes(length=1, byteorder='little')
     
     @classmethod
     def from_payload(cls, payload):
@@ -177,26 +188,11 @@ class FmcEntry(MultirecordEntry):
         except KeyError:
             raise RuntimeError(f"Unknown FMC entry 0x{rec_id:02x}")
         cls_inst._deserialize(payload)
+        cls_inst._record_id = rec_id
         return cls_inst
 
 
-# Lookup tables for multirecords
-
-_multirecord_types_lookup = {
-    # Standard IPMI multirecord entries
-    0x01: 'DCOutput',
-    0x02: 'DCLoad',
-    # 'OEM' (non-standard) multirecord entries
-    # PICMG Advanced Mezzanine Card AMC.0 Specification R2.0
-    0xc0: 'PicmgEntry',
-    # ANSI/VITA 57.1 FPGA Mezzanine Card (FMC) Standard
-    0xfa: 'FmcEntry',
-}
-
-_multirecord_types_lookup_rev = {
-    v: k for k, v in _multirecord_types_lookup.items()
-}
-
+# Lookup tables for OEM multirecord record IDs
 
 _picmg_types_lookup = {
     0x16: 'ModuleCurrentRequirements',
@@ -207,6 +203,10 @@ _picmg_types_lookup_rev = {
     v: k for k, v in _picmg_types_lookup.items()
 }
 
+def picmg_record(cls):
+    cls._record_id = _picmg_types_lookup_rev[cls.__name__]
+    return cls
+
 _fmc_types_lookup = {
     0x00: 'FmcMainDefinition'
 }
@@ -214,6 +214,10 @@ _fmc_types_lookup = {
 _fmc_types_lookup_rev = {
     v: k for k, v in _fmc_types_lookup.items()
 }
+
+def fmc_record(cls):
+    cls._record_id = _fmc_types_lookup_rev[cls.__name__]
+    return cls
 
 # IPMI standard multirecords
 
@@ -228,49 +232,53 @@ fmc_voltages_per_port = [
 fmc_voltages_total = [f'{p}_{v}' for p in ['P1', 'P2'] for v in fmc_voltages_per_port]
 fmc_output_constants = {name: idx for idx, name in enumerate(fmc_voltages_total)}
 
+@multirecord
 class DCOutput(MultirecordEntry):
     ''' Platform Management FRU Information Storage Definition, Table 18-2 '''
 
-    def __init__(self, initdict=None):
-        super().__init__(_multirecord_types_lookup_rev[self.__class__.__name__], [
-            ('standby_enable', FixedField('u1')),
-            ('_reserved', FixedField('u3', default=0)),
-            ('output_number', FixedField('u4', constants=fmc_output_constants)),
-            ('nominal_voltage', FixedField('u16', div=10)),     # 10mV
-            ('max_neg_voltage', FixedField('u16', div=10)),     # 10mV
-            ('max_pos_voltage', FixedField('u16', div=10)),     # 10mV
-            ('max_noise_pk2pk', FixedField('u16')),     # mV
-            ('min_current_draw', FixedField('u16')),    # mA
-            ('max_current_draw', FixedField('u16')),    # mA
-        ], initdict)
 
 
+    _schema = [
+        ('standby_enable', fixed_field('u1')),
+        ('_reserved', fixed_field('u3', default=0)),
+        ('output_number', fixed_field('u4', constants=fmc_output_constants)),
+        ('nominal_voltage', fixed_field('u16', div=10)),     # 10mV
+        ('max_neg_voltage', fixed_field('u16', div=10)),     # 10mV
+        ('max_pos_voltage', fixed_field('u16', div=10)),     # 10mV
+        ('max_noise_pk2pk', fixed_field('u16')),     # mV
+        ('min_current_draw', fixed_field('u16')),    # mA
+        ('max_current_draw', fixed_field('u16')),    # mA
+    ]
+
+@multirecord
 class DCLoad(MultirecordEntry):
     ''' Platform Management FRU Information Storage Definition, Table 18-4 '''
 
-    def __init__(self, initdict=None):
-        super().__init__(_multirecord_types_lookup_rev[self.__class__.__name__], [
-            ('_reserved', FixedField('u4', default=0)),
-            ('output_number', FixedField('u4', constants=fmc_output_constants)),
-            ('nominal_voltage', FixedField('u16', div=10)),     # 10mV
-            ('min_voltage', FixedField('u16', div=10)),         # 10mV
-            ('max_voltage', FixedField('u16', div=10)),         # 10mV
-            ('max_noise_pk2pk', FixedField('u16')),     # mV
-            ('min_current_load', FixedField('u16')),    # mA
-            ('max_current_load', FixedField('u16')),    # mA
-        ], initdict)
+
+
+    _schema = [
+        ('_reserved', fixed_field('u4', default=0)),
+        ('output_number', fixed_field('u4', constants=fmc_output_constants)),
+        ('nominal_voltage', fixed_field('u16', div=10)),     # 10mV
+        ('min_voltage', fixed_field('u16', div=10)),         # 10mV
+        ('max_voltage', fixed_field('u16', div=10)),         # 10mV
+        ('max_noise_pk2pk', fixed_field('u16')),     # mV
+        ('min_current_load', fixed_field('u16')),    # mA
+        ('max_current_load', fixed_field('u16')),    # mA
+    ]
 
 
 # PICMG AMC.0 multirecords
 
+@picmg_record
 class ModuleCurrentRequirements(PicmgEntry):
     ''' PICMG AMC.0 Specification R2.0, Module Current Requirements record, Table 3-10 '''
 
-    def __init__(self, initdict=None):
-        super().__init__(_picmg_types_lookup_rev[self.__class__.__name__], [
-            ('current_draw', FixedField('u8', div=0.1))
-        ], initdict)
 
+
+    _schema = [
+        ('current_draw', fixed_field('u8', div=0.1))
+    ]
 
 # Array entry classes for PointToPointConnectivity
 
@@ -280,14 +288,14 @@ class AmcChannelDescriptor(FruAreaBase):
     _lanes = [f'_lane{n}_port' for n in range(4)]
     _lane_unused = 0b11111
 
-    def __init__(self, initdict=None):
-        super().__init__([
-            ('_reserved', FixedField('u4', default=0b1111)),
-            ('_lane3_port', FixedField('u5', default=AmcChannelDescriptor._lane_unused)),
-            ('_lane2_port', FixedField('u5', default=AmcChannelDescriptor._lane_unused)),
-            ('_lane1_port', FixedField('u5', default=AmcChannelDescriptor._lane_unused)),
-            ('_lane0_port', FixedField('u5', default=AmcChannelDescriptor._lane_unused)),
-        ], initdict, mergeBitfield=True)
+    _schema = [
+        ('_reserved', fixed_field('u4', default=0b1111)),
+        ('_lane3_port', fixed_field('u5', default=_lane_unused)),
+        ('_lane2_port', fixed_field('u5', default=_lane_unused)),
+        ('_lane1_port', fixed_field('u5', default=_lane_unused)),
+        ('_lane0_port', fixed_field('u5', default=_lane_unused)),
+    ]
+    _mergeBitfield = True
     
     def to_dict(self):
         return [self[l] for l in AmcChannelDescriptor._lanes if self[l] != AmcChannelDescriptor._lane_unused]
@@ -302,34 +310,38 @@ class AmcLinkDescriptor(FruAreaBase):
 
     _lane_flag_names = [f'_lane{n}_flag' for n in range(4)]
 
-    def __init__(self, initdict=None):
-        link_type_constants = {
-                'pcie': 0x02,
-                'pcie_advanced': 0x03,
-                'pci_advanced_1': 0x04,
-                'ethernet': 0x05,
-                'serial_rapidio': 0x06,
-                'storage': 0x07
-        }
-        link_type_constants.update({
-            f'oem_guid_{n}': n+0xf0 for n in range(15)
-        })
-        super().__init__([
-            ('_reserved', FixedField('u6', default=0b111111)),
-            ('asymm_match', FixedField('u2', constants={
-                'match_exact': 0b00,
-                'match_10b': 0b01,
-                'match_01b': 0b10
-            })),
-            ('grouping_id', FixedField('u8')),
-            ('link_type_ext', FixedField('u4', default=0)),
-            ('link_type', FixedField('u8', constants=link_type_constants)),
-            ('_lane3_flag', FixedField('u1')),
-            ('_lane2_flag', FixedField('u1')),
-            ('_lane1_flag', FixedField('u1')),
-            ('_lane0_flag', FixedField('u1')),
-            ('channel_id', FixedField('u8')),
-        ], initdict, mergeBitfield=True)
+    _link_type_standard_constants = {
+            'pcie': 0x02,
+            'pcie_advanced': 0x03,
+            'pci_advanced_1': 0x04,
+            'ethernet': 0x05,
+            'serial_rapidio': 0x06,
+            'storage': 0x07
+    }
+    _link_type_oem_constants = {
+        f'oem_guid_{n}': n+0xf0 for n in range(15)
+    }
+
+    _schema = [
+        ('_reserved', fixed_field('u6', default=0b111111)),
+        ('asymm_match', fixed_field('u2', constants={
+            'match_exact': 0b00,
+            'match_10b': 0b01,
+            'match_01b': 0b10
+        })),
+        ('grouping_id', fixed_field('u8')),
+        ('link_type_ext', fixed_field('u4', default=0)),
+        ('link_type', fixed_field('u8', constants={
+            **_link_type_standard_constants,
+            **_link_type_oem_constants
+        })),
+        ('_lane3_flag', fixed_field('u1')),
+        ('_lane2_flag', fixed_field('u1')),
+        ('_lane1_flag', fixed_field('u1')),
+        ('_lane0_flag', fixed_field('u1')),
+        ('channel_id', fixed_field('u8')),
+    ]
+    _mergeBitfield = True
 
     def to_dict(self):
         result = super().to_dict()
@@ -343,24 +355,24 @@ class AmcLinkDescriptor(FruAreaBase):
         super().update(val)
 
 
+@picmg_record
 class PointToPointConnectivity(PicmgEntry):
     ''' PICMG AMC.0 Specification R2.0, AdvancedMC Point-to-Point Connectivity record, Table 3-16 '''
 
-    def __init__(self, initdict=None):
-        super().__init__(_picmg_types_lookup_rev[self.__class__.__name__], [
-            ('_guid_count', FixedField('u8', default=0)),
-            ('guids', ArrayField(GuidField, num_elems_getter=lambda: self['_guid_count'])),
-            ('record_type', FixedField('u1', constants={
-                'amc_module': 1,
-                'on_carrier_device': 0
-            })),
-            ('_reserved', FixedField('u3', default=0)),
-            ('connected_dev_id', FixedField('u4', default=0)),
-            ('_channel_desc_count', FixedField('u8', default=0)),
-            ('channel_descriptors', ArrayField(AmcChannelDescriptor, num_elems_getter=lambda:self['_channel_desc_count'])),
-            ('link_descriptors', ArrayField(AmcLinkDescriptor)),
-        ], initdict)
-    
+    _schema = [
+        ('_guid_count', fixed_field('u8', default=0)),
+        ('guids', array_field(GuidField, num_elems_field='_guid_count')),
+        ('record_type', fixed_field('u1', constants={
+            'amc_module': 1,
+            'on_carrier_device': 0
+        })),
+        ('_reserved', fixed_field('u3', default=0)),
+        ('connected_dev_id', fixed_field('u4', default=0)),
+        ('_channel_desc_count', fixed_field('u8', default=0)),
+        ('channel_descriptors', array_field(AmcChannelDescriptor, num_elems_field='_channel_desc_count')),
+        ('link_descriptors', array_field(AmcLinkDescriptor)),
+    ]
+
     def serialize(self):
         self['_guid_count'] = self._dict['guids'].num_elems()
         self['_channel_desc_count'] = self._dict['channel_descriptors'].num_elems()
@@ -369,34 +381,34 @@ class PointToPointConnectivity(PicmgEntry):
 
 # FMC multirecords
 
+@fmc_record
 class FmcMainDefinition(FmcEntry):
     ''' ANSI/VITA 57.1 FMC Standard, Table 7. Subtype 0: Base Definition (fixed length and mandatory) '''
 
-    def __init__(self, initdict=None):
-        super().__init__(_fmc_types_lookup_rev[self.__class__.__name__], [
-            ('module_size', FixedField('u2', constants={
-                'single_width': 0b00,
-                'double_width': 0b01
-            })),
-            ('p1_connector_size', FixedField('u2', constants={
-                'lpc': 0b00,
-                'hpc': 0b01
-            })),
-            ('p2_connector_size', FixedField('u2', constants={
-                'lpc': 0b00,
-                'hpc': 0b01,
-                'not_fitted': 0b11,
-            })),
-            ('clock_direction', FixedField('u1', constants={
-                'mezzanine_to_carrier': 0b0,
-                'carrier_to_mezzanine': 0b1,
-            })),
-            ('_reserved', FixedField('u1', default=0)),
-            ('p1_a_num_signals', FixedField('u8')),
-            ('p1_b_num_signals', FixedField('u8')),
-            ('p2_a_num_signals', FixedField('u8')),
-            ('p2_b_num_signals', FixedField('u8')),
-            ('p1_gbt_num_trcv', FixedField('u4')),
-            ('p2_gbt_num_trcv', FixedField('u4')),
-            ('tck_max_clock', FixedField('u8'))
-        ], initdict)
+    _schema = [
+        ('module_size', fixed_field('u2', constants={
+            'single_width': 0b00,
+            'double_width': 0b01
+        })),
+        ('p1_connector_size', fixed_field('u2', constants={
+            'lpc': 0b00,
+            'hpc': 0b01
+        })),
+        ('p2_connector_size', fixed_field('u2', constants={
+            'lpc': 0b00,
+            'hpc': 0b01,
+            'not_fitted': 0b11,
+        })),
+        ('clock_direction', fixed_field('u1', constants={
+            'mezzanine_to_carrier': 0b0,
+            'carrier_to_mezzanine': 0b1,
+        })),
+        ('_reserved', fixed_field('u1', default=0)),
+        ('p1_a_num_signals', fixed_field('u8')),
+        ('p1_b_num_signals', fixed_field('u8')),
+        ('p2_a_num_signals', fixed_field('u8')),
+        ('p2_b_num_signals', fixed_field('u8')),
+        ('p1_gbt_num_trcv', fixed_field('u4')),
+        ('p2_gbt_num_trcv', fixed_field('u4')),
+        ('tck_max_clock', fixed_field('u8'))
+    ]

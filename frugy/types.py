@@ -16,6 +16,9 @@ def _grouper(n, iterable, padvalue=None):
     "grouper(3, 'abcdefg', 'x') -> ('a','b','c'), ('d','e','f'), ('g','x','x')"
     return zip_longest(*[iter(iterable)]*n, fillvalue=padvalue)
 
+def fixed_field(*args, **kwargs):
+    ''' returns function to create specified object '''
+    return lambda _: FixedField(*args, **kwargs)
 
 class FixedField():
     ''' Fixed length field for numbers & bitfields '''
@@ -67,6 +70,10 @@ class StringFmt(Enum):
     ASCII_6BIT = 0b10
     ASCII_8BIT = 0b11
 
+
+def string_field(**kwargs):
+    ''' returns function to create specified object '''
+    return lambda _: StringField(**kwargs)
 
 class StringField():
     ''' Variable length field for strings'''
@@ -179,6 +186,10 @@ class StringField():
         return self.to_dict() != self._default
 
 
+def guid_field(**kwargs):
+    ''' returns function to create specified object '''
+    return lambda _: GuidField(**kwargs)
+
 class GuidField():
     ''' Field containing a 128-bit GUID '''
 
@@ -208,13 +219,18 @@ class GuidField():
         self._value = uuid.UUID(value)
 
 
+def array_field(*args, **kwargs):
+    ''' returns function to create specified object '''
+    return lambda parent: ArrayField(parent, *args, **kwargs)
+
 class ArrayField():
     ''' Field containing an array of instances of another record '''
 
-    def __init__(self, cls, initdict=None, num_elems_getter = None):
+    def __init__(self, parent, cls, initdict=None, num_elems_field=None):
+        self._parent = parent
         self._cls = cls
         self._records = []
-        self.num_elems_getter = num_elems_getter if num_elems_getter is not None else lambda: None
+        self._num_elems_field = num_elems_field
         if initdict is not None:
             self.update(initdict)
 
@@ -229,6 +245,11 @@ class ArrayField():
     def to_dict(self):
         return [v.to_dict() for v in self._records]
     
+    def pre_serialize(self):
+        ''' Set number of elements in parent record, _before_ serializing it '''
+        if self._num_elems_field:
+            self._parent._set(self._num_elems_field, self.num_elems())
+
     def serialize(self):
         result = b''
         for f in self._records:
@@ -237,7 +258,10 @@ class ArrayField():
     
     def deserialize(self, input):
         remainder = input
-        num_elems = self.num_elems_getter()
+        num_elems = None
+        if self._num_elems_field:
+            num_elems = self._parent._get(self._num_elems_field)
+
         while len(remainder):
             record = self._cls()
             remainder = record.deserialize(remainder)
@@ -265,9 +289,10 @@ class ArrayField():
 class FruAreaBase:
     ''' Common base class for FRU areas '''
 
-    def __init__(self, schema, initdict=None, mergeBitfield=None):
-        self._dict = OrderedDict(schema)
-        self._mergeBitfield = mergeBitfield
+    _mergeBitfield = False
+
+    def __init__(self, initdict=None):
+        self._dict = OrderedDict([(k, v(self)) for k, v in self._schema])
         if initdict is not None:
             self.update(initdict)
 
@@ -333,6 +358,10 @@ class FruAreaBase:
         return self.size_payload()
 
     def _serialize(self) -> bytearray:
+        for v in self._dict.values():
+            if hasattr(v, 'pre_serialize'):
+                v.pre_serialize()
+
         result = b''
         bit_fmt = ''
         bit_values = []
@@ -438,9 +467,9 @@ class FruAreaChecksummed(FruAreaBase):
 class FruAreaVersioned(FruAreaChecksummed):
     ''' FRU area featuring a version field '''
 
-    def __init__(self, schema, initdict=None):
+    def __init__(self, initdict=None):
         self._format_version = _format_version_default
-        super().__init__(schema, initdict=initdict)
+        super().__init__(initdict=initdict)
 
     def _set_format_version(self, val):
         self._format_version = val
@@ -465,9 +494,6 @@ class FruAreaVersioned(FruAreaChecksummed):
 class FruAreaDelimited(FruAreaVersioned):
     ''' FRU area featuring version, length and delimiter fields '''
     _delimiter_code = b'\xc1'
-
-    def __init__(self, schema, initdict=None):
-        super().__init__(schema, initdict=initdict)
 
     def _set_area_length(self, val):
         if (val % 8) != 0:

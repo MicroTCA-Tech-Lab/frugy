@@ -2,7 +2,7 @@
 
 import unittest
 
-from frugy.types import FixedField, StringField, StringFmt, GuidField, ArrayField, FruAreaBase
+from frugy.types import fixed_field, StringField, StringFmt, GuidField, ArrayField, FruAreaBase
 
 
 class TestString(unittest.TestCase):
@@ -51,13 +51,12 @@ class TestString(unittest.TestCase):
 
 
 class ArrayTest(FruAreaBase):
-    def __init__(self, initdict=None):
-        super().__init__((
-            ('first_byte', FixedField('u8', default=0)),
-            ('second_byte', FixedField('u8', default=0)),
-            ('bits1', FixedField('u4', default=0)),
-            ('bits2', FixedField('u4', default=0)),
-        ), initdict)
+    _schema = [
+        ('first_byte', fixed_field('u8', default=0)),
+        ('second_byte', fixed_field('u8', default=0)),
+        ('bits1', fixed_field('u4', default=0)),
+        ('bits2', fixed_field('u4', default=0)),
+    ]
 
 class TestMisc(unittest.TestCase):
     def test_uuid(self):
@@ -72,7 +71,7 @@ class TestMisc(unittest.TestCase):
         self.assertEqual(tmp2.to_dict(), testUid)
 
     def test_array(self):
-        tmp = ArrayField(ArrayTest, [
+        tmp = ArrayField(None, ArrayTest, [
             { 'first_byte': 1, 'second_byte': 2, 'bits1': 3, 'bits2': 4, },
             { 'first_byte': 5, 'second_byte': 6, 'bits1': 7, 'bits2': 8, },
             { 'first_byte': 9, 'second_byte': 10, 'bits1': 11, 'bits2': 12, },
@@ -80,7 +79,7 @@ class TestMisc(unittest.TestCase):
         self.assertEqual(tmp.size_total(), 3 * 3)
         ser = tmp.serialize()
         self.assertEqual(ser, b'\x01\x024\x05\x06x\t\n\xbc')
-        tmp2 = ArrayField(ArrayTest)
+        tmp2 = ArrayField(None, ArrayTest)
         tmp2.deserialize(ser)
         self.assertEqual(tmp.__repr__(), tmp2.__repr__())
 

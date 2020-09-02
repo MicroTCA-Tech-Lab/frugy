@@ -1,17 +1,16 @@
-from frugy.types import FruAreaVersioned, FruAreaDelimited, FixedField, StringField
+from frugy.types import FruAreaVersioned, FruAreaDelimited, fixed_field, string_field
 from datetime import datetime, timedelta
 
 _language_code = 0  # Use English and UTF-8 as default encoding
 
 class CommonHeader(FruAreaVersioned):
-    def __init__(self, initdict=None):
-        super().__init__([
-        ('internal_use_offs', FixedField('u8', default=0)),
-        ('chassis_info_offs', FixedField('u8', default=0)),
-        ('board_info_offs', FixedField('u8', default=0)),
-        ('product_info_offs', FixedField('u8', default=0)),
-        ('multirecord_offs', FixedField('u8', default=0)),
-        ], initdict)
+    _schema = [
+        ('internal_use_offs', fixed_field('u8', default=0)),
+        ('chassis_info_offs', fixed_field('u8', default=0)),
+        ('board_info_offs', fixed_field('u8', default=0)),
+        ('product_info_offs', fixed_field('u8', default=0)),
+        ('multirecord_offs', fixed_field('u8', default=0)),
+    ]
 
     def __getitem__(self, key):
         return self._get(key) * 8
@@ -27,27 +26,23 @@ class CommonHeader(FruAreaVersioned):
 
 
 class ChassisInfo(FruAreaDelimited):
-    def __init__(self, initdict=None):
-        super().__init__([
-        ('type', FixedField('u8')),
-        ('part_number', StringField()),
-        ('serial_number', StringField()),
-        # TODO: do we need custom chassis info fields?
-        ], initdict)
-
+    _schema = [
+        ('type', fixed_field('u8')),
+        ('part_number', string_field()),
+        ('serial_number', string_field()),
+    ]
 
 class BoardInfo(FruAreaDelimited):
-    def __init__(self, initdict=None):
-        super().__init__([
-        ('language_code', FixedField('u8', default=_language_code)),
-        ('mfg_date_time', FixedField('u24', default=0)),
-        ('manufacturer', StringField()),
-        ('product_name', StringField()),
-        ('serial_number', StringField()),
-        ('part_number', StringField()),
-        ('fru_file_id', StringField()),
+    _schema = [
+        ('language_code', fixed_field('u8', default=_language_code)),
+        ('mfg_date_time', fixed_field('u24', default=0)),
+        ('manufacturer', string_field()),
+        ('product_name', string_field()),
+        ('serial_number', string_field()),
+        ('part_number', string_field()),
+        ('fru_file_id', string_field()),
         # TODO: do we need custom manufacturing info fields?
-        ], initdict)
+    ]
 
     _time_ref = datetime(1996, 1, 1)
 
@@ -68,15 +63,14 @@ class BoardInfo(FruAreaDelimited):
             return None
 
 class ProductInfo(FruAreaDelimited):
-    def __init__(self, initdict=None):
-        super().__init__([
-        ('language_code', FixedField('u8', default=_language_code)),
-        ('manufacturer', StringField()),
-        ('product_name', StringField()),
-        ('part_number', StringField()),
-        ('version', StringField()),
-        ('serial_number', StringField()),
-        ('asset_tag', StringField()),
-        ('fru_file_id', StringField()),
+    _schema = [
+        ('language_code', fixed_field('u8', default=_language_code)),
+        ('manufacturer', string_field()),
+        ('product_name', string_field()),
+        ('part_number', string_field()),
+        ('version', string_field()),
+        ('serial_number', string_field()),
+        ('asset_tag', string_field()),
+        ('fru_file_id', string_field()),
         # TODO: do we need custom manufacturing info fields?
-        ], initdict)
+    ]

@@ -3,17 +3,16 @@
 import unittest
 from datetime import datetime
 from frugy.areas import CommonHeader, ChassisInfo, BoardInfo, ProductInfo
-from frugy.types import FruAreaBase, FixedField
+from frugy.types import FruAreaBase, fixed_field
 
 
 class foo(FruAreaBase):
-    def __init__(self, initdict=None):
-        super().__init__([
-            ('first2', FixedField('u2', default=0)),
-            ('second2', FixedField('u2', default=0)),
-            ('then4', FixedField('u4', default=0)),
-            ('lastone', FixedField('u8', default=0)),
-        ], initdict)
+    _schema = [
+        ('first2', fixed_field('u2', default=0)),
+        ('second2', fixed_field('u2', default=0)),
+        ('then4', fixed_field('u4', default=0)),
+        ('lastone', fixed_field('u8', default=0)),
+    ]
 
 class TestAreas(unittest.TestCase):
     def do_test_area(self, cls, src_dict, ser_vfy, sz):
