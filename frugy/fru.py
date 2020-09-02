@@ -83,6 +83,8 @@ class Fru:
         def fmt_tree(part):
             ''' Set lists at edges of tree to YAML flow style '''
             if type(part) is list:
+                if len(part) == 0:
+                    return part, False
                 part, edge_flags = zip(*[fmt_tree(elem) for elem in part])
                 part = list(part)
                 if all(edge_flags):
