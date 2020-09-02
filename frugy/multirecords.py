@@ -419,7 +419,7 @@ class ClockConfigDescriptor(FruAreaBase):
             'TCLKD': 4,
             'FCLKA': 5,
         })),
-        ('_reserved', fixed_field('u7')),
+        ('_reserved', fixed_field('u7', default=0)),
         ('activation', fixed_field('u1', constants={
             'by_carrier': 0,
             'by_application': 1
