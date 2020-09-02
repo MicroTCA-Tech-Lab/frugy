@@ -38,8 +38,9 @@ class MultirecordArea:
         remainder = input
         while len(remainder):
             new_entry, remainder = MultirecordEntry.deserialize(remainder)
-            self.records.append(new_entry)
-            if new_entry.end_of_list:
+            if new_entry is not None:
+                self.records.append(new_entry)
+            if new_entry is None or new_entry.end_of_list:
                 break
 
         return remainder
@@ -94,28 +95,35 @@ class MultirecordEntry(FruAreaBase):
         header_len = bitstruct.calcsize(header_fmt_complt) // 8
         type_id, end_of_list, _, format_version, \
         payload_len, payload_cksum, _ = bitstruct.unpack(header_fmt_complt, input)
-
         header, remainder = input[:header_len], input[header_len:]
         payload, remainder = remainder[:payload_len], remainder[payload_len:]
-        if sum(header) & 0xff != 0:
-            raise RuntimeError("MultirecordEntry header checksum invalid")
-        if (sum(payload) + payload_cksum) & 0xff != 0:
-            raise RuntimeError("MultirecordEntry payload checksum invalid")
 
         try:
-            cls_id = globals()[_multirecord_types_lookup[type_id]]
-        except KeyError:
-            raise RuntimeError(f"Unknown multirecord type 0x{type_id:02x}")
+            if sum(header) & 0xff != 0:
+                raise RuntimeError("MultirecordEntry header checksum invalid")
+            if (sum(payload) + payload_cksum) & 0xff != 0:
+                raise RuntimeError("MultirecordEntry payload checksum invalid")
 
-        if hasattr(cls_id, 'from_payload'):
-            new_entry = cls_id.from_payload(payload)
-        else:
-            new_entry = cls_id()
-            new_entry._deserialize(payload)
+            try:
+                cls_id = globals()[_multirecord_types_lookup[type_id]]
+            except KeyError:
+                raise RuntimeError(f"Unknown multirecord type 0x{type_id:02x}")
 
-        new_entry._type_id = type_id
-        new_entry._format_version = format_version
-        new_entry.end_of_list = end_of_list
+            if hasattr(cls_id, 'from_payload'):
+                new_entry = cls_id.from_payload(payload)
+            else:
+                new_entry = cls_id()
+                new_entry._deserialize(payload)
+
+            new_entry._type_id = type_id
+            new_entry._format_version = format_version
+            new_entry.end_of_list = end_of_list
+
+        except RuntimeError as e:
+            print(f"Failed to deserialize multirecord, type_id=0x{type_id:02x}, end_of_list={end_of_list}, format_version={format_version}")
+            print(f"reason: {e}")
+            print(f"header: {' '.join('%02x'%x for x in header)}, payload: {' '.join('%02x'%x for x in payload)}")
+            new_entry = None
 
         return new_entry, remainder
 
