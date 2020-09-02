@@ -484,8 +484,8 @@ class FmcMainDefinition(FmcEntry):
             'not_fitted': 0b11,
         })),
         ('clock_direction', fixed_field('u1', constants={
-            'mezzanine_to_carrier': 0b0,
-            'carrier_to_mezzanine': 0b1,
+            'm2c': 0b0,
+            'c2m': 0b1,
         })),
         ('_reserved', fixed_field('u1', default=0)),
         ('p1_a_num_signals', fixed_field('u8')),
