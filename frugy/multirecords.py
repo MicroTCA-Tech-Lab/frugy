@@ -37,10 +37,10 @@ class MultirecordArea:
         self.records = []
         remainder = input
         while len(remainder):
-            new_entry, remainder = MultirecordEntry.deserialize(remainder)
+            new_entry, remainder, end_of_list = MultirecordEntry.deserialize(remainder)
             if new_entry is not None:
                 self.records.append(new_entry)
-            if new_entry is None or new_entry.end_of_list:
+            if end_of_list:
                 break
 
         return remainder
@@ -100,8 +100,10 @@ class MultirecordEntry(FruAreaBase):
 
         try:
             if sum(header) & 0xff != 0:
+                end_of_list = 1
                 raise RuntimeError("MultirecordEntry header checksum invalid")
             if (sum(payload) + payload_cksum) & 0xff != 0:
+                end_of_list = 1
                 raise RuntimeError("MultirecordEntry payload checksum invalid")
 
             try:
@@ -126,7 +128,7 @@ class MultirecordEntry(FruAreaBase):
             print(f"header: {' '.join('%02x'%x for x in header)}, payload: {' '.join('%02x'%x for x in payload)}")
             new_entry = None
 
-        return new_entry, remainder
+        return new_entry, remainder, end_of_list
 
 
 # Lookup tables for multirecord type IDs
