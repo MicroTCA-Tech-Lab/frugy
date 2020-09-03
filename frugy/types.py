@@ -18,14 +18,24 @@ def _grouper(n, iterable, padvalue=None):
     "grouper(3, 'abcdefg', 'x') -> ('a','b','c'), ('d','e','f'), ('g','x','x')"
     return zip_longest(*[iter(iterable)]*n, fillvalue=padvalue)
 
-def fixed_field(*args, **kwargs):
-    ''' returns function to create specified object '''
-    return lambda _: FixedField(*args, **kwargs)
+
+class FactoryObject():
+    def __init__(self, *args, **kwargs):
+        self.args = args
+        self.kwargs = kwargs
+    
+    def __call__(self, parent):
+        return self._obj(*self.args, **self.kwargs, parent=parent)
+    
+    @classmethod
+    def create(cls, name, desc, obj):
+        return type(name, (FactoryObject,), dict(_obj=obj, _description = desc))
+
 
 class FixedField():
     ''' Fixed length field for numbers & bitfields '''
 
-    def __init__(self, format: str, default=None, div=None, constants=None):
+    def __init__(self, format: str, parent=None, default=None, div=None, constants=None):
         self._format = format
         self._default = default
         self._value = default
@@ -68,6 +78,8 @@ class FixedField():
     def val_not_default(self):
         return self.to_dict() != self._default
 
+fixed_field = FactoryObject.create('fixed_field', 'int', FixedField)
+
 
 class StringFmt(Enum):
     BIN = 0b00
@@ -76,14 +88,10 @@ class StringFmt(Enum):
     ASCII_8BIT = 0b11
 
 
-def string_field(**kwargs):
-    ''' returns function to create specified object '''
-    return lambda _: StringField(**kwargs)
-
 class StringField():
     ''' Variable length field for strings'''
 
-    def __init__(self, default='', format: StringFmt=StringFmt.ASCII_8BIT):
+    def __init__(self, default='', format: StringFmt=StringFmt.ASCII_8BIT, parent=None):
         self._format = format
         self._default = default
         self._value = default
@@ -189,16 +197,14 @@ class StringField():
     def val_not_default(self):
         return self.to_dict() != self._default
 
+string_field = FactoryObject.create('string_field', 'str', StringField)
 
-def bytearray_field(**kwargs):
-    ''' returns function to create specified object '''
-    return lambda parent: BytearrayField(parent, **kwargs)
 
 class BytearrayField():
     ''' Variable length field containing a transparent bytearray, to handle stupid ambiguous multirecord payloads '''
     ''' (e.g. "Zone 3 Interface Compatibility record") '''
 
-    def __init__(self, parent, num_elems_field=None, default=''):
+    def __init__(self, num_elems_field=None, default='', parent=None):
         self._parent = parent
         self._num_elems_field = num_elems_field
         self._default = default
@@ -233,17 +239,15 @@ class BytearrayField():
     def val_not_default(self):
         return self.to_dict() != self._default
 
+bytearray_field = FactoryObject.create('bytearray_field', 'bytes', BytearrayField)
 
-def fixed_string_field(*args, **kwargs):
-    ''' returns function to create specified object '''
-    return lambda _: FixedStringField(*args, **kwargs)
 
 class FixedStringField():
     ''' Null-terminated string with fixed size buffer '''
 
     _null_term = b'\x00'
 
-    def __init__(self, bufsize, default=''):
+    def __init__(self, bufsize, default='', parent=None):
         self._bufsize = bufsize
         self._default = default
         self._value = default
@@ -271,16 +275,14 @@ class FixedStringField():
     def val_not_default(self):
         return self.to_dict() != self._default
 
+fixed_string_field = FactoryObject.create('fixed_string_field', 'str', FixedStringField)
 
-def ipv4_field(**kwargs):
-    ''' returns function to create specified object '''
-    return lambda _: IpV4Field(**kwargs)
 
 class IpV4Field():
     ''' Field containing a IPv4 address '''
     _num_bytes = 4
 
-    def __init__(self, default='0.0.0.0'):
+    def __init__(self, default='0.0.0.0', parent=None):
         self._default = default
         self._value = IPv4Address(default)
 
@@ -305,17 +307,15 @@ class IpV4Field():
     def val_not_default(self):
         return self.to_dict() != self._default
 
+ipv4_field = FactoryObject.create('ipv4_field', 'ipv4', IpV4Field)
 
-def guid_field(**kwargs):
-    ''' returns function to create specified object '''
-    return lambda _: GuidField(**kwargs)
 
 class GuidField():
     ''' Field containing a 128-bit GUID '''
 
     _uuid_len = 16
 
-    def __init__(self, value=None):
+    def __init__(self, value=None, parent=None):
         self._value = uuid.UUID(value) if value is not None else uuid.uuid4()
 
     def bit_size(self) -> int:
@@ -338,15 +338,13 @@ class GuidField():
     def update(self, value):
         self._value = uuid.UUID(value)
 
+guid_field = FactoryObject.create('guid_field', 'guid', GuidField)
 
-def array_field(*args, **kwargs):
-    ''' returns function to create specified object '''
-    return lambda parent: ArrayField(parent, *args, **kwargs)
 
 class ArrayField():
     ''' Field containing an array of instances of another record '''
 
-    def __init__(self, parent, cls, initdict=None, num_elems_field=None):
+    def __init__(self, cls, parent=None, initdict=None, num_elems_field=None):
         self._parent = parent
         self._cls = cls
         self._records = []
@@ -403,6 +401,8 @@ class ArrayField():
 
     def val_not_default(self):
         return self.num_elems() != 0
+
+array_field = FactoryObject.create('array_field', 'array', ArrayField)
 
 
 class FruAreaBase:

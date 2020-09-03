@@ -71,7 +71,7 @@ class TestMisc(unittest.TestCase):
         self.assertEqual(tmp2.to_dict(), testUid)
 
     def test_array(self):
-        tmp = ArrayField(None, ArrayTest, [
+        tmp = ArrayField(ArrayTest, initdict=[
             { 'first_byte': 1, 'second_byte': 2, 'bits1': 3, 'bits2': 4, },
             { 'first_byte': 5, 'second_byte': 6, 'bits1': 7, 'bits2': 8, },
             { 'first_byte': 9, 'second_byte': 10, 'bits1': 11, 'bits2': 12, },
@@ -79,7 +79,7 @@ class TestMisc(unittest.TestCase):
         self.assertEqual(tmp.size_total(), 3 * 3)
         ser = tmp.serialize()
         self.assertEqual(ser, b'\x01\x024\x05\x06x\t\n\xbc')
-        tmp2 = ArrayField(None, ArrayTest)
+        tmp2 = ArrayField(ArrayTest)
         tmp2.deserialize(ser)
         self.assertEqual(tmp.__repr__(), tmp2.__repr__())
 
