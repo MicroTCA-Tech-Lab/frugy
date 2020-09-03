@@ -18,6 +18,8 @@ def _grouper(n, iterable, padvalue=None):
     "grouper(3, 'abcdefg', 'x') -> ('a','b','c'), ('d','e','f'), ('g','x','x')"
     return zip_longest(*[iter(iterable)]*n, fillvalue=padvalue)
 
+def bin2hex_helper(val: bytearray):
+    return ' '.join('%02x'%x for x in val)
 
 class FactoryObject():
     def __init__(self, *args, **kwargs):
@@ -231,7 +233,7 @@ class BytearrayField():
             return b''
 
     def to_dict(self):
-        return ' '.join(f'{v:02x}' for v in self._value)
+        return bin2hex_helper(self._value)
     
     def update(self, value):
         self._value = bytearray.fromhex(value)
@@ -576,7 +578,7 @@ class FruAreaChecksummed(FruAreaBase):
         ep = self._epilogue(payload)
         vfy, remainder = input[offs:offs+len(ep)], input[offs+len(ep):]
         if ep != vfy:
-            raise RuntimeError(f'padding or checksum verify error in {self.__class__.__name__}: expected {ep}, received {vfy}')
+            raise RuntimeError(f'padding or checksum verify error in {self.__class__.__name__}: expected {bin2hex_helper(ep)}, received {bin2hex_helper(vfy)}')
         return remainder
 
     def deserialize(self, input: bytearray):

@@ -1,4 +1,4 @@
-from frugy.types import FruAreaBase, fixed_field, fixed_string_field, GuidField, array_field, bytearray_field, ipv4_field
+from frugy.types import FruAreaBase, fixed_field, fixed_string_field, GuidField, array_field, bytearray_field, ipv4_field, bin2hex_helper
 import bitstruct
 from frugy.fru_registry import FruRecordType, rec_register, rec_lookup_by_id, rec_lookup_by_name
 from frugy.areas import ipmi_area
@@ -126,7 +126,7 @@ class MultirecordEntry(FruAreaBase):
             print(f"Failed to deserialize multirecord, type_id=0x{type_id:02x}, end_of_list={end_of_list}, "
                   f"format_version={format_version}, len={len(header)+len(payload)}")
             print(f"reason: {e}")
-            print(f"header: {' '.join('%02x'%x for x in header)}, payload: {' '.join('%02x'%x for x in payload)}")
+            print(f"header: {bin2hex_helper(header)}, payload: {bin2hex_helper(payload)}")
             new_entry = None
 
         return new_entry, remainder, end_of_list
