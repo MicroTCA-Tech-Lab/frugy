@@ -153,6 +153,23 @@ class PointToPointConnectivity(PicmgEntry):
 
 # Array entry classes for ClockConfig
 
+_clock_id_constants = {
+    # Predefined Clock IDs for AMC clocks, Table 3-33
+    # TODO: Are these enough, or do we also need the ATCA Backplane clocks (Table 3-34)?
+    'TCLKA': 1,
+    'TCLKB': 2,
+    'TCLKC': 3,
+    'TCLKD': 4,
+    'FCLKA': 5,
+}
+
+_resource_type_constants = {
+    # Clock Resource IDs, Table 3-31
+    'on_carrier': 0b00,
+    'amc_module': 0b01,
+    'backplane': 0b10
+}
+
 @picmg_secondary
 class DirectClockDescriptor(FruAreaBase):
     ''' PICMG AMC.0 Specification R2.0, Table 3-38 '''
@@ -196,15 +213,7 @@ class ClockConfigDescriptor(FruAreaBase):
     ''' PICMG AMC.0 Specification R2.0, Table 3-36 '''
     
     _schema = [
-        ('clk_id', fixed_field('u8', constants={
-            # Predefined Clock IDs for AMC clocks (Table 3-33)
-            # TODO: Are these enough, or do we also need the ATCA Backplane clocks (Table 3-34)?
-            'TCLKA': 1,
-            'TCLKB': 2,
-            'TCLKC': 3,
-            'TCLKD': 4,
-            'FCLKA': 5,
-        })),
+        ('clk_id', fixed_field('u8', constants=_clock_id_constants)),
         ('_reserved', fixed_field('u7', default=0)),
         ('activation', fixed_field('u1', constants={
             'by_carrier': 0,
@@ -222,12 +231,7 @@ class ClockConfig(PicmgEntry):
     ''' PICMG AMC.0 Specification R2.0, Table 3-35 '''
 
     _schema = [
-        # first 8 bits is 'Clock Resource ID', Table 3-31
-        ('resource_type', fixed_field('u2', constants={
-            'on_carrier': 0b00,
-            'amc_module': 0b01,
-            'backplane': 0b10
-        })),
+        ('resource_type', fixed_field('u2', constants=_resource_type_constants)),
         ('_reserved', fixed_field('u2', default=0)),
         ('dev_id', fixed_field('u4')),
         ('_conf_desc_count', fixed_field('u8', default=0)),
@@ -449,4 +453,40 @@ class CarrierP2pConnectivity(PicmgEntry):
 
     _schema = [
         ('resource_descriptors', array_field(P2pAmcResourceDescriptor)),
+    ]
+
+
+@picmg_secondary
+class P2pClockConnectionDescriptor(FruAreaBase):
+    ''' PICMG AMC.0 Specification R2.0, Table 3-32 '''
+
+    _schema = [
+        ('local_clock_id', fixed_field('u8', constants=_clock_id_constants)),
+        ('remote_clock_id', fixed_field('u8', constants=_clock_id_constants)),
+        ('resource_type', fixed_field('u2', constants=_resource_type_constants)),
+        ('_reserved', fixed_field('u2', default=0)),
+        ('dev_id', fixed_field('u4')),
+    ]
+
+
+@picmg_secondary
+class ClockP2pResourceDescriptor(FruAreaBase):
+    ''' PICMG AMC.0 Specification R2.0, Table 3-30 '''
+
+    _schema = [
+        ('resource_type', fixed_field('u2', constants=_resource_type_constants)),
+        ('_reserved', fixed_field('u2', default=0)),
+        ('dev_id', fixed_field('u4')),
+        ('_p2p_clk_conn_count', fixed_field('u8', default=0)),
+        ('p2p_clk_conn_descriptors', array_field(P2pClockConnectionDescriptor, num_elems_field='_p2p_clk_conn_count'))
+    ]
+
+
+@picmg_multirecord(0x2c)
+class CarrierClkP2pConnectivity(PicmgEntry):
+    ''' PICMG AMC.0 Specification R2.0, Table 3-29 '''
+
+    _schema = [
+        ('_clk_p2p_resource_desc_count', fixed_field('u8', default=0)),
+        ('clk_p2p_resource_descriptors', array_field(ClockP2pResourceDescriptor, num_elems_field='_clk_p2p_resource_desc_count')),
     ]
