@@ -8,18 +8,19 @@ class PicmgEntry(MultirecordEntry):
     ''' PICMG AMC.0 Specification R2.0 '''
     ''' Superclass of all PICMG OEM multirecords '''
 
-    _picmg_identifier = b'\x5a\x31\x00'
+    _picmg_identifier = 0x315a
 
     def _payload_prologue(self):
-        return self._picmg_identifier + self._record_id.to_bytes(length=1, byteorder='little') + b'\x00'
+        return self._picmg_identifier.to_bytes(3, 'little') + self._record_id.to_bytes(length=1, byteorder='little') + b'\x00'
     
     @classmethod
     def from_payload(cls, payload):
-        picmg_id, payload = payload[:len(cls._picmg_identifier)], payload[len(cls._picmg_identifier):]
+        picmg_id, payload = payload[:3], payload[3:]
         rec_id, rec_fmt_version, payload = payload[0], payload[1], payload[2:]
+        picmg_id = int.from_bytes(picmg_id, 'little')
 
         if picmg_id != cls._picmg_identifier:
-            raise RuntimeError(f"PICMG identifier mismatch: expected {bin2hex_helper(cls._picmg_identifier)}, received {bin2hex_helper(picmg_id)}")
+            raise RuntimeError(f"PICMG identifier mismatch: expected 0x{cls._picmg_identifier:06x}, received 0x{picmg_id:06x} ({picmg_id})")
 
         if rec_fmt_version not in [0x00, 0x01]:
             raise RuntimeError(f"Unexpected record format version: 0x{rec_fmt_version:02x}")

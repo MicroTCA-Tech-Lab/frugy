@@ -124,10 +124,10 @@ class MultirecordEntry(FruAreaBase):
             new_entry.end_of_list = end_of_list
 
         except RuntimeError as e:
-            logging.error(f"Failed to deserialize multirecord, type_id=0x{type_id:02x}, end_of_list={end_of_list}, "
-                          f"format_version={format_version}, len={len(header)+len(payload)}")
-            logging.error(f"reason: {e}")
-            logging.error(f"header: {bin2hex_helper(header)}, payload: {bin2hex_helper(payload)}")
+            logging.warning(f"Failed to deserialize multirecord, type_id=0x{type_id:02x}, end_of_list={end_of_list}, "
+                            f"format_version={format_version}, len={len(header)+len(payload)}")
+            logging.warning(f"reason: {e}")
+            logging.warning(f"header: {bin2hex_helper(header)}, payload: {bin2hex_helper(payload)}")
             new_entry = None
 
         return new_entry, remainder, end_of_list

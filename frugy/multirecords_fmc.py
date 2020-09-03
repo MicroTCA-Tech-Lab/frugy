@@ -8,18 +8,19 @@ class FmcEntry(MultirecordEntry):
     ''' ANSI/VITA 57.1 FMC Standard '''
     ''' Superclass of all ANSI/VITA FMC OEM multirecords '''
 
-    _fmc_identifier = b'\xa2\x12\x00'
+    _fmc_identifier = 0x12a2
 
     def _payload_prologue(self):
-        return self._fmc_identifier + self._record_id.to_bytes(length=1, byteorder='little')
+        return self._fmc_identifier.to_bytes(3, 'little') + self._record_id.to_bytes(length=1, byteorder='little')
     
     @classmethod
     def from_payload(cls, payload):
-        fmc_id, payload = payload[:len(cls._fmc_identifier)], payload[len(cls._fmc_identifier):]
+        fmc_id, payload = payload[:3], payload[3:]
         rec_id, payload = payload[0], payload[1:]
+        fmc_id = int.from_bytes(fmc_id, 'little')
 
         if fmc_id != cls._fmc_identifier:
-            raise RuntimeError(f"FMC identifier mismatch: expected {cls._fmc_identifier}, received {fmc_id}")
+            raise RuntimeError(f"FMC identifier mismatch: expected 0x{cls._fmc_identifier:06x}, received 0x{fmc_id:06x} ({fmc_id})")
 
         try:
             cls_inst = rec_lookup_by_id(FruRecordType.fmc_multirecord, rec_id)()
