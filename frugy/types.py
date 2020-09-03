@@ -694,6 +694,11 @@ class FruAreaSized(FruAreaVersioned):
     def deserialize(self, input: bytearray):
         self._format_version = input[0]
         self._area_length = input[1]
-        logging.debug(f'{self.__class__.__name__}: parse {bin2hex_helper(input[:self._get_area_length()])}')
-        remainder = self._deserialize(input[2:])
-        return self._verify_epilogue(input, len(input) - len(remainder))
+        area_len = self._get_area_length()
+        logging.debug(f'{self.__class__.__name__}: parse {bin2hex_helper(input[:10])}...')
+        self._deserialize(input[2:area_len])
+        # The remainder may have arbitrary padding, so just check the last byte, and return only stuff that's behind our area
+        cksum = (-sum(input[:area_len])) & 0xff
+        if cksum != 0:
+            raise RuntimeError(f'{self.__class__.__name__}: checksum doesn\'t add up to zero')
+        return input[area_len:]
