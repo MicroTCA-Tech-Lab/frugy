@@ -1,4 +1,4 @@
-from frugy.types import fixed_field
+from frugy.types import fixed_field, bytearray_field
 from frugy.multirecords import ipmi_multirecord, MultirecordEntry
 
 
@@ -46,4 +46,22 @@ class DCLoad(MultirecordEntry):
         ('max_noise_pk2pk', fixed_field('u16')),     # mV
         ('min_current_load', fixed_field('u16')),    # mA
         ('max_current_load', fixed_field('u16')),    # mA
+    ]
+
+
+@ipmi_multirecord(0x03)
+class MgmtAccessRecord(MultirecordEntry):
+    ''' Platform Management FRU Information Storage Definition, Table 18-6 '''
+
+    _schema = [
+        ('id', fixed_field('u8', constants={
+            'sys_mgmt_url': 1,
+            'sys_name': 2,
+            'sys_ping_addr': 3,
+            'comp_mgmt_url': 4,
+            'comp_name': 5,
+            'comp_ping_addr': 6,
+            'sys_unique_id': 7
+        })),
+        ('blob', bytearray_field()),
     ]
