@@ -1,8 +1,15 @@
 from frugy.types import FruAreaVersioned, FruAreaDelimited, fixed_field, string_field
+from frugy.fru_registry import FruRecordType, rec_register
 from datetime import datetime, timedelta
 
 _language_code = 0  # Use English and UTF-8 as default encoding
 
+def ipmi_area(cls):
+    rec_register(cls, FruRecordType.ipmi_area)
+    return cls
+
+
+@ipmi_area
 class CommonHeader(FruAreaVersioned):
     _schema = [
         ('internal_use_offs', fixed_field('u8', default=0)),
@@ -25,6 +32,7 @@ class CommonHeader(FruAreaVersioned):
             self._set(item, 0)
 
 
+@ipmi_area
 class ChassisInfo(FruAreaDelimited):
     _schema = [
         ('type', fixed_field('u8')),
@@ -32,6 +40,8 @@ class ChassisInfo(FruAreaDelimited):
         ('serial_number', string_field()),
     ]
 
+
+@ipmi_area
 class BoardInfo(FruAreaDelimited):
     _schema = [
         ('language_code', fixed_field('u8', default=_language_code)),
@@ -62,6 +72,8 @@ class BoardInfo(FruAreaDelimited):
         else:
             return None
 
+
+@ipmi_area
 class ProductInfo(FruAreaDelimited):
     _schema = [
         ('language_code', fixed_field('u8', default=_language_code)),

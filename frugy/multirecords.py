@@ -1,8 +1,10 @@
 from frugy.types import FruAreaBase, fixed_field, fixed_string_field, GuidField, array_field, bytearray_field, ipv4_field
 import bitstruct
-from bidict import bidict
+from frugy.fru_registry import FruRecordType, rec_register, rec_lookup_class
+from frugy.areas import ipmi_area
 
 
+@ipmi_area
 class MultirecordArea:
     ''' This is just a daisy-chain of MultirecordEntry objects '''
 
@@ -107,7 +109,7 @@ class MultirecordEntry(FruAreaBase):
                 raise RuntimeError("MultirecordEntry payload checksum invalid")
 
             try:
-                cls_id = globals()[_multirecord_types_lookup[type_id]]
+                cls_id = rec_lookup_class(FruRecordType.ipmi_multirecord, type_id)
             except KeyError:
                 raise RuntimeError(f"Unknown multirecord type 0x{type_id:02x}")
 
@@ -131,24 +133,15 @@ class MultirecordEntry(FruAreaBase):
         return new_entry, remainder, end_of_list
 
 
-# Lookup tables for multirecord type IDs
+def ipmi_multirecord(rec_id):
+    def register_and_set_id(cls):
+        cls._type_id = rec_id
+        rec_register(cls, FruRecordType.ipmi_multirecord, rec_id)
+        return cls
+    return register_and_set_id
 
-_multirecord_types_lookup = bidict({
-    # Standard IPMI multirecord entries
-    0x01: 'DCOutput',
-    0x02: 'DCLoad',
-    # 'OEM' (non-standard) multirecord entries
-    # PICMG Advanced Mezzanine Card AMC.0 Specification R2.0
-    0xc0: 'PicmgEntry',
-    # ANSI/VITA 57.1 FPGA Mezzanine Card (FMC) Standard
-    0xfa: 'FmcEntry',
-})
 
-def multirecord(cls):
-    cls._type_id = _multirecord_types_lookup.inverse[cls.__name__]
-    return cls
-
-@multirecord
+@ipmi_multirecord(0xc0)
 class PicmgEntry(MultirecordEntry):
     ''' PICMG Advanced Mezzanine Card AMC.0 Specification R2.0 '''
     ''' This stuff is shared between all instances of PICMG OEM multirecord entries '''
@@ -170,14 +163,15 @@ class PicmgEntry(MultirecordEntry):
             raise RuntimeError(f"Unexpected record format version: 0x{rec_fmt_version:02x}")
 
         try:
-            cls_inst = globals()[_picmg_types_lookup[rec_id]]()
+            cls_inst = rec_lookup_class(FruRecordType.picmg_multirecord, rec_id)()
         except KeyError:
             raise RuntimeError(f"Unknown PICMG entry 0x{rec_id:02x}")
 
         cls_inst._deserialize(payload)
         return cls_inst
 
-@multirecord
+
+@ipmi_multirecord(0xfa)
 class FmcEntry(MultirecordEntry):
     ''' This stuff is shared between all instances of ANSI/VITA FMC OEM multirecord entries '''
 
@@ -195,7 +189,7 @@ class FmcEntry(MultirecordEntry):
             raise RuntimeError(f"FMC identifier mismatch: expected {cls._fmc_identifier}, received {fmc_id}")
 
         try:
-            cls_inst = globals()[_fmc_types_lookup[rec_id]]()
+            cls_inst = rec_lookup_class(FruRecordType.fmc_multirecord, rec_id)()
         except KeyError:
             raise RuntimeError(f"Unknown FMC entry 0x{rec_id:02x}")
 
@@ -203,33 +197,6 @@ class FmcEntry(MultirecordEntry):
         cls_inst._record_id = rec_id
         return cls_inst
 
-
-# Lookup tables for OEM multirecord record IDs
-
-_picmg_types_lookup = bidict({
-    0x16: 'ModuleCurrentRequirements',
-    0x18: 'CarrierP2pConnectivity',
-    0x19: 'PointToPointConnectivity',
-    0x20: 'FruPartition',
-    0x21: 'CarrierManagerIPLink',
-    0x22: 'MtcaCarrierInformation',
-    0x25: 'PowerPolicyRecord',
-    0x26: 'MtcaCarrierActivationPm',
-    0x2d: 'ClockConfig',
-    0x30: 'Zone3InterfaceCompatibility'
-})
-
-def picmg_record(cls):
-    cls._record_id = _picmg_types_lookup.inverse[cls.__name__]
-    return cls
-
-_fmc_types_lookup = bidict({
-    0x00: 'FmcMainDefinition'
-})
-
-def fmc_record(cls):
-    cls._record_id = _fmc_types_lookup.inverse[cls.__name__]
-    return cls
 
 # IPMI standard multirecords
 
@@ -244,7 +211,7 @@ fmc_voltages_per_port = [
 fmc_voltages_total = [f'{p}_{v}' for p in ['P1', 'P2'] for v in fmc_voltages_per_port]
 fmc_output_constants = {name: idx for idx, name in enumerate(fmc_voltages_total)}
 
-@multirecord
+@ipmi_multirecord(0x01)
 class DCOutput(MultirecordEntry):
     ''' Platform Management FRU Information Storage Definition, Table 18-2 '''
 
@@ -260,7 +227,7 @@ class DCOutput(MultirecordEntry):
         ('max_current_draw', fixed_field('u16')),    # mA
     ]
 
-@multirecord
+@ipmi_multirecord(0x02)
 class DCLoad(MultirecordEntry):
     ''' Platform Management FRU Information Storage Definition, Table 18-4 '''
 
@@ -278,7 +245,19 @@ class DCLoad(MultirecordEntry):
 
 # PICMG AMC.0 multirecords
 
-@picmg_record
+def picmg_multirecord(rec_id):
+    def register_and_set_id(cls):
+        cls._record_id = rec_id
+        rec_register(cls, FruRecordType.picmg_multirecord, rec_id)
+        return cls
+    return register_and_set_id
+
+def picmg_secondary(cls):
+    rec_register(cls, FruRecordType.picmg_secondary)
+    return cls
+
+
+@picmg_multirecord(0x16)
 class ModuleCurrentRequirements(PicmgEntry):
     ''' PICMG AMC.0 Specification R2.0, Module Current Requirements record, Table 3-10 '''
 
@@ -288,6 +267,7 @@ class ModuleCurrentRequirements(PicmgEntry):
 
 # Array entry classes for PointToPointConnectivity
 
+@picmg_secondary
 class AmcChannelDescriptor(FruAreaBase):
     ''' PICMG AMC.0 Specification R2.0, AMC Channel Descriptor, Table 3-17 '''
 
@@ -311,6 +291,7 @@ class AmcChannelDescriptor(FruAreaBase):
             self[l] = val[i] if i < len(val) else AmcChannelDescriptor._lane_unused
 
 
+@picmg_secondary
 class AmcLinkDescriptor(FruAreaBase):
     ''' PICMG AMC.0 Specification R2.0, AMC Link Descriptor, Table 3-19 '''
 
@@ -361,7 +342,7 @@ class AmcLinkDescriptor(FruAreaBase):
         super().update(val)
 
 
-@picmg_record
+@picmg_multirecord(0x19)
 class PointToPointConnectivity(PicmgEntry):
     ''' PICMG AMC.0 Specification R2.0, AdvancedMC Point-to-Point Connectivity record, Table 3-16 '''
 
@@ -380,6 +361,9 @@ class PointToPointConnectivity(PicmgEntry):
     ]
 
 
+# Array entry classes for ClockConfig
+
+@picmg_secondary
 class DirectClockDescriptor(FruAreaBase):
     ''' PICMG AMC.0 Specification R2.0, Direct Clock descriptor, Table 3-38 '''
 
@@ -401,6 +385,8 @@ class DirectClockDescriptor(FruAreaBase):
         ('freq_max', fixed_field('u32')),
     ]
 
+
+@picmg_secondary
 class IndirectClockDescriptor(FruAreaBase):
     ''' PICMG AMC.0 Specification R2.0, Indirect Clock descriptor, Table 3-37 '''
 
@@ -414,6 +400,8 @@ class IndirectClockDescriptor(FruAreaBase):
         ('dep_clk_id', fixed_field('u8')),
     ]
 
+
+@picmg_secondary
 class ClockConfigDescriptor(FruAreaBase):
     ''' PICMG AMC.0 Specification R2.0, Clock Configuration descriptor, Table 3-36 '''
     
@@ -438,7 +426,8 @@ class ClockConfigDescriptor(FruAreaBase):
         ('direct_clk_desc', array_field(DirectClockDescriptor, num_elems_field='_direct_clk_desc_count')),
     ]
 
-@picmg_record
+
+@picmg_multirecord(0x2d)
 class ClockConfig(PicmgEntry):
     ''' PICMG AMC.0 Specification R2.0, Clock Configuration record, Table 3-35 '''
 
@@ -455,7 +444,8 @@ class ClockConfig(PicmgEntry):
         ('conf_desc', array_field(ClockConfigDescriptor, num_elems_field='_conf_desc_count')),
     ]
 
-@picmg_record
+
+@picmg_multirecord(0x30)
 class Zone3InterfaceCompatibility(PicmgEntry):
     ''' PICMG AMC.0 Specification R2.0, Clock Configuration record, Table 3-35 '''
     ''' The identifier body is represented as transparent bytearray '''
@@ -471,6 +461,8 @@ class Zone3InterfaceCompatibility(PicmgEntry):
         ('identifier_body', bytearray_field()),
     ]
 
+
+@picmg_secondary
 class PartitionDescriptor(FruAreaBase):
     ''' PICMG Specification MTCA.0 R1.0 Table 3-11 '''
 
@@ -479,7 +471,8 @@ class PartitionDescriptor(FruAreaBase):
         ('length', fixed_field('u16')),
     ]
 
-@picmg_record
+
+@picmg_multirecord(0x20)
 class FruPartition(PicmgEntry):
     ''' PICMG Specification MTCA.0 R1.0 Table 3-10 '''
 
@@ -489,7 +482,7 @@ class FruPartition(PicmgEntry):
     ]
 
 
-@picmg_record
+@picmg_multirecord(0x21)
 class CarrierManagerIPLink(PicmgEntry):
     ''' PICMG Specification MTCA.0 R1.0 Table 3-12 '''
     _schema = [
@@ -523,6 +516,8 @@ _site_type_constants = {
     **_site_type_oem
 }
 
+
+@picmg_secondary
 class SlotEntry(FruAreaBase):
     ''' PICMG Specification MTCA.0 R1.0 Table 3-17 '''
 
@@ -535,7 +530,8 @@ class SlotEntry(FruAreaBase):
         ('slot_org_x', fixed_field('u16')),
     ]
 
-@picmg_record
+
+@picmg_multirecord(0x22)
 class MtcaCarrierInformation(PicmgEntry):
     ''' PICMG Specification MTCA.0 R1.0 Table 3-16 '''
 
@@ -550,6 +546,7 @@ class MtcaCarrierInformation(PicmgEntry):
     ]
 
 
+@picmg_secondary
 class PowerPolicyDescriptor(FruAreaBase):
     ''' PICMG Specification MTCA.0 R1.0 Table 3-24 '''
 
@@ -578,7 +575,7 @@ class PowerPolicyDescriptor(FruAreaBase):
         super().update(val)
 
 
-@picmg_record
+@picmg_multirecord(0x25)
 class PowerPolicyRecord(PicmgEntry):
     ''' PICMG Specification MTCA.0 R1.0 Table 3-23 '''
 
@@ -588,6 +585,7 @@ class PowerPolicyRecord(PicmgEntry):
     ]
 
 
+@picmg_secondary
 class MtcaCarrierActivCurrDescriptor(FruAreaBase):
     ''' PICMG Specification MTCA.0 R1.0 Table 3-26 '''
 
@@ -609,7 +607,7 @@ class MtcaCarrierActivCurrDescriptor(FruAreaBase):
     ]
 
 
-@picmg_record
+@picmg_multirecord(0x26)
 class MtcaCarrierActivationPm(PicmgEntry):
     ''' PICMG Specification MTCA.0 R1.0 Table 3-25 '''
 
@@ -620,6 +618,7 @@ class MtcaCarrierActivationPm(PicmgEntry):
     ]
 
 
+@picmg_secondary
 class P2pPortDescriptor(FruAreaBase):
     ''' PICMG AMC.0 Specification R2.0 Table 3-15 '''
 
@@ -637,6 +636,8 @@ class P2pPortDescriptor(FruAreaBase):
         ('site_no', fixed_field('u4')),
     ]
 
+
+@picmg_secondary
 class P2pAmcResourceDescriptor(FruAreaBase):
     ''' PICMG AMC.0 Specification R2.0 Table 3-14 '''
 
@@ -651,7 +652,8 @@ class P2pAmcResourceDescriptor(FruAreaBase):
         ('port_descriptors', array_field(P2pPortDescriptor, num_elems_field='_port_count')),
     ]
 
-@picmg_record
+
+@picmg_multirecord(0x18)
 class CarrierP2pConnectivity(PicmgEntry):
     ''' PICMG AMC.0 Specification R2.0 Table 3-13 '''
 
@@ -662,7 +664,19 @@ class CarrierP2pConnectivity(PicmgEntry):
 
 # FMC multirecords
 
-@fmc_record
+def fmc_multirecord(rec_id):
+    def register_and_set_id(cls):
+        cls._record_id = rec_id
+        rec_register(cls, FruRecordType.fmc_multirecord, rec_id)
+        return cls
+    return register_and_set_id
+
+def fmc_secondary(cls):
+    rec_register(cls, FruRecordType.fmc_secondary)
+    return cls
+
+
+@fmc_multirecord(0x00)
 class FmcMainDefinition(FmcEntry):
     ''' ANSI/VITA 57.1 FMC Standard, Table 7. Subtype 0: Base Definition (fixed length and mandatory) '''
 
