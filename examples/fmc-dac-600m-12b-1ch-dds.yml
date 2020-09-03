@@ -61,7 +61,7 @@ MultirecordArea:
   module_size: single_width
   p1_connector_size: hpc
   p2_connector_size: not_fitted
-  clock_direction: carrier_to_mezzanine
+  clock_direction: c2m
   p1_a_num_signals: 68
   p1_b_num_signals: 0
   p2_a_num_signals: 0
