@@ -1,0 +1,63 @@
+BoardInfo:
+  manufacturer: Opal Kelly Incorporated
+  product_name: EVB1006
+  serial_number: 1135000OKI
+  part_number: EVB1006
+ProductInfo:
+  manufacturer: Opal Kelly Incorporated
+  product_name: EVB1006
+  part_number: EVB1006
+  version: '20111101'
+  serial_number: 1135000OKI
+MultirecordArea:
+- type: DCLoad
+  output_number: P1_VADJ
+  nominal_voltage: 2500
+  min_voltage: 2370
+  max_voltage: 2620
+  max_noise_pk2pk: 0
+  min_current_load: 10
+  max_current_load: 1000
+- type: DCLoad
+  output_number: P1_3P3V
+  nominal_voltage: 3300
+  min_voltage: 3130
+  max_voltage: 3460
+  max_noise_pk2pk: 0
+  min_current_load: 10
+  max_current_load: 1000
+- type: DCLoad
+  output_number: P1_12P0V
+  nominal_voltage: 12000
+  min_voltage: 11400
+  max_voltage: 12600
+  max_noise_pk2pk: 0
+  min_current_load: 0
+  max_current_load: 0
+- type: DCOutput
+  standby_enable: 0
+  output_number: P1_VIO_B_M2C
+  nominal_voltage: 0
+  max_neg_voltage: 0
+  max_pos_voltage: 0
+  max_noise_pk2pk: 0
+  min_current_draw: 0
+  max_current_draw: 0
+- type: DCOutput
+  standby_enable: 0
+  output_number: P1_VREF_A_M2C
+  nominal_voltage: 2500
+  max_neg_voltage: 2450
+  max_pos_voltage: 2550
+  max_noise_pk2pk: 0
+  min_current_draw: 0
+  max_current_draw: 1
+- type: DCOutput
+  standby_enable: 0
+  output_number: P1_VREF_B_M2C
+  nominal_voltage: 0
+  max_neg_voltage: 0
+  max_pos_voltage: 0
+  max_noise_pk2pk: 0
+  min_current_draw: 0
+  max_current_draw: 0
