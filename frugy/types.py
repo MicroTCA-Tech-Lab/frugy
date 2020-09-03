@@ -283,6 +283,59 @@ class FixedStringField():
 fixed_string_field = FactoryObject.create('fixed_string_field', 'str', FixedStringField)
 
 
+class CustomStringArray:
+    ''' Platform Management FRU Information Storage Definition, Table 10-1, 11-1, 12-1 '''
+    ''' This is a daisy-chain of StringField objects, delimited with 0xc1 '''
+
+    _delimiter = b'\xc1'
+
+    def __init__(self, initdict=None, parent=None):
+        self.strings = []
+        if initdict is not None:
+            self.update(initdict)
+    
+    def update(self, initdict):
+        self.strings = [StringField(v) for v in initdict]
+    
+    def __repr__(self):
+        return self.to_dict().__repr__()
+
+    def to_dict(self):
+        return [v.to_dict() for v in self.strings]
+    
+    def serialize(self):
+        result = b''
+        for v in self.strings:
+            result += v.serialize()
+        return result + self._delimiter
+    
+    def deserialize(self, input):
+        self.strings = []
+        remainder = input
+        while len(remainder):
+            if remainder[0:1] == self._delimiter:
+                remainder = remainder[1:]
+                break
+            tmp = StringField()
+            remainder = tmp.deserialize(remainder)
+            self.strings.append(tmp)
+
+        logging.debug(f'{self.__class__.__name__}: parsed {len(self.strings)} strings')
+        return remainder
+
+    def size_total(self):
+        # add one for the delimiter
+        return sum([v.size_total() for v in self.strings]) + 1
+
+    def bit_size(self) -> int:
+        return self.size_total() * 8
+
+    def val_not_default(self):
+        return len(self.strings) != 0
+
+custom_string_array = FactoryObject.create('custom_string_array', 'strarray', CustomStringArray)
+
+
 class IpV4Field():
     ''' Field containing a IPv4 address '''
     _num_bytes = 4
@@ -618,9 +671,8 @@ class FruAreaVersioned(FruAreaChecksummed):
         return self._verify_epilogue(input, len(input) - len(remainder))
 
 
-class FruAreaDelimited(FruAreaVersioned):
-    ''' FRU area featuring version, length and delimiter fields '''
-    _delimiter_code = b'\xc1'
+class FruAreaSized(FruAreaVersioned):
+    ''' FRU area featuring version and length fields '''
 
     def _set_area_length(self, val):
         if (val % 8) != 0:
@@ -631,17 +683,13 @@ class FruAreaDelimited(FruAreaVersioned):
         return self._area_length * 8
 
     def size_payload(self) -> int:
-        # add one byte for size field and one for delimiter
-        return super().size_payload() + 2
+        # add one byte for size field
+        return super().size_payload() + 1
 
     def _prologue(self) -> bytearray:
         ''' return data to prepend (size field) '''
         self._set_area_length(self.size_total())
         return super()._prologue() + self._area_length.to_bytes(1, 'little')
-
-    def _epilogue(self, payload: bytearray) -> bytearray:
-        ''' append delimiter and let superclass handle the rest '''
-        return self._delimiter_code + super()._epilogue(payload + self._delimiter_code)
 
     def deserialize(self, input: bytearray):
         self._format_version = input[0]

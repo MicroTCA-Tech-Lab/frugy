@@ -1,4 +1,4 @@
-from frugy.types import FruAreaVersioned, FruAreaDelimited, fixed_field, string_field, bin2hex_helper
+from frugy.types import FruAreaVersioned, FruAreaSized, fixed_field, string_field, StringField, bin2hex_helper, custom_string_array
 from frugy.fru_registry import FruRecordType, rec_register
 from datetime import datetime, timedelta
 import logging
@@ -36,18 +36,19 @@ class CommonHeader(FruAreaVersioned):
 
 
 @ipmi_area
-class ChassisInfo(FruAreaDelimited):
+class ChassisInfo(FruAreaSized):
     ''' Platform Management FRU Information Storage Definition, Table 10-1 '''
 
     _schema = [
         ('type', fixed_field('u8')),
         ('part_number', string_field()),
         ('serial_number', string_field()),
+        ('custom_info_fields', custom_string_array()),
     ]
 
 
 @ipmi_area
-class BoardInfo(FruAreaDelimited):
+class BoardInfo(FruAreaSized):
     ''' Platform Management FRU Information Storage Definition, Table 11-1 '''
 
     _schema = [
@@ -58,7 +59,7 @@ class BoardInfo(FruAreaDelimited):
         ('serial_number', string_field()),
         ('part_number', string_field()),
         ('fru_file_id', string_field()),
-        # TODO: do we need custom manufacturing info fields?
+        ('custom_info_fields', custom_string_array()),
     ]
 
     _time_ref = datetime(1996, 1, 1)
@@ -81,7 +82,7 @@ class BoardInfo(FruAreaDelimited):
 
 
 @ipmi_area
-class ProductInfo(FruAreaDelimited):
+class ProductInfo(FruAreaSized):
     ''' Platform Management FRU Information Storage Definition, Table 12-1 '''
 
     _schema = [
@@ -93,5 +94,5 @@ class ProductInfo(FruAreaDelimited):
         ('serial_number', string_field()),
         ('asset_tag', string_field()),
         ('fru_file_id', string_field()),
-        # TODO: do we need custom manufacturing info fields?
+        ('custom_info_fields', custom_string_array()),
     ]
