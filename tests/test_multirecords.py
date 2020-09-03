@@ -1,5 +1,6 @@
 import unittest
-from frugy.multirecords import MultirecordArea, MultirecordEntry, ModuleCurrentRequirements, PointToPointConnectivity
+from frugy.multirecords import MultirecordArea
+from frugy.multirecords_picmg import ModuleCurrentRequirements
 
 class TestPicmg(unittest.TestCase):
     def test_module_current(self):

@@ -1,5 +1,8 @@
 from frugy.areas import CommonHeader, ChassisInfo, BoardInfo, ProductInfo
 from frugy.multirecords import MultirecordArea
+import frugy.multirecords_ipmi
+import frugy.multirecords_picmg
+import frugy.multirecords_fmc
 import yaml
 from bidict import bidict
 
