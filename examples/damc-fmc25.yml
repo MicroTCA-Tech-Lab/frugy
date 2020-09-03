@@ -16,7 +16,8 @@ MultirecordArea:
 - type: ModuleCurrentRequirements
   current_draw: 6.5
 - type: PointToPointConnectivity
-  guids: [6b636f52-7465-4920-4f20-496e74666365]
+  guids:
+  - 6b636f52-7465-4920-4f20-496e74666365
   record_type: amc_module
   channel_descriptors:
   - [4, 5, 6, 7]
