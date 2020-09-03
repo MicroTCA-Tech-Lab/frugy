@@ -104,6 +104,12 @@ class MultirecordEntry(FruAreaBase):
             if sum(header) & 0xff != 0:
                 end_of_list = 1
                 raise RuntimeError("MultirecordEntry header checksum invalid")
+
+            if len(payload) == 0:
+                # On empty payload, assume end of list (Opal Kelly workaround)
+                end_of_list = 1
+                return None, remainder, end_of_list
+
             if (sum(payload) + payload_cksum) & 0xff != 0:
                 end_of_list = 1
                 raise RuntimeError("MultirecordEntry payload checksum invalid")
