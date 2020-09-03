@@ -1,4 +1,4 @@
-from frugy.types import FruAreaBase, fixed_field, fixed_string_field, GuidField, array_field, bytearray_field, ipv4_field
+from frugy.types import FruAreaBase, fixed_field, fixed_string_field, GuidField, array_field, bytearray_field, ipv4_field, bin2hex_helper
 from frugy.multirecords import ipmi_multirecord, MultirecordEntry
 from frugy.fru_registry import FruRecordType, rec_register, rec_lookup_by_id
 
@@ -19,7 +19,7 @@ class PicmgEntry(MultirecordEntry):
         rec_id, rec_fmt_version, payload = payload[0], payload[1], payload[2:]
 
         if picmg_id != cls._picmg_identifier:
-            raise RuntimeError(f"PICMG identifier mismatch: expected {cls._picmg_identifier}, received {picmg_id}")
+            raise RuntimeError(f"PICMG identifier mismatch: expected {bin2hex_helper(cls._picmg_identifier)}, received {bin2hex_helper(picmg_id)}")
 
         if rec_fmt_version not in [0x00, 0x01]:
             raise RuntimeError(f"Unexpected record format version: 0x{rec_fmt_version:02x}")
