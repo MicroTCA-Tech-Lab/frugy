@@ -12,7 +12,9 @@ pip3 install git+https://msktechvcs.desy.de/techlab/tools/frugy.git
 
 ```
 $ frugy --help
-usage: frugy [-h] [-v] [-o OUTPUT] [-w] [-r] [-e EEPROM_SIZE] [-d] srcfile
+usage: frugy [-h] [-v] [-o OUTPUT] [-w] [-r] [-d] [-e EEPROM_SIZE]
+                  [-s SET] [-t] [-l [LIST]]
+                  [srcfile]
 
 FRU Generator YAML
 
@@ -34,6 +36,9 @@ optional arguments:
                         mode)
   -t, --timestamp       set BoardInfo.mfg_date_time timestamp to current UTC
                         time (only valid in write mode)
+  -l [LIST], --list [LIST]
+                        list supported FRU records or schema of specified
+                        record
 ```
 
 ## Examples
@@ -58,25 +63,15 @@ frugy dmmc-stamp.yml -s BoardInfo.board_serial_number=Rev.A -s ProductInfo.produ
 ```
 Read `dmmc-stamp.yml`, generate FRU with `board_serial_number` set to *REV_A*, `product_version` to *0.01-alpha* and `mfg_date_time` to current UTC time.
 
-## Supported FRU records
+```
+frugy -l
+```
+Show list of all supported FRU records.
 
-Supported FRU areas from IPMI standard:
-* CommonHeader
-* ChassisInfo
-* BoardInfo
-* ProductInfo
-* Multirecord
-
-Supported multirecords from IPMI standard:
-* DCOutput
-* DCLoad
-
-Supported multirecords from PICMG AMC.0 standard:
-* ModuleCurrentRequirements
-* PointToPointConnectivity
-
-Supported multirecords from ANSI/VITA 57.1 FMC standard:
-* FmcMainDefinition
+```
+frugy -l PointToPointConnectivity
+```
+Show layout of the FRU record called 'PointToPointConnectivity'.
 
 ## Example configuration file
 
