@@ -1,5 +1,4 @@
 from enum import Enum, auto
-from bidict import bidict
 from collections import defaultdict
 from itertools import chain
 
@@ -15,12 +14,14 @@ class FruRecordType(Enum):
 
 _registry = defaultdict(list)
 
-_lookup_by_id = defaultdict(bidict)
+_lookup_by_id = defaultdict(dict)
+_lookup_by_name = {}
 
 
 def rec_register(cls, rec_type: FruRecordType, rec_id=None):
     ''' Register FRU record type in central registry and lookup table '''
     _registry[rec_type].append(cls)
+    _lookup_by_name[cls.__name__] = cls
     if rec_id is not None:
         _lookup_by_id[rec_type][rec_id] = cls
 
@@ -37,11 +38,11 @@ def rec_enumerate(rec_type_filter = None):
     return list(chain.from_iterable(result))
 
 
-def rec_lookup_class(rec_type: FruRecordType, rec_id: int):
-    ''' Lookup record class by ID '''
+def rec_lookup_by_id(rec_type: FruRecordType, rec_id: int):
+    ''' Lookup record class by record type and ID '''
     return _lookup_by_id[rec_type][rec_id]
 
 
-def rec_lookup_id(rec_type: FruRecordType, rec):
-    ''' Lookup record ID by class '''
-    return _lookup_by_id[rec_type].inverse[rec]
+def rec_lookup_by_name(rec_name: str):
+    ''' Lookup record class by name '''
+    return _lookup_by_name[rec_name]

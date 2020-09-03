@@ -1,6 +1,6 @@
 from frugy.types import FruAreaBase, fixed_field, fixed_string_field, GuidField, array_field, bytearray_field, ipv4_field
 import bitstruct
-from frugy.fru_registry import FruRecordType, rec_register, rec_lookup_class
+from frugy.fru_registry import FruRecordType, rec_register, rec_lookup_by_id
 from frugy.areas import ipmi_area
 
 
@@ -108,7 +108,7 @@ class MultirecordEntry(FruAreaBase):
                 raise RuntimeError("MultirecordEntry payload checksum invalid")
 
             try:
-                cls_id = rec_lookup_class(FruRecordType.ipmi_multirecord, type_id)
+                cls_id = rec_lookup_by_id(FruRecordType.ipmi_multirecord, type_id)
             except KeyError:
                 raise RuntimeError(f"Unknown multirecord type 0x{type_id:02x}")
 
@@ -162,7 +162,7 @@ class PicmgEntry(MultirecordEntry):
             raise RuntimeError(f"Unexpected record format version: 0x{rec_fmt_version:02x}")
 
         try:
-            cls_inst = rec_lookup_class(FruRecordType.picmg_multirecord, rec_id)()
+            cls_inst = rec_lookup_by_id(FruRecordType.picmg_multirecord, rec_id)()
         except KeyError:
             raise RuntimeError(f"Unknown PICMG entry 0x{rec_id:02x}")
 
@@ -189,7 +189,7 @@ class FmcEntry(MultirecordEntry):
             raise RuntimeError(f"FMC identifier mismatch: expected {cls._fmc_identifier}, received {fmc_id}")
 
         try:
-            cls_inst = rec_lookup_class(FruRecordType.fmc_multirecord, rec_id)()
+            cls_inst = rec_lookup_by_id(FruRecordType.fmc_multirecord, rec_id)()
         except KeyError:
             raise RuntimeError(f"Unknown FMC entry 0x{rec_id:02x}")
 
