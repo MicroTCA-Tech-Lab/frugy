@@ -6,7 +6,8 @@ from frugy.areas import ipmi_area
 
 @ipmi_area
 class MultirecordArea:
-    ''' This is just a daisy-chain of MultirecordEntry objects '''
+    ''' Platform Management FRU Information Storage Definition, Table 16-1 '''
+    ''' This is a daisy-chain of MultirecordEntry objects '''
 
     def __init__(self, initdict=None):
         self.records = []
@@ -52,8 +53,6 @@ class MultirecordArea:
 
 
 class MultirecordEntry(FruAreaBase):
-    ''' Platform Management FRU Information Storage Definition, Table 16-1 '''
-
     _format_version = 2
     _multirecord_header_fmt = 'u8u1u3u4u8u8'
 
@@ -143,8 +142,8 @@ def ipmi_multirecord(rec_id):
 
 @ipmi_multirecord(0xc0)
 class PicmgEntry(MultirecordEntry):
-    ''' PICMG Advanced Mezzanine Card AMC.0 Specification R2.0 '''
-    ''' This stuff is shared between all instances of PICMG OEM multirecord entries '''
+    ''' PICMG AMC.0 Specification R2.0 '''
+    ''' Superclass of all PICMG OEM multirecords '''
 
     _picmg_identifier = b'\x5a\x31\x00'
 
@@ -173,7 +172,8 @@ class PicmgEntry(MultirecordEntry):
 
 @ipmi_multirecord(0xfa)
 class FmcEntry(MultirecordEntry):
-    ''' This stuff is shared between all instances of ANSI/VITA FMC OEM multirecord entries '''
+    ''' ANSI/VITA 57.1 FMC Standard '''
+    ''' Superclass of all ANSI/VITA FMC OEM multirecords '''
 
     _fmc_identifier = b'\xa2\x12\x00'
 
@@ -259,7 +259,7 @@ def picmg_secondary(cls):
 
 @picmg_multirecord(0x16)
 class ModuleCurrentRequirements(PicmgEntry):
-    ''' PICMG AMC.0 Specification R2.0, Module Current Requirements record, Table 3-10 '''
+    ''' PICMG AMC.0 Specification R2.0, Table 3-10 '''
 
     _schema = [
         ('current_draw', fixed_field('u8', div=0.1))
@@ -269,7 +269,7 @@ class ModuleCurrentRequirements(PicmgEntry):
 
 @picmg_secondary
 class AmcChannelDescriptor(FruAreaBase):
-    ''' PICMG AMC.0 Specification R2.0, AMC Channel Descriptor, Table 3-17 '''
+    ''' PICMG AMC.0 Specification R2.0, Table 3-17 '''
 
     _lanes = [f'_lane{n}_port' for n in range(4)]
     _lane_unused = 0b11111
@@ -293,7 +293,7 @@ class AmcChannelDescriptor(FruAreaBase):
 
 @picmg_secondary
 class AmcLinkDescriptor(FruAreaBase):
-    ''' PICMG AMC.0 Specification R2.0, AMC Link Descriptor, Table 3-19 '''
+    ''' PICMG AMC.0 Specification R2.0, Table 3-19 '''
 
     _lane_flag_names = [f'_lane{n}_flag' for n in range(4)]
 
@@ -344,7 +344,7 @@ class AmcLinkDescriptor(FruAreaBase):
 
 @picmg_multirecord(0x19)
 class PointToPointConnectivity(PicmgEntry):
-    ''' PICMG AMC.0 Specification R2.0, AdvancedMC Point-to-Point Connectivity record, Table 3-16 '''
+    ''' PICMG AMC.0 Specification R2.0, Table 3-16 '''
 
     _schema = [
         ('_guid_count', fixed_field('u8', default=0)),
@@ -365,7 +365,7 @@ class PointToPointConnectivity(PicmgEntry):
 
 @picmg_secondary
 class DirectClockDescriptor(FruAreaBase):
-    ''' PICMG AMC.0 Specification R2.0, Direct Clock descriptor, Table 3-38 '''
+    ''' PICMG AMC.0 Specification R2.0, Table 3-38 '''
 
     _schema = [
         ('_reserved', fixed_field('u6', default=0)),
@@ -388,7 +388,7 @@ class DirectClockDescriptor(FruAreaBase):
 
 @picmg_secondary
 class IndirectClockDescriptor(FruAreaBase):
-    ''' PICMG AMC.0 Specification R2.0, Indirect Clock descriptor, Table 3-37 '''
+    ''' PICMG AMC.0 Specification R2.0, Table 3-37 '''
 
     _schema = [
         ('_reserved', fixed_field('u6', default=0)),
@@ -403,7 +403,7 @@ class IndirectClockDescriptor(FruAreaBase):
 
 @picmg_secondary
 class ClockConfigDescriptor(FruAreaBase):
-    ''' PICMG AMC.0 Specification R2.0, Clock Configuration descriptor, Table 3-36 '''
+    ''' PICMG AMC.0 Specification R2.0, Table 3-36 '''
     
     _schema = [
         ('clk_id', fixed_field('u8', constants={
@@ -429,7 +429,7 @@ class ClockConfigDescriptor(FruAreaBase):
 
 @picmg_multirecord(0x2d)
 class ClockConfig(PicmgEntry):
-    ''' PICMG AMC.0 Specification R2.0, Clock Configuration record, Table 3-35 '''
+    ''' PICMG AMC.0 Specification R2.0, Table 3-35 '''
 
     _schema = [
         # first 8 bits is 'Clock Resource ID', Table 3-31
@@ -447,7 +447,7 @@ class ClockConfig(PicmgEntry):
 
 @picmg_multirecord(0x30)
 class Zone3InterfaceCompatibility(PicmgEntry):
-    ''' PICMG AMC.0 Specification R2.0, Clock Configuration record, Table 3-35 '''
+    ''' PICMG MicroTCA.4 Enhancements for Rear I/O and Timing R1.0, Table 3-3 '''
     ''' The identifier body is represented as transparent bytearray '''
 
     _schema = [
@@ -464,7 +464,7 @@ class Zone3InterfaceCompatibility(PicmgEntry):
 
 @picmg_secondary
 class PartitionDescriptor(FruAreaBase):
-    ''' PICMG Specification MTCA.0 R1.0 Table 3-11 '''
+    ''' PICMG Specification MTCA.0 R1.0, Table 3-11 '''
 
     _schema = [
         ('offset', fixed_field('u16', div=0x10)),
@@ -474,7 +474,7 @@ class PartitionDescriptor(FruAreaBase):
 
 @picmg_multirecord(0x20)
 class FruPartition(PicmgEntry):
-    ''' PICMG Specification MTCA.0 R1.0 Table 3-10 '''
+    ''' PICMG Specification MTCA.0 R1.0, Table 3-10 '''
 
     _schema = [
         ('_desc_count', fixed_field('u8', default=0)),
@@ -484,7 +484,7 @@ class FruPartition(PicmgEntry):
 
 @picmg_multirecord(0x21)
 class CarrierManagerIPLink(PicmgEntry):
-    ''' PICMG Specification MTCA.0 R1.0 Table 3-12 '''
+    ''' PICMG Specification MTCA.0 R1.0, Table 3-12 '''
     _schema = [
         ('shelf_manager_ip', ipv4_field()),
         ('carrier_manager_ip', ipv4_field()),
@@ -519,7 +519,7 @@ _site_type_constants = {
 
 @picmg_secondary
 class SlotEntry(FruAreaBase):
-    ''' PICMG Specification MTCA.0 R1.0 Table 3-17 '''
+    ''' PICMG Specification MTCA.0 R1.0, Table 3-17 '''
 
     _schema = [
         ('site_no', fixed_field('u8')),
@@ -533,7 +533,7 @@ class SlotEntry(FruAreaBase):
 
 @picmg_multirecord(0x22)
 class MtcaCarrierInformation(PicmgEntry):
-    ''' PICMG Specification MTCA.0 R1.0 Table 3-16 '''
+    ''' PICMG Specification MTCA.0 R1.0, Table 3-16 '''
 
     _schema = [
         ('number', fixed_field('u8', default=0xff)),
@@ -548,7 +548,7 @@ class MtcaCarrierInformation(PicmgEntry):
 
 @picmg_secondary
 class PowerPolicyDescriptor(FruAreaBase):
-    ''' PICMG Specification MTCA.0 R1.0 Table 3-24 '''
+    ''' PICMG Specification MTCA.0 R1.0, Table 3-24 '''
 
     _schema = [
         ('site_no', fixed_field('u8')),
@@ -577,7 +577,7 @@ class PowerPolicyDescriptor(FruAreaBase):
 
 @picmg_multirecord(0x25)
 class PowerPolicyRecord(PicmgEntry):
-    ''' PICMG Specification MTCA.0 R1.0 Table 3-23 '''
+    ''' PICMG Specification MTCA.0 R1.0, Table 3-23 '''
 
     _schema = [
         ('_num_descriptors', fixed_field('u8', default=0)),
@@ -587,7 +587,7 @@ class PowerPolicyRecord(PicmgEntry):
 
 @picmg_secondary
 class MtcaCarrierActivCurrDescriptor(FruAreaBase):
-    ''' PICMG Specification MTCA.0 R1.0 Table 3-26 '''
+    ''' PICMG Specification MTCA.0 R1.0, Table 3-26 '''
 
     _mgr_constants={
         'reserved': 0b11,
@@ -609,7 +609,7 @@ class MtcaCarrierActivCurrDescriptor(FruAreaBase):
 
 @picmg_multirecord(0x26)
 class MtcaCarrierActivationPm(PicmgEntry):
-    ''' PICMG Specification MTCA.0 R1.0 Table 3-25 '''
+    ''' PICMG Specification MTCA.0 R1.0, Table 3-25 '''
 
     _schema = [
         ('readiness_allowance', fixed_field('u8')),
@@ -620,7 +620,7 @@ class MtcaCarrierActivationPm(PicmgEntry):
 
 @picmg_secondary
 class P2pPortDescriptor(FruAreaBase):
-    ''' PICMG AMC.0 Specification R2.0 Table 3-15 '''
+    ''' PICMG AMC.0 Specification R2.0, Table 3-15 '''
 
     _mergeBitfield = True
 
@@ -639,7 +639,7 @@ class P2pPortDescriptor(FruAreaBase):
 
 @picmg_secondary
 class P2pAmcResourceDescriptor(FruAreaBase):
-    ''' PICMG AMC.0 Specification R2.0 Table 3-14 '''
+    ''' PICMG AMC.0 Specification R2.0, Table 3-14 '''
 
     _schema = [
         ('resource_type', fixed_field('u1', constants={
@@ -655,7 +655,7 @@ class P2pAmcResourceDescriptor(FruAreaBase):
 
 @picmg_multirecord(0x18)
 class CarrierP2pConnectivity(PicmgEntry):
-    ''' PICMG AMC.0 Specification R2.0 Table 3-13 '''
+    ''' PICMG AMC.0 Specification R2.0, Table 3-13 '''
 
     _schema = [
         ('resource_descriptors', array_field(P2pAmcResourceDescriptor)),
@@ -678,7 +678,7 @@ def fmc_secondary(cls):
 
 @fmc_multirecord(0x00)
 class FmcMainDefinition(FmcEntry):
-    ''' ANSI/VITA 57.1 FMC Standard, Table 7. Subtype 0: Base Definition (fixed length and mandatory) '''
+    ''' ANSI/VITA 57.1 FMC Standard, Table 7 '''
 
     _schema = [
         ('module_size', fixed_field('u2', constants={

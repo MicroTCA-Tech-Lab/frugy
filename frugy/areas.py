@@ -11,6 +11,8 @@ def ipmi_area(cls):
 
 @ipmi_area
 class CommonHeader(FruAreaVersioned):
+    ''' Platform Management FRU Information Storage Definition, Table 8-1 '''
+
     _schema = [
         ('internal_use_offs', fixed_field('u8', default=0)),
         ('chassis_info_offs', fixed_field('u8', default=0)),
@@ -34,6 +36,8 @@ class CommonHeader(FruAreaVersioned):
 
 @ipmi_area
 class ChassisInfo(FruAreaDelimited):
+    ''' Platform Management FRU Information Storage Definition, Table 10-1 '''
+
     _schema = [
         ('type', fixed_field('u8')),
         ('part_number', string_field()),
@@ -43,6 +47,8 @@ class ChassisInfo(FruAreaDelimited):
 
 @ipmi_area
 class BoardInfo(FruAreaDelimited):
+    ''' Platform Management FRU Information Storage Definition, Table 11-1 '''
+
     _schema = [
         ('language_code', fixed_field('u8', default=_language_code)),
         ('mfg_date_time', fixed_field('u24', default=0)),
@@ -75,6 +81,8 @@ class BoardInfo(FruAreaDelimited):
 
 @ipmi_area
 class ProductInfo(FruAreaDelimited):
+    ''' Platform Management FRU Information Storage Definition, Table 12-1 '''
+
     _schema = [
         ('language_code', fixed_field('u8', default=_language_code)),
         ('manufacturer', string_field()),
