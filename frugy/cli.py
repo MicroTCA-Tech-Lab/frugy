@@ -6,7 +6,8 @@ from datetime import datetime
 
 from frugy.__init__ import __version__
 from frugy.fru import Fru
-from frugy.fru_registry import FruRecordType, rec_enumerate
+from frugy.fru_registry import FruRecordType, rec_enumerate, rec_lookup_by_name
+
 
 def list_supported_records():
     width = 108
@@ -23,6 +24,29 @@ def list_supported_records():
                 print(f'# {r.__name__.ljust(33)} {str(r.__doc__).strip()}'.ljust(width-1) + '#')
             print(lf)
             print(separator)
+
+def list_record_schema(rec_name):
+    schema = rec_lookup_by_name(rec_name)._schema
+    print(f'{"Name".ljust(20)} {"Type".ljust(30)} {"Opt"}')
+
+    for entry in schema:
+        e_name = entry[0]
+        if e_name.startswith('_'):
+            continue
+        e_inst = entry[1]
+        e_opt = ''
+        if e_inst._description == 'int':
+            e_args = e_inst.args[0]
+            if 'constants' in e_inst.kwargs:
+                e_opt = ', '.join(f'{k}={v}' for k, v in e_inst.kwargs['constants'].items())
+        elif e_inst._description == 'array':
+            e_args = e_inst.args[0].__name__
+        else:
+            e_args = e_inst.args
+            e_opt = e_inst.kwargs
+
+        e_type = f'{e_inst._description.ljust(5)} ({e_args})'
+        print(f'{e_name.ljust(20)} {e_type.ljust(30)} {e_opt}')
 
 
 def writer(fname, content, bin_mode=False):
@@ -87,13 +111,19 @@ def main():
                         help='set BoardInfo.mfg_date_time timestamp to current UTC time (only valid in write mode)'
     )
     parser.add_argument('-l', '--list',
-                        action='store_true',
-                        help='list supported FRU records'
+                        type=str,
+                        default=None,
+                        const='',
+                        nargs='?',
+                        help='list supported FRU records or schema of specified record'
     )
     args = parser.parse_args()
 
-    if args.list:
-        list_supported_records()
+    if args.list is not None:
+        if args.list == '':
+            list_supported_records()
+        else:
+            list_record_schema(args.list)
         sys.exit(0)
     
     if args.srcfile is None:
