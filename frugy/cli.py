@@ -3,6 +3,7 @@ import os
 import sys
 import yaml
 from datetime import datetime
+import logging
 
 from frugy.__init__ import __version__
 from frugy.fru import Fru
@@ -77,7 +78,7 @@ def main():
                         nargs='?',
                         help='Source file for reading'
     )
-    parser.add_argument('-v', '--version',
+    parser.add_argument('--version',
                         action='version',
                         version='%(prog)s ' + __version__
     )
@@ -117,7 +118,17 @@ def main():
                         nargs='?',
                         help='list supported FRU records or schema of specified record'
     )
+    parser.add_argument('-v', '--verbosity',
+                        type=int,
+                        help='set verbosity (0=quiet, 1=info, 2=debug)'
+    )
     args = parser.parse_args()
+
+    verbosity = args.verbosity if args.verbosity is not None else 0
+    logging.basicConfig(
+        format='%(levelname)7s: %(message)s',
+        level=[logging.WARNING, logging.INFO, logging.DEBUG][verbosity]
+    )
 
     if args.list is not None:
         if args.list == '':

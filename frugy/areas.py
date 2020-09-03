@@ -1,6 +1,7 @@
-from frugy.types import FruAreaVersioned, FruAreaDelimited, fixed_field, string_field
+from frugy.types import FruAreaVersioned, FruAreaDelimited, fixed_field, string_field, bin2hex_helper
 from frugy.fru_registry import FruRecordType, rec_register
 from datetime import datetime, timedelta
+import logging
 
 _language_code = 0  # Use English and UTF-8 as default encoding
 

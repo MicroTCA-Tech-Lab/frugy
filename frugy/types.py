@@ -5,6 +5,7 @@ from itertools import zip_longest
 import uuid
 from bidict import bidict
 from ipaddress import IPv4Address
+import logging
 
 _format_version_default = 1
 
@@ -31,7 +32,7 @@ class FactoryObject():
     
     @classmethod
     def create(cls, name, desc, obj):
-        return type(name, (FactoryObject,), dict(_obj=obj, _description = desc))
+        return type(name, (FactoryObject,), dict(_obj=obj, _description=desc))
 
 
 class FixedField():
@@ -177,6 +178,7 @@ class StringField():
 
         fmt_int, payload_len = bitstruct.unpack('u2u6', input[0:1])
         self._format = StringFmt(fmt_int)
+        logging.debug(f'{self.__class__.__name__}: string format: {self._format.name}, length: {payload_len}')
         remainder = input[1:]
         payload, remainder = remainder[:payload_len], remainder[payload_len:]
 
@@ -188,6 +190,7 @@ class StringField():
         }[self._format]
         self._value = deser_fn(payload)
 
+        logging.debug(f'{self.__class__.__name__}: val: {self._value}, remainder: {bin2hex_helper(remainder[:10])}...')
         return remainder
 
     def to_dict(self):
@@ -525,6 +528,7 @@ class FruAreaBase:
                 return
             bit_length = bitstruct.calcsize(bit_fmt) // 8
             bit_data, remainder = remainder[:bit_length], remainder[bit_length:]
+            logging.debug(f'{self.__class__.__name__}: parse {bit_fmt} from {bin2hex_helper(bit_data)}')
             if not self._mergeBitfield:
                 values = bitstruct.unpack(bit_fmt + '<', bit_data)
             else:
@@ -534,15 +538,17 @@ class FruAreaBase:
             bit_fmt = ''
             bit_fields = []
 
-        for v in self._dict.values():
+        for k, v in self._dict.items():
+            logging.debug(f'{self.__class__.__name__}: parsing {k}')
             if hasattr(v, 'bit_fmt'):
                 bit_fmt += v.bit_fmt()
                 bit_fields.append(v)
             else:
                 # before any other type is deserialized, deserialize bitfield first
                 deserialize_bitfield()
+                logging.debug(f'{self.__class__.__name__}: parse {v} {bin2hex_helper(remainder[:10])}...')
                 remainder = v.deserialize(remainder)
-        # finish serializing bitfield, if anything is left
+        # finish deserializing bitfield, if anything is left
         deserialize_bitfield()
         return remainder
 
@@ -640,5 +646,6 @@ class FruAreaDelimited(FruAreaVersioned):
     def deserialize(self, input: bytearray):
         self._format_version = input[0]
         self._area_length = input[1]
+        logging.debug(f'{self.__class__.__name__}: parse {bin2hex_helper(input[:self._get_area_length()])}')
         remainder = self._deserialize(input[2:])
         return self._verify_epilogue(input, len(input) - len(remainder))
