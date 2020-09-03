@@ -20,7 +20,7 @@ class PicmgEntry(MultirecordEntry):
         picmg_id = int.from_bytes(picmg_id, 'little')
 
         if picmg_id != cls._picmg_identifier:
-            raise RuntimeError(f"PICMG identifier mismatch: expected 0x{cls._picmg_identifier:06x}, received 0x{picmg_id:06x} ({picmg_id})")
+            raise ValueError(f"PICMG identifier mismatch: expected 0x{cls._picmg_identifier:06x}, received 0x{picmg_id:06x} ({picmg_id})")
 
         if rec_fmt_version not in [0x00, 0x01]:
             raise RuntimeError(f"Unexpected record format version: 0x{rec_fmt_version:02x}")

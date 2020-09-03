@@ -136,6 +136,12 @@ class MultirecordEntry(FruAreaBase):
             logging.warning(f"header: {bin2hex_helper(header)}, payload: {bin2hex_helper(payload)}")
             new_entry = None
 
+        except ValueError as e:
+            # Vendor ID mismatch: Don't issue a warning, just ignore it
+            logging.debug(f"{e}")
+            logging.debug(f"Silently ignoring private / proprietary multirecord")
+            new_entry = None
+
         return new_entry, remainder, end_of_list
 
 

@@ -20,7 +20,7 @@ class FmcEntry(MultirecordEntry):
         fmc_id = int.from_bytes(fmc_id, 'little')
 
         if fmc_id != cls._fmc_identifier:
-            raise RuntimeError(f"FMC identifier mismatch: expected 0x{cls._fmc_identifier:06x}, received 0x{fmc_id:06x} ({fmc_id})")
+            raise ValueError(f"FMC identifier mismatch: expected 0x{cls._fmc_identifier:06x}, received 0x{fmc_id:06x} ({fmc_id})")
 
         try:
             cls_inst = rec_lookup_by_id(FruRecordType.fmc_multirecord, rec_id)()
