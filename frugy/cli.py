@@ -6,6 +6,24 @@ from datetime import datetime
 
 from frugy.__init__ import __version__
 from frugy.fru import Fru
+from frugy.fru_registry import FruRecordType, rec_enumerate
+
+def list_supported_records():
+    width = 108
+    separator = '#' * width
+    lf = f"#".ljust(width-1) + '#'
+    print(separator)
+    for rec_type in list(FruRecordType):
+        rec_list = rec_enumerate(rec_type)
+        if len(rec_list) != 0:
+            print(lf)
+            print(f'# type: {rec_type.name}'.ljust(width-1) + '#')
+            print(lf)
+            for r in rec_list:
+                print(f'# {r.__name__.ljust(33)} {str(r.__doc__).strip()}'.ljust(width-1) + '#')
+            print(lf)
+            print(separator)
+
 
 def writer(fname, content, bin_mode=False):
     if fname != '-':
@@ -31,7 +49,8 @@ def main():
         description='FRU Generator YAML'
     )
     parser.add_argument('srcfile',
-                        type=str, 
+                        type=str,
+                        nargs='?',
                         help='Source file for reading'
     )
     parser.add_argument('-v', '--version',
@@ -67,7 +86,19 @@ def main():
                         action='store_true',
                         help='set BoardInfo.mfg_date_time timestamp to current UTC time (only valid in write mode)'
     )
+    parser.add_argument('-l', '--list',
+                        action='store_true',
+                        help='list supported FRU records'
+    )
     args = parser.parse_args()
+
+    if args.list:
+        list_supported_records()
+        sys.exit(0)
+    
+    if args.srcfile is None:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
 
     read_mode = args.read or args.dump
     if args.write and args.read:
