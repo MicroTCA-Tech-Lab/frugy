@@ -96,8 +96,11 @@ class Fru:
             elif type(part) is dict:
                 part = { k: fmt_tree(part[k])[0] for k in part.keys() }
                 return part, False
+            elif type(part) is str:
+                # don't collapse strings in YAML, for better readability
+                return part, False
             else:
-                # no dict or list ==> reached edge of tree
+                # no dict list, or str ==> reached edge of tree
                 return part, True
 
         yaml_dict = self.to_dict()
