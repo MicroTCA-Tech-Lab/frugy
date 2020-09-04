@@ -78,21 +78,31 @@ frugy -l PointToPointConnectivity
 ```
 Show layout of the FRU record called 'PointToPointConnectivity'.
 
+## Supported FRU records
+
+* [Overview of supported records](docs/records.md)
+
+### YAML keywords for supported FRU records
+
+* [Detailed list of supported IPMI records](docs/ipmi.md)
+* [Detailed list of supported PICMG records](docs/picmg.md)
+* [Detailed list of supported FMC records](docs/fmc.md)
+
 ## Example configuration file
 
-```
+```yaml
 BoardInfo:
-  board_manufacturer: DESY
-  board_product_name: DMMC-STAMP Rev.A
-  board_serial_number: '0000'
-  board_part_number: '0000'
+  manufacturer: DESY
+  product_name: DMMC-STAMP Rev.A
+  serial_number: '0000'
+  part_number: '0000'
   fru_file_id: none
 ProductInfo:
-  manufacturer_name: DESY
+  manufacturer: DESY
   product_name: DMMC-STAMP Rev.A
-  product_part_number: '0000'
-  product_version: '0000'
-  product_serial_number: '0000'
+  part_number: '0000'
+  version: '0000'
+  serial_number: '0000'
   asset_tag: none
   fru_file_id: none
 MultirecordArea:
@@ -100,4 +110,5 @@ MultirecordArea:
   current_draw: 6.5
 ```
 
-More example configurations can be found in the `examples` folder.
+More example configurations are stored in the [`examples`](examples)
+ folder.
