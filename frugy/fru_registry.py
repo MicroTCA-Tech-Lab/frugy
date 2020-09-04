@@ -1,3 +1,9 @@
+"""
+SPDX-License-Identifier: BSD-3-Clause
+Copyright (c) 2020 Deutsches Elektronen-Synchrotron DESY.
+See LICENSE.txt for license details.
+"""
+
 from enum import Enum, auto
 from collections import defaultdict
 from itertools import chain

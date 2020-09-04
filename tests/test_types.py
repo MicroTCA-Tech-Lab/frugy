@@ -1,4 +1,8 @@
-#!/usr/bin/env python3
+"""
+SPDX-License-Identifier: BSD-3-Clause
+Copyright (c) 2020 Deutsches Elektronen-Synchrotron DESY.
+See LICENSE.txt for license details.
+"""
 
 import unittest
 

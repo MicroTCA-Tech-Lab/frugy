@@ -1,3 +1,9 @@
+"""
+SPDX-License-Identifier: BSD-3-Clause
+Copyright (c) 2020 Deutsches Elektronen-Synchrotron DESY.
+See LICENSE.txt for license details.
+"""
+
 from frugy.types import FruAreaVersioned, FruAreaSized, fixed_field, string_field, StringField, bin2hex_helper, custom_string_array
 from frugy.fru_registry import FruRecordType, rec_register
 from datetime import datetime, timedelta
