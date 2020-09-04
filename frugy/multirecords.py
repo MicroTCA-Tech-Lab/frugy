@@ -57,6 +57,8 @@ class MultirecordEntry(FruAreaBase):
     _format_version = 2
     _multirecord_header_fmt = 'u8u1u3u4u8u8'
 
+    opalkelly_workaround_enabled = False
+
     def __init__(self, initdict=None):
         self.end_of_list = 0
         if initdict is not None:
@@ -105,8 +107,8 @@ class MultirecordEntry(FruAreaBase):
                 end_of_list = 1
                 raise RuntimeError("MultirecordEntry header checksum invalid")
 
-            if len(payload) == 0:
-                # On empty payload, assume end of list (Opal Kelly workaround)
+            if cls.opalkelly_workaround_enabled and len(payload) == 0:
+                # Opal Kelly seems to mark the end of list with an empty payload multirecord
                 end_of_list = 1
                 return None, remainder, end_of_list
 

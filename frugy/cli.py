@@ -8,6 +8,7 @@ import logging
 from frugy.__init__ import __version__
 from frugy.fru import Fru
 from frugy.fru_registry import FruRecordType, rec_enumerate, rec_lookup_by_name
+from frugy.multirecords import MultirecordEntry
 
 
 def list_supported_records():
@@ -111,6 +112,10 @@ def main():
                         action='store_true',
                         help='set BoardInfo.mfg_date_time timestamp to current UTC time (only valid in write mode)'
     )
+    parser.add_argument('-b', '--broken',
+                        action='store_true',
+                        help='enable workaround to parse Opal Kelly EEPROMs'
+    )
     parser.add_argument('-l', '--list',
                         type=str,
                         default=None,
@@ -149,6 +154,9 @@ def main():
     if read_mode and (args.eeprom_size is not None or args.set or args.timestamp):
         parser.print_help(sys.stderr)
         sys.exit(1)
+
+    if read_mode and args.broken:
+        MultirecordEntry.opalkelly_workaround_enabled = True
 
     outfile = args.output
     if args.dump:

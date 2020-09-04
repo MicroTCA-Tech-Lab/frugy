@@ -1,6 +1,7 @@
 import unittest
 from datetime import datetime
 from frugy.fru import Fru
+from frugy.multirecords import MultirecordEntry
 import os
 
 class TestFru(unittest.TestCase):
@@ -93,6 +94,7 @@ class TestFru(unittest.TestCase):
             for name in files:
                 name_base, name_ext = os.path.splitext(name)
                 if name_ext == '.bin':
+                    MultirecordEntry.opalkelly_workaround_enabled = name.startswith('opalkelly')
                     name_src = os.path.join(root, name)
                     name_dest = os.path.join('examples', name_base + '.yml')
                     self.bin_to_yaml(name_src, name_dest)

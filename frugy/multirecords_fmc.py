@@ -15,12 +15,18 @@ class FmcEntry(MultirecordEntry):
     
     @classmethod
     def from_payload(cls, payload):
-        fmc_id, payload = payload[:3], payload[3:]
-        rec_id, payload = payload[0], payload[1:]
-        fmc_id = int.from_bytes(fmc_id, 'little')
+        if not MultirecordEntry.opalkelly_workaround_enabled:
+            # Opal Kelly FMC records seem to skip the manufacturer ID ...
+            fmc_id, payload = payload[:3], payload[3:]
+            rec_id, payload = payload[0], payload[1:]
+            fmc_id = int.from_bytes(fmc_id, 'little')
 
-        if fmc_id != cls._fmc_identifier:
-            raise ValueError(f"FMC identifier mismatch: expected 0x{cls._fmc_identifier:06x}, received 0x{fmc_id:06x} ({fmc_id})")
+            if fmc_id != cls._fmc_identifier:
+                raise ValueError(f"FMC identifier mismatch: expected 0x{cls._fmc_identifier:06x}, received 0x{fmc_id:06x} ({fmc_id})")
+        else:
+            # Opal Kelly FMC records seem to have the rec_id as _last_ instead of first byte
+            rec_id, payload = payload[-1], payload[:-1]
+
 
         try:
             cls_inst = rec_lookup_by_id(FruRecordType.fmc_multirecord, rec_id)()
