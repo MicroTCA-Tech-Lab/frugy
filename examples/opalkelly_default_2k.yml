@@ -55,3 +55,15 @@ MultirecordArea:
   max_noise_pk2pk: 0
   min_current_draw: 0
   max_current_draw: 0
+- type: FmcMainDefinition
+  module_size: single_width
+  p1_connector_size: lpc
+  p2_connector_size: not_fitted
+  clock_direction: m2c
+  p1_a_num_signals: 21
+  p1_b_num_signals: 0
+  p2_a_num_signals: 0
+  p2_b_num_signals: 0
+  p1_gbt_num_trcv: 0
+  p2_gbt_num_trcv: 0
+  tck_max_clock: 10
