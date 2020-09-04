@@ -262,7 +262,8 @@ class Zone3InterfaceCompatibility(PicmgEntry):
             'OEM': 3,
             'MTCA4_REP': 4
         })),
-        ('identifier_body', bytearray_field()),
+        # "format depends on the type" so we assume it's a binary blob
+        ('identifier_body', bytearray_field(hex=True)),
     ]
 
 

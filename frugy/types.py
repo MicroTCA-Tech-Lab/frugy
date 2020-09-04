@@ -215,11 +215,12 @@ class BytearrayField():
     ''' Variable length field containing a transparent bytearray, to handle stupid ambiguous multirecord payloads '''
     ''' (e.g. "Zone 3 Interface Compatibility record") '''
 
-    def __init__(self, num_elems_field=None, default='', parent=None):
+    def __init__(self, num_elems_field=None, default='', hex=True, parent=None):
         self._parent = parent
         self._num_elems_field = num_elems_field
         self._default = default
         self._value = default
+        self._hex = hex
 
     def bit_size(self) -> int:
         return len(self._value) * 8
@@ -242,10 +243,10 @@ class BytearrayField():
             return b''
 
     def to_dict(self):
-        return bin2hex_helper(self._value)
+        return bin2hex_helper(self._value) if self._hex else self._value.decode('utf-8')
     
     def update(self, value):
-        self._value = bytearray.fromhex(value)
+        self._value = bytearray.fromhex(value) if self._hex else value.encode('utf-8')
 
     def val_not_default(self):
         return self.to_dict() != self._default

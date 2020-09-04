@@ -69,5 +69,7 @@ class MgmtAccessRecord(MultirecordEntry):
             'comp_ping_addr': 6,
             'sys_unique_id': 7
         })),
-        ('blob', bytearray_field()),
+        # TODO: edge case 'sys_unique_id' (GUID) needs conversion between string and GUID
+        # For now we assume the blob is always a string
+        ('blob', bytearray_field(hex=False)),
     ]
