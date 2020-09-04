@@ -36,6 +36,9 @@ class PicmgEntry(MultirecordEntry):
         except KeyError:
             raise RuntimeError(f"Unknown PICMG entry 0x{rec_id:02x}")
 
+        if len(payload) == 0:
+            raise EOFError(f"Skipping creation of {cls_inst.__class__.__name__} due to empty payload")
+
         cls_inst._deserialize(payload)
         return cls_inst
         

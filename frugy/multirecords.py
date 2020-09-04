@@ -153,6 +153,11 @@ class MultirecordEntry(FruAreaBase):
             logging.debug(f"Silently ignoring private / proprietary multirecord")
             new_entry = None
 
+        except EOFError as e:
+            # Empty payload: Issue warning, but try to proceed
+            logging.warning(f"{e}")
+            new_entry = None
+
         return new_entry, remainder, end_of_list
 
 
