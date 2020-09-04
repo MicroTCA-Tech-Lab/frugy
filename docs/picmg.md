@@ -97,6 +97,13 @@ PICMG AMC.0 Specification R2.0, Table 3-29
 |-------------------------|--------------------|------------------------------------------------------------|
 |`clk_p2p_resource_descriptors`|array (ClockP2pResourceDescriptor)|                                                            |
 
+## Zone3InterfaceDocumentation
+PICMG MicroTCA.4 Enhancements for Rear I/O and Timing R1.0, Table 3-15
+
+|Name                     |Type                |Opt                                                         
+|-------------------------|--------------------|------------------------------------------------------------|
+|`url`                    |bytes               |                                                            |
+
 ## AmcChannelDescriptor
 PICMG AMC.0 Specification R2.0, Table 3-17
 

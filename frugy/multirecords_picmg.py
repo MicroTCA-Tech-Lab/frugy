@@ -501,3 +501,11 @@ class CarrierClkP2pConnectivity(PicmgEntry):
         ('_clk_p2p_resource_desc_count', fixed_field('u8', default=0)),
         ('clk_p2p_resource_descriptors', array_field(ClockP2pResourceDescriptor, num_elems_field='_clk_p2p_resource_desc_count')),
     ]
+
+@picmg_multirecord(0x32)
+class Zone3InterfaceDocumentation(PicmgEntry):
+    ''' PICMG MicroTCA.4 Enhancements for Rear I/O and Timing R1.0, Table 3-15 '''
+
+    _schema = [
+        ('url', bytearray_field(hex=False)),
+    ]

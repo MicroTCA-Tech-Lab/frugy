@@ -35,6 +35,7 @@
 |MtcaCarrierActivationPm             |PICMG Specification MTCA.0 R1.0, Table 3-25                                     |
 |CarrierP2pConnectivity              |PICMG AMC.0 Specification R2.0, Table 3-13                                      |
 |CarrierClkP2pConnectivity           |PICMG AMC.0 Specification R2.0, Table 3-29                                      |
+|Zone3InterfaceDocumentation         |PICMG MicroTCA.4 Enhancements for Rear I/O and Timing R1.0, Table 3-15          |
 
 ## picmg_secondary
 
