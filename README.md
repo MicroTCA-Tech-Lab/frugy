@@ -12,8 +12,9 @@ pip3 install git+https://msktechvcs.desy.de/techlab/tools/frugy.git
 
 ```
 $ frugy --help
-usage: frugy [-h] [-v] [-o OUTPUT] [-w] [-r] [-d] [-e EEPROM_SIZE]
-                  [-s SET] [-t] [-l [LIST]]
+usage: frugy [-h] [--version] [-o OUTPUT] [-w] [-r] [-d]
+                  [-e EEPROM_SIZE] [-s SET] [-t] [-b] [-l [LIST]]
+                  [-v VERBOSITY]
                   [srcfile]
 
 FRU Generator YAML
@@ -23,7 +24,7 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
-  -v, --version         show program's version number and exit
+  --version             show program's version number and exit
   -o OUTPUT, --output OUTPUT
                         output file (derived from input file if not set)
   -w, --write           FRU write mode (convert YAML to FRU image), default
@@ -36,9 +37,13 @@ optional arguments:
                         mode)
   -t, --timestamp       set BoardInfo.mfg_date_time timestamp to current UTC
                         time (only valid in write mode)
+  -b, --broken          enable workaround to parse Opal Kelly EEPROMs
   -l [LIST], --list [LIST]
                         list supported FRU records or schema of specified
                         record
+  -v VERBOSITY, --verbosity VERBOSITY
+                        set verbosity (0=quiet, 1=info, 2=debug)
+
 ```
 
 ## Examples
