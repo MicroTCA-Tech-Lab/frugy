@@ -108,6 +108,9 @@ class MultirecordEntry(FruAreaBase):
         header, remainder = input[:header_len], input[header_len:]
         payload, remainder = remainder[:payload_len], remainder[payload_len:]
 
+        logging.debug(f"{cls.__name__}: Trying to deserialize multirecord type_id=0x{type_id:02x}, len={len(header)+len(payload)}")
+        logging.debug(f"{cls.__name__}: header: {bin2hex_helper(header)}, payload: {bin2hex_helper(payload)}")
+
         try:
             if sum(header) & 0xff != 0:
                 end_of_list = 1
