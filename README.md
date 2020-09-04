@@ -5,7 +5,7 @@ This is a tool which generates EEPROM images according to the [IPMI](https://www
 ## Installation
 
 ```
-pip3 install git+https://msktechvcs.desy.de/techlab/tools/frugy.git
+pip3 install git+https://github.com/MicroTCA-Tech-Lab/frugy
 ```
 
 ## Usage
