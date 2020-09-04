@@ -10,7 +10,7 @@ class TestIntrospection(unittest.TestCase):
         try:
             schema = rec_lookup_by_name(rec_name)._schema
         except AttributeError:
-            return 'N/A\n'
+            return ''
 
         w1 = 25
         w2 = 20
@@ -22,6 +22,7 @@ class TestIntrospection(unittest.TestCase):
             e_name = entry[0]
             if e_name.startswith('_'):
                 continue
+            e_name = f'`{e_name}`'
             e_inst = entry[1]
             e_args = ''
             e_opt = ''
@@ -64,12 +65,21 @@ class TestIntrospection(unittest.TestCase):
     def test_doc_schemas(self):
         os.makedirs(self._docs_path, 0o755, exist_ok=True)
         result = ''
-        for rec_type in list(FruRecordType):
-            rec_list = rec_enumerate(rec_type)
-            if len(rec_list) != 0:
-                result = f'\n# {rec_type.name} records\n\n'
-                for r in rec_list:
-                    result += f'\n## {r.__name__}\n\n'
-                    result += self.doc_record_schema_md(r.__name__)
-                with open(os.path.join(self._docs_path, f'{rec_type.name}.md'), 'w') as f:
-                    f.write(result)
+        categories = {
+            'ipmi': [FruRecordType.ipmi_area, FruRecordType.ipmi_multirecord],
+            'picmg': [FruRecordType.picmg_multirecord, FruRecordType.picmg_secondary],
+            'fmc': [FruRecordType.fmc_multirecord, FruRecordType.fmc_secondary],
+        }
+        for category in categories:
+            result = f'\n# {category.upper()} records\n\n'
+            for rec_type in categories[category]:
+                rec_list = rec_enumerate(rec_type)
+                if len(rec_list) != 0:
+                    for r in rec_list:
+                        schema_doc = self.doc_record_schema_md(r.__name__)
+                        if len(schema_doc) == 0:
+                            continue
+                        result += f'\n## {r.__name__}\n{str(r.__doc__).strip()}\n\n'
+                        result += schema_doc
+            with open(os.path.join(self._docs_path, f'{category}.md'), 'w') as f:
+                f.write(result)
