@@ -23,6 +23,12 @@ def yaml_flowstyle_list_rep(dumper, data):
 
 yaml.add_representer(YamlFlowstyleList, yaml_flowstyle_list_rep)
 
+
+def import_log(msg):
+    if not hasattr(import_log, "str"):
+        import_log.str = ''
+    import_log.str += msg + '\n'
+
 class Fru:
     _area_table_lookup = bidict({
         'ChassisInfo': 'chassis_info_offs',
@@ -78,6 +84,7 @@ class Fru:
         return result
 
     def deserialize(self, input):
+        import_log.str = ''
         self.areas = {}
         self.header.deserialize(input)
         for k, v in self.header.to_dict().items():
@@ -118,8 +125,11 @@ class Fru:
         return yaml.dump(yaml_dict, sort_keys=False)
 
     def postprocess_yaml(self, data):
-        # Since adding rules to PyYAML dumping is over-complicated and badly documented, we just process the bare string
-        result = self.comment
+        result = ''
+        if len(import_log.str) != 0:
+            import_log.str = '\n' + import_log.str
+        for line in [self.comment, *import_log.str.splitlines()]:
+            result += f'# {line}\n'
         for line in data.splitlines():
             if line.endswith(':') and not line.startswith(' '):
                 # add extra newline before entries on root level
@@ -136,7 +146,7 @@ class Fru:
             outfile.write(self.dump_yaml())
 
     def load_bin(self, fname):
-        self.comment = f'# created with frugy {__version__} from "{os.path.basename(fname)}"\n'
+        self.comment = f'created with frugy {__version__} from "{os.path.basename(fname)}"'
         with open(fname, 'rb') as infile:
             self.deserialize(infile.read())
 

@@ -9,7 +9,7 @@ import bitstruct
 from frugy.fru_registry import FruRecordType, rec_register, rec_lookup_by_id, rec_lookup_by_name
 from frugy.areas import ipmi_area
 import logging
-
+import frugy.fru
 
 @ipmi_area
 class MultirecordArea:
@@ -145,12 +145,14 @@ class MultirecordEntry(FruAreaBase):
                             f"format_version={format_version}, len={len(header)+len(payload)}")
             logging.warning(f"reason: {e}")
             logging.warning(f"header: {bin2hex_helper(header)}, payload: {bin2hex_helper(payload)}")
+            frugy.fru.import_log(f'Failed to deserialize multirecord 0x{type_id:02x} ({e})')
             new_entry = None
 
         except ValueError as e:
             # Vendor ID mismatch: Don't issue a warning, just ignore it
             logging.debug(f"{e}")
             logging.debug(f"Silently ignoring private / proprietary multirecord")
+            frugy.fru.import_log(f'Ignored private / proprietary multirecord ({e})')
             new_entry = None
 
         except EOFError as e:
