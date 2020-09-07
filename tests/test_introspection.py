@@ -14,9 +14,9 @@ class TestIntrospection(unittest.TestCase):
         except AttributeError:
             return ''
 
-        w1 = 25
+        w1 = 40
         w2 = 20
-        w3 = 60
+        w3 = 30
         result = f'|{"Name".ljust(w1)}|{"Type".ljust(w2)}|{"Opt".ljust(w3)}\n'\
                  f'|{"-" * w1}|{"-" * w2}|{"-" * w3}|\n'
 
@@ -31,6 +31,7 @@ class TestIntrospection(unittest.TestCase):
                 continue
             e_name = f'`{e_name}`'
             result += f'|{e_name.ljust(w1)}|{e_type.ljust(w2)}|{e_opt.ljust(w3)}|\n'
+        result += '\n<br>\n\n'
         return result
 
     def doc_supported_records_md(self):
@@ -46,6 +47,7 @@ class TestIntrospection(unittest.TestCase):
                 for r in rec_list:
                     name, doc = rec_info(r)
                     result += f'|{name.ljust(w1)}|{doc.ljust(w2)}|\n'
+                result += '\n<br>\n\n'
         return result
 
     def test_doc_supported_records(self):
