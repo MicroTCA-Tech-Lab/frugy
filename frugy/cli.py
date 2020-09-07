@@ -13,23 +13,24 @@ import logging
 
 from frugy.__init__ import __version__
 from frugy.fru import Fru
-from frugy.fru_registry import FruRecordType, rec_enumerate, rec_lookup_by_name
+from frugy.fru_registry import FruRecordType, rec_enumerate, rec_lookup_by_name, rec_info, schema_entry_info
 from frugy.multirecords import MultirecordEntry
 
 
 def list_supported_records():
     width = 108
-    separator = '#' * width
-    lf = f"#".ljust(width-1) + '#'
+    separator = '+' + '-' * (width-2) + '+'
+    lf = f"|".ljust(width-1) + '|'
     print(separator)
     for rec_type in list(FruRecordType):
         rec_list = rec_enumerate(rec_type)
         if len(rec_list) != 0:
             print(lf)
-            print(f'# type: {rec_type.name}'.ljust(width-1) + '#')
+            print(f'| type: {rec_type.name}'.ljust(width-1) + '|')
             print(lf)
             for r in rec_list:
-                print(f'# {r.__name__.ljust(33)} {str(r.__doc__).strip()}'.ljust(width-1) + '#')
+                name, doc = rec_info(r)
+                print(f'| {name.ljust(33)} {doc}'.ljust(width-1) + '|')
             print(lf)
             print(separator)
 
@@ -38,22 +39,9 @@ def list_record_schema(rec_name):
     print(f'{"Name".ljust(20)} {"Type".ljust(30)} {"Opt"}')
 
     for entry in schema:
-        e_name = entry[0]
+        e_name, e_type, e_opt = schema_entry_info(entry)
         if e_name.startswith('_'):
             continue
-        e_inst = entry[1]
-        e_opt = ''
-        if e_inst._description == 'int':
-            e_args = e_inst.args[0]
-            if 'constants' in e_inst.kwargs:
-                e_opt = ', '.join(f'{k}={v}' for k, v in e_inst.kwargs['constants'].items())
-        elif e_inst._description == 'array':
-            e_args = e_inst.args[0].__name__
-        else:
-            e_args = e_inst.args
-            e_opt = e_inst.kwargs
-
-        e_type = f'{e_inst._description.ljust(5)} ({e_args})'
         print(f'{e_name.ljust(20)} {e_type.ljust(30)} {e_opt}')
 
 

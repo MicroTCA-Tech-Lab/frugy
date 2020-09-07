@@ -2,6 +2,7 @@ import os
 import unittest
 from frugy.fru import Fru
 from frugy.fru_registry import FruRecordType, rec_enumerate, rec_lookup_by_name
+from frugy.fru_registry import rec_info, schema_entry_info
 
 
 class TestIntrospection(unittest.TestCase):
@@ -20,22 +21,11 @@ class TestIntrospection(unittest.TestCase):
                  f'|{"-" * w1}|{"-" * w2}|{"-" * w3}|\n'
 
         for entry in schema:
-            e_name = entry[0]
+            e_name, e_type, e_opt = schema_entry_info(entry)
             if e_name.startswith('_'):
                 continue
             e_name = f'`{e_name}`'
-            e_inst = entry[1]._shortname
-            if e_inst == 'array':
-                e_args = f'({entry[2].__name__})'
-            else:
-                e_args = f'({entry[2]})' if len(entry) > 2 and entry[2] is not None else ''
-            e_opt = ''
-            if len(entry) > 3 and 'constants' in entry[3]:
-                e_opt = ', '.join(k for k in entry[3]['constants'].keys())
-
-
-            e_type = f'{e_inst} {e_args}'
-            result += f'|{e_name.ljust(w1)}|{e_type.ljust(w2)}|{str(e_opt).ljust(w3)}|\n'
+            result += f'|{e_name.ljust(w1)}|{e_type.ljust(w2)}|{e_opt.ljust(w3)}|\n'
         return result
 
     def doc_supported_records_md(self):
@@ -49,7 +39,8 @@ class TestIntrospection(unittest.TestCase):
                 result += '|' + 'Name'.ljust(w1) + '|' + 'Definition'.ljust(w2) + '|\n'
                 result += '|' + '-' * w1 +         '|' + '-' * w2               + '|\n'
                 for r in rec_list:
-                    result += f'|{r.__name__.ljust(w1)}|{str(r.__doc__).strip().ljust(w2)}|\n'
+                    name, doc = rec_info(r)
+                    result += f'|{name.ljust(w1)}|{doc.ljust(w2)}|\n'
         return result
 
     def test_doc_supported_records(self):
@@ -71,10 +62,11 @@ class TestIntrospection(unittest.TestCase):
                 rec_list = rec_enumerate(rec_type)
                 if len(rec_list) != 0:
                     for r in rec_list:
-                        schema_doc = self.doc_record_schema_md(r.__name__)
+                        name, doc = rec_info(r)
+                        schema_doc = self.doc_record_schema_md(name)
                         if len(schema_doc) == 0:
                             continue
-                        result += f'\n## {r.__name__}\n{str(r.__doc__).strip()}\n\n'
+                        result += f'\n## {name}\n{doc}\n\n'
                         result += schema_doc
             with open(os.path.join(self._docs_path, f'{category}.md'), 'w') as f:
                 f.write(result)

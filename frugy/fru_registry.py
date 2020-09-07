@@ -52,3 +52,23 @@ def rec_lookup_by_id(rec_type: FruRecordType, rec_id: int):
 def rec_lookup_by_name(rec_name: str):
     ''' Lookup record class by name '''
     return _lookup_by_name[rec_name]
+
+def rec_info(rec):
+    ''' return: record name, record information(docstring) '''
+    return rec.__name__, str(rec.__doc__).strip()
+
+def schema_entry_info(entry):
+    ''' return schema entry name, type, options (e.g. constants) '''
+    e_name = entry[0]
+    e_inst = entry[1]._shortname
+    if e_inst == 'array':
+        e_args = f'({entry[2].__name__})'
+    else:
+        e_args = f'({entry[2]})' if len(entry) > 2 and entry[2] is not None else ''
+    e_opt = ''
+    if len(entry) > 3 and 'constants' in entry[3]:
+        e_opt = ', '.join(k for k in entry[3]['constants'].keys())
+
+    e_type = f'{e_inst} {e_args}'
+    
+    return e_name, e_type, e_opt
