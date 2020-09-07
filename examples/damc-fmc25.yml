@@ -19,6 +19,7 @@ ProductInfo:
 MultirecordArea:
 - type: ModuleCurrentRequirements
   current_draw: 6.5
+
 - type: PointToPointConnectivity
   guids:
   - 6b636f52-7465-4920-4f20-496e74666365

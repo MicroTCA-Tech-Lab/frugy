@@ -130,11 +130,16 @@ class Fru:
             import_log.str = '\n' + import_log.str
         for line in [self.comment, *import_log.str.splitlines()]:
             result += f'# {line}\n'
+        line_prev = ''
         for line in data.splitlines():
             if line.endswith(':') and not line.startswith(' '):
-                # add extra newline before entries on root level
+                # add LF before entries on root level
+                result += '\n'
+            if line.startswith('- type:') and line_prev != 'MultirecordArea:':
+                # add LF between multirecord entries
                 result += '\n'
             result += line + '\n'
+            line_prev = line
         return result
 
     def dump_yaml(self):
