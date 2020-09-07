@@ -28,21 +28,9 @@ def _grouper(n, iterable, padvalue=None):
 def bin2hex_helper(val: bytearray):
     return ' '.join('%02x'%x for x in val)
 
-class FactoryObject():
-    def __init__(self, *args, **kwargs):
-        self.args = args
-        self.kwargs = kwargs
-    
-    def __call__(self, parent):
-        return self._obj(*self.args, **self.kwargs, parent=parent)
-    
-    @classmethod
-    def create(cls, name, desc, obj):
-        return type(name, (FactoryObject,), dict(_obj=obj, _description=desc))
-
-
 class FixedField():
     ''' Fixed length field for numbers & bitfields '''
+    _shortname = 'int'
 
     def __init__(self, format: str, parent=None, default=None, div=None, constants=None):
         self._format = format
@@ -87,8 +75,6 @@ class FixedField():
     def val_not_default(self):
         return self.to_dict() != self._default
 
-fixed_field = FactoryObject.create('fixed_field', 'int', FixedField)
-
 
 class StringFmt(Enum):
     BIN = 0b00
@@ -99,8 +85,11 @@ class StringFmt(Enum):
 
 class StringField():
     ''' Variable length field for strings'''
+    _shortname = 'str'
 
     def __init__(self, default='', format: StringFmt=StringFmt.ASCII_8BIT, parent=None):
+        if default is None:
+            print(f'ERROR: {parent.__class__.__name__}')
         self._format = format
         self._default = default
         self._value = default
@@ -208,12 +197,11 @@ class StringField():
     def val_not_default(self):
         return self.to_dict() != self._default
 
-string_field = FactoryObject.create('string_field', 'str', StringField)
-
 
 class BytearrayField():
     ''' Variable length field containing a transparent bytearray, to handle stupid ambiguous multirecord payloads '''
     ''' (e.g. "Zone 3 Interface Compatibility record") '''
+    _shortname = 'bytes'
 
     def __init__(self, num_elems_field=None, default='', hex=True, parent=None):
         self._parent = parent
@@ -251,11 +239,10 @@ class BytearrayField():
     def val_not_default(self):
         return self.to_dict() != self._default
 
-bytearray_field = FactoryObject.create('bytearray_field', 'bytes', BytearrayField)
-
 
 class FixedStringField():
     ''' Null-terminated string with fixed size buffer '''
+    _shortname = 'str'
 
     _null_term = b'\x00'
 
@@ -287,12 +274,11 @@ class FixedStringField():
     def val_not_default(self):
         return self.to_dict() != self._default
 
-fixed_string_field = FactoryObject.create('fixed_string_field', 'str', FixedStringField)
-
 
 class CustomStringArray:
     ''' Platform Management FRU Information Storage Definition, Table 10-1, 11-1, 12-1 '''
     ''' This is a daisy-chain of StringField objects, delimited with 0xc1 '''
+    _shortname = 'strarray'
 
     _delimiter = b'\xc1'
 
@@ -340,11 +326,11 @@ class CustomStringArray:
     def val_not_default(self):
         return len(self.strings) != 0
 
-custom_string_array = FactoryObject.create('custom_string_array', 'strarray', CustomStringArray)
-
 
 class IpV4Field():
     ''' Field containing a IPv4 address '''
+    _shortname = 'ipv4'
+
     _num_bytes = 4
 
     def __init__(self, default='0.0.0.0', parent=None):
@@ -372,11 +358,10 @@ class IpV4Field():
     def val_not_default(self):
         return self.to_dict() != self._default
 
-ipv4_field = FactoryObject.create('ipv4_field', 'ipv4', IpV4Field)
-
 
 class GuidField():
     ''' Field containing a 128-bit GUID '''
+    _shortname = 'guid'
 
     _uuid_len = 16
 
@@ -403,11 +388,10 @@ class GuidField():
     def update(self, value):
         self._value = uuid.UUID(value)
 
-guid_field = FactoryObject.create('guid_field', 'guid', GuidField)
-
 
 class ArrayField():
     ''' Field containing an array of instances of another record '''
+    _shortname = 'array'
 
     def __init__(self, cls, parent=None, initdict=None, num_elems_field=None):
         self._parent = parent
@@ -467,8 +451,6 @@ class ArrayField():
     def val_not_default(self):
         return self.num_elems() != 0
 
-array_field = FactoryObject.create('array_field', 'array', ArrayField)
-
 
 class FruAreaBase:
     ''' Common base class for FRU areas '''
@@ -476,7 +458,16 @@ class FruAreaBase:
     _mergeBitfield = False
 
     def __init__(self, initdict=None):
-        self._dict = OrderedDict([(k, v(self)) for k, v in self._schema])
+        self._dict = OrderedDict()
+        for v in self._schema:
+            kwargs = v[3] if len(v) > 3 else {}
+            obj = v[1]
+            if len(v) > 2:
+                obj = obj(v[2], parent=self, **kwargs)
+            else:
+                obj = obj(parent=self, **kwargs)
+            self._dict[v[0]] = obj
+
         if initdict is not None:
             self.update(initdict)
 

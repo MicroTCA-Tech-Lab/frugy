@@ -7,15 +7,15 @@ See LICENSE.txt for license details.
 import unittest
 from datetime import datetime
 from frugy.areas import CommonHeader, ChassisInfo, BoardInfo, ProductInfo
-from frugy.types import FruAreaBase, fixed_field
+from frugy.types import FruAreaBase, FixedField
 
 
 class foo(FruAreaBase):
     _schema = [
-        ('first2', fixed_field('u2', default=0)),
-        ('second2', fixed_field('u2', default=0)),
-        ('then4', fixed_field('u4', default=0)),
-        ('lastone', fixed_field('u8', default=0)),
+        ('first2', FixedField, 'u2', {'default': 0}),
+        ('second2', FixedField, 'u2', {'default': 0}),
+        ('then4', FixedField, 'u4', {'default': 0}),
+        ('lastone', FixedField, 'u8', {'default': 0}),
     ]
 
 class TestAreas(unittest.TestCase):

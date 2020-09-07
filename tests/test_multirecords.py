@@ -24,3 +24,6 @@ class TestMultirecord(unittest.TestCase):
             }
         ])
         self.assertEqual(mr.serialize(), b'\xc0\x82\x06\x14\xa4Z1\x00\x16\x00K')
+
+if __name__ == '__main__':
+    unittest.main()

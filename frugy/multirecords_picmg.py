@@ -4,7 +4,7 @@ Copyright (c) 2020 Deutsches Elektronen-Synchrotron DESY.
 See LICENSE.txt for license details.
 """
 
-from frugy.types import FruAreaBase, fixed_field, fixed_string_field, GuidField, array_field, bytearray_field, ipv4_field, bin2hex_helper
+from frugy.types import FruAreaBase, FixedField, FixedStringField, GuidField, ArrayField, BytearrayField, IpV4Field, bin2hex_helper
 from frugy.multirecords import ipmi_multirecord, MultirecordEntry
 from frugy.fru_registry import FruRecordType, rec_register, rec_lookup_by_id
 
@@ -62,7 +62,7 @@ class ModuleCurrentRequirements(PicmgEntry):
     ''' PICMG AMC.0 Specification R2.0, Table 3-10 '''
 
     _schema = [
-        ('current_draw', fixed_field('u8', div=0.1))
+        ('current_draw', FixedField, 'u8', {'div': 0.1})
     ]
 
 # Array entry classes for PointToPointConnectivity
@@ -75,11 +75,11 @@ class AmcChannelDescriptor(FruAreaBase):
     _lane_unused = 0b11111
 
     _schema = [
-        ('_reserved', fixed_field('u4', default=0b1111)),
-        ('_lane3_port', fixed_field('u5', default=_lane_unused)),
-        ('_lane2_port', fixed_field('u5', default=_lane_unused)),
-        ('_lane1_port', fixed_field('u5', default=_lane_unused)),
-        ('_lane0_port', fixed_field('u5', default=_lane_unused)),
+        ('_reserved', FixedField, 'u4', {'default': 0b1111}),
+        ('_lane3_port', FixedField, 'u5', {'default': _lane_unused}),
+        ('_lane2_port', FixedField, 'u5', {'default': _lane_unused}),
+        ('_lane1_port', FixedField, 'u5', {'default': _lane_unused}),
+        ('_lane0_port', FixedField, 'u5', {'default': _lane_unused}),
     ]
     _mergeBitfield = True
     
@@ -110,23 +110,23 @@ class AmcLinkDescriptor(FruAreaBase):
     }
 
     _schema = [
-        ('_reserved', fixed_field('u6', default=0b111111)),
-        ('asymm_match', fixed_field('u2', constants={
+        ('_reserved', FixedField, 'u6', {'default': 0b111111}),
+        ('asymm_match', FixedField, 'u2', {'constants': {
             'match_exact': 0b00,
             'match_10b': 0b01,
             'match_01b': 0b10
-        })),
-        ('grouping_id', fixed_field('u8')),
-        ('link_type_ext', fixed_field('u4', default=0)),
-        ('link_type', fixed_field('u8', constants={
+        }}),
+        ('grouping_id', FixedField, 'u8'),
+        ('link_type_ext', FixedField, 'u4', {'default': 0}),
+        ('link_type', FixedField, 'u8', {'constants': {
             **_link_type_standard_constants,
             **_link_type_oem_constants
-        })),
-        ('_lane3_flag', fixed_field('u1')),
-        ('_lane2_flag', fixed_field('u1')),
-        ('_lane1_flag', fixed_field('u1')),
-        ('_lane0_flag', fixed_field('u1')),
-        ('channel_id', fixed_field('u8')),
+        }}),
+        ('_lane3_flag', FixedField, 'u1'),
+        ('_lane2_flag', FixedField, 'u1'),
+        ('_lane1_flag', FixedField, 'u1'),
+        ('_lane0_flag', FixedField, 'u1'),
+        ('channel_id', FixedField, 'u8'),
     ]
     _mergeBitfield = True
 
@@ -147,17 +147,17 @@ class PointToPointConnectivity(PicmgEntry):
     ''' PICMG AMC.0 Specification R2.0, Table 3-16 '''
 
     _schema = [
-        ('_guid_count', fixed_field('u8', default=0)),
-        ('guids', array_field(GuidField, num_elems_field='_guid_count')),
-        ('record_type', fixed_field('u1', constants={
+        ('_guid_count', FixedField, 'u8', {'default': 0}),
+        ('guids', ArrayField, GuidField, {'num_elems_field': '_guid_count'}),
+        ('record_type', FixedField, 'u1', {'constants': {
             'amc_module': 1,
             'on_carrier_device': 0
-        })),
-        ('_reserved', fixed_field('u3', default=0)),
-        ('connected_dev_id', fixed_field('u4', default=0)),
-        ('_channel_desc_count', fixed_field('u8', default=0)),
-        ('channel_descriptors', array_field(AmcChannelDescriptor, num_elems_field='_channel_desc_count')),
-        ('link_descriptors', array_field(AmcLinkDescriptor)),
+        }}),
+        ('_reserved', FixedField, 'u3', {'default': 0}),
+        ('connected_dev_id', FixedField, 'u4', {'default': 0}),
+        ('_channel_desc_count', FixedField, 'u8', {'default': 0}),
+        ('channel_descriptors', ArrayField, AmcChannelDescriptor, {'num_elems_field': '_channel_desc_count'}),
+        ('link_descriptors', ArrayField, AmcLinkDescriptor),
     ]
 
 
@@ -185,21 +185,21 @@ class DirectClockDescriptor(FruAreaBase):
     ''' PICMG AMC.0 Specification R2.0, Table 3-38 '''
 
     _schema = [
-        ('_reserved', fixed_field('u6', default=0)),
-        ('pll_connect', fixed_field('u1')),
-        ('asymm_match', fixed_field('u1', constants={
+        ('_reserved', FixedField, 'u6', {'default': 0}),
+        ('pll_connect', FixedField, 'u1'),
+        ('asymm_match', FixedField, 'u1', {'constants': {
             'clk_source': 1,
             'clk_receiver': 0
-        })),
-        ('family', fixed_field('u8', constants={
+        }}),
+        ('family', FixedField, 'u8', {'constants': {
             'unspecified': 0,
             'sonet_sdh_pdh': 1,
             'pcie_reserved': 2
-        })),
-        ('accuracy', fixed_field('u8')),
-        ('frequency', fixed_field('u32')),
-        ('freq_min', fixed_field('u32')),
-        ('freq_max', fixed_field('u32')),
+        }}),
+        ('accuracy', FixedField, 'u8'),
+        ('frequency', FixedField, 'u32'),
+        ('freq_min', FixedField, 'u32'),
+        ('freq_max', FixedField, 'u32'),
     ]
 
 
@@ -208,13 +208,13 @@ class IndirectClockDescriptor(FruAreaBase):
     ''' PICMG AMC.0 Specification R2.0, Table 3-37 '''
 
     _schema = [
-        ('_reserved', fixed_field('u6', default=0)),
-        ('pll_connect', fixed_field('u1')),
-        ('asymm_match', fixed_field('u1', constants={
+        ('_reserved', FixedField, 'u6', {'default': 0}),
+        ('pll_connect', FixedField, 'u1'),
+        ('asymm_match', FixedField, 'u1', {'constants': {
             'clk_src': 1,
             'clk_recv': 0
-        })),
-        ('dep_clk_id', fixed_field('u8')),
+        }}),
+        ('dep_clk_id', FixedField, 'u8'),
     ]
 
 
@@ -223,16 +223,16 @@ class ClockConfigDescriptor(FruAreaBase):
     ''' PICMG AMC.0 Specification R2.0, Table 3-36 '''
     
     _schema = [
-        ('clk_id', fixed_field('u8', constants=_clock_id_constants)),
-        ('_reserved', fixed_field('u7', default=0)),
-        ('activation', fixed_field('u1', constants={
+        ('clk_id', FixedField, 'u8', {'constants': _clock_id_constants}),
+        ('_reserved', FixedField, 'u7', {'default': 0}),
+        ('activation', FixedField, 'u1', {'constants': {
             'by_carrier': 0,
             'by_application': 1
-        })),
-        ('_indirect_clk_desc_count', fixed_field('u8', default=0)),
-        ('_direct_clk_desc_count', fixed_field('u8', default=0)),
-        ('indirect_clk_desc', array_field(IndirectClockDescriptor, num_elems_field='_indirect_clk_desc_count')),
-        ('direct_clk_desc', array_field(DirectClockDescriptor, num_elems_field='_direct_clk_desc_count')),
+        }}),
+        ('_indirect_clk_desc_count', FixedField, 'u8', {'default': 0}),
+        ('_direct_clk_desc_count', FixedField, 'u8', {'default': 0}),
+        ('indirect_clk_desc', ArrayField, IndirectClockDescriptor, {'num_elems_field': '_indirect_clk_desc_count'}),
+        ('direct_clk_desc', ArrayField, DirectClockDescriptor, {'num_elems_field': '_direct_clk_desc_count'}),
     ]
 
 
@@ -241,11 +241,11 @@ class ClockConfig(PicmgEntry):
     ''' PICMG AMC.0 Specification R2.0, Table 3-35 '''
 
     _schema = [
-        ('resource_type', fixed_field('u2', constants=_resource_type_constants)),
-        ('_reserved', fixed_field('u2', default=0)),
-        ('dev_id', fixed_field('u4')),
-        ('_conf_desc_count', fixed_field('u8', default=0)),
-        ('conf_desc', array_field(ClockConfigDescriptor, num_elems_field='_conf_desc_count')),
+        ('resource_type', FixedField, 'u2', {'constants': _resource_type_constants}),
+        ('_reserved', FixedField, 'u2', {'default': 0}),
+        ('dev_id', FixedField, 'u4'),
+        ('_conf_desc_count', FixedField, 'u8', {'default': 0}),
+        ('conf_desc', ArrayField, ClockConfigDescriptor, {'num_elems_field': '_conf_desc_count'}),
     ]
 
 
@@ -255,15 +255,15 @@ class Zone3InterfaceCompatibility(PicmgEntry):
     ''' The identifier body is represented as transparent bytearray '''
 
     _schema = [
-        ('identifier_type', fixed_field('u8', constants={
+        ('identifier_type', FixedField, 'u8', {'constants': {
             'PICMG_IRTM0_REP': 0,
             'PICMG_OTHER': 1,
             'GUID': 2,
             'OEM': 3,
             'MTCA4_REP': 4
-        })),
+        }}),
         # "format depends on the type" so we assume it's a binary blob
-        ('identifier_body', bytearray_field(hex=True)),
+        ('identifier_body', BytearrayField, None, {'hex': True}),
     ]
 
 
@@ -272,8 +272,8 @@ class PartitionDescriptor(FruAreaBase):
     ''' PICMG Specification MTCA.0 R1.0, Table 3-11 '''
 
     _schema = [
-        ('offset', fixed_field('u16', div=0x10)),
-        ('length', fixed_field('u16')),
+        ('offset', FixedField, 'u16', {'div': 0x10}),
+        ('length', FixedField, 'u16'),
     ]
 
 
@@ -282,8 +282,8 @@ class FruPartition(PicmgEntry):
     ''' PICMG Specification MTCA.0 R1.0, Table 3-10 '''
 
     _schema = [
-        ('_desc_count', fixed_field('u8', default=0)),
-        ('descriptors', array_field(PartitionDescriptor, num_elems_field='_desc_count')),
+        ('_desc_count', FixedField, 'u8', {'default': 0}),
+        ('descriptors', ArrayField, PartitionDescriptor, {'num_elems_field': '_desc_count'}),
     ]
 
 
@@ -291,15 +291,15 @@ class FruPartition(PicmgEntry):
 class CarrierManagerIPLink(PicmgEntry):
     ''' PICMG Specification MTCA.0 R1.0, Table 3-12 '''
     _schema = [
-        ('shelf_manager_ip', ipv4_field()),
-        ('carrier_manager_ip', ipv4_field()),
-        ('mch1_ip', ipv4_field()),
-        ('mch2_ip', ipv4_field()),
-        ('subnet', ipv4_field()),
-        ('gateway0', ipv4_field()),
-        ('gateway1', ipv4_field()),
-        ('username', fixed_string_field(17, default='')),
-        ('password', fixed_string_field(21, default='')),
+        ('shelf_manager_ip', IpV4Field),
+        ('carrier_manager_ip', IpV4Field),
+        ('mch1_ip', IpV4Field),
+        ('mch2_ip', IpV4Field),
+        ('subnet', IpV4Field),
+        ('gateway0', IpV4Field),
+        ('gateway1', IpV4Field),
+        ('username', FixedStringField, 17, {'default': ''}),
+        ('password', FixedStringField, 21, {'default': ''}),
     ]
 
 
@@ -327,12 +327,12 @@ class SlotEntry(FruAreaBase):
     ''' PICMG Specification MTCA.0 R1.0, Table 3-17 '''
 
     _schema = [
-        ('site_no', fixed_field('u8')),
-        ('site_type', fixed_field('u8', constants=_site_type_constants)),
-        ('slot_no', fixed_field('u8')),
-        ('tier_no', fixed_field('u8')),
-        ('slot_org_y', fixed_field('u16')),
-        ('slot_org_x', fixed_field('u16')),
+        ('site_no', FixedField, 'u8'),
+        ('site_type', FixedField, 'u8', {'constants': _site_type_constants}),
+        ('slot_no', FixedField, 'u8'),
+        ('tier_no', FixedField, 'u8'),
+        ('slot_org_y', FixedField, 'u16'),
+        ('slot_org_x', FixedField, 'u16'),
     ]
 
 
@@ -341,13 +341,13 @@ class MtcaCarrierInformation(PicmgEntry):
     ''' PICMG Specification MTCA.0 R1.0, Table 3-16 '''
 
     _schema = [
-        ('number', fixed_field('u8', default=0xff)),
-        ('orientation', fixed_field('u1', constants={
+        ('number', FixedField, 'u8', {'default': 0xff}),
+        ('orientation', FixedField, 'u1', {'constants': {
             'l2r': 0,
             'b2t': 1
-        })),
-        ('_slot_entry_count', fixed_field('u7', default=0)),
-        ('slot_entries', array_field(SlotEntry, num_elems_field='_slot_entry_count')),
+        }}),
+        ('_slot_entry_count', FixedField, 'u7', {'default': 0}),
+        ('slot_entries', ArrayField, SlotEntry, {'num_elems_field': '_slot_entry_count'}),
     ]
 
 
@@ -356,15 +356,15 @@ class PowerPolicyDescriptor(FruAreaBase):
     ''' PICMG Specification MTCA.0 R1.0, Table 3-24 '''
 
     _schema = [
-        ('site_no', fixed_field('u8')),
-        ('max_current_override', fixed_field('u16', div=0.1)),
-        ('pm_role', fixed_field('u8', constants={
+        ('site_no', FixedField, 'u8'),
+        ('max_current_override', FixedField, 'u16', {'div': 0.1}),
+        ('pm_role', FixedField, 'u8', {'constants': {
             'primary': 0x00,
             'redundant': 0x01,
             'unspecified': 0xff
-        })),
-        ('_channel_count', fixed_field('u8')),
-        ('_channels', bytearray_field(num_elems_field='_channel_count')),
+        }}),
+        ('_channel_count', FixedField, 'u8'),
+        ('_channels', BytearrayField, {'num_elems_field': '_channel_count'}),
     ]
 
     def to_dict(self):
@@ -385,8 +385,8 @@ class PowerPolicyRecord(PicmgEntry):
     ''' PICMG Specification MTCA.0 R1.0, Table 3-23 '''
 
     _schema = [
-        ('_num_descriptors', fixed_field('u8', default=0)),
-        ('descriptors', array_field(PowerPolicyDescriptor, num_elems_field='_num_descriptors')),
+        ('_num_descriptors', FixedField, 'u8', {'default': 0}),
+        ('descriptors', ArrayField, PowerPolicyDescriptor, {'num_elems_field': '_num_descriptors'}),
     ]
 
 
@@ -401,14 +401,14 @@ class MtcaCarrierActivCurrDescriptor(FruAreaBase):
         'system_mgr': 0b00
     }
     _schema = [
-        ('site_type', fixed_field('u8', constants=_site_type_constants)),
-        ('site_no', fixed_field('u8')),
-        ('pwr_ch', fixed_field('u8')),
-        ('max_current', fixed_field('u8', div=0.1)),
-        ('activation_ctrl', fixed_field('u2', constants=_mgr_constants)),
-        ('pwr_delay', fixed_field('u6', div=0.1)),
-        ('deactivation_ctrl', fixed_field('u2', constants=_mgr_constants)),
-        ('_reserved', fixed_field('u6', default=0))
+        ('site_type', FixedField, 'u8', {'constants': _site_type_constants}),
+        ('site_no', FixedField, 'u8'),
+        ('pwr_ch', FixedField, 'u8'),
+        ('max_current', FixedField, 'u8', {'div': 0.1}),
+        ('activation_ctrl', FixedField, 'u2', {'constants': _mgr_constants}),
+        ('pwr_delay', FixedField, 'u6', {'div': 0.1}),
+        ('deactivation_ctrl', FixedField, 'u2', {'constants': _mgr_constants}),
+        ('_reserved', FixedField, 'u6', {'default': 0})
     ]
 
 
@@ -417,9 +417,9 @@ class MtcaCarrierActivationPm(PicmgEntry):
     ''' PICMG Specification MTCA.0 R1.0, Table 3-25 '''
 
     _schema = [
-        ('readiness_allowance', fixed_field('u8')),
-        ('_num_descriptors', fixed_field('u8', default=0)),
-        ('descriptors', array_field(MtcaCarrierActivCurrDescriptor, num_elems_field='_num_descriptors')),
+        ('readiness_allowance', FixedField, 'u8'),
+        ('_num_descriptors', FixedField, 'u8', {'default': 0}),
+        ('descriptors', ArrayField, MtcaCarrierActivCurrDescriptor, {'num_elems_field': '_num_descriptors'}),
     ]
 
 
@@ -430,15 +430,15 @@ class P2pPortDescriptor(FruAreaBase):
     _mergeBitfield = True
 
     _schema = [
-        ('_reserved0', fixed_field('u6', default=0)),
-        ('local_port', fixed_field('u5')),
-        ('remote_port', fixed_field('u5')),
-        ('resource_type', fixed_field('u1', constants={
+        ('_reserved0', FixedField, 'u6', {'default': 0}),
+        ('local_port', FixedField, 'u5'),
+        ('remote_port', FixedField, 'u5'),
+        ('resource_type', FixedField, 'u1', {'constants': {
             'amc': 1,
             'carrier': 0
-        })),
-        ('_reserved1', fixed_field('u3', default=0)),
-        ('site_no', fixed_field('u4')),
+        }}),
+        ('_reserved1', FixedField, 'u3', {'default': 0}),
+        ('site_no', FixedField, 'u4'),
     ]
 
 
@@ -447,14 +447,14 @@ class P2pAmcResourceDescriptor(FruAreaBase):
     ''' PICMG AMC.0 Specification R2.0, Table 3-14 '''
 
     _schema = [
-        ('resource_type', fixed_field('u1', constants={
+        ('resource_type', FixedField, 'u1', {'constants': {
             'amc': 1,
             'carrier': 0
-        })),
-        ('_reserved', fixed_field('u3', default=0)),
-        ('site_no', fixed_field('u4')),
-        ('_port_count', fixed_field('u8')),
-        ('port_descriptors', array_field(P2pPortDescriptor, num_elems_field='_port_count')),
+        }}),
+        ('_reserved', FixedField, 'u3', {'default': 0}),
+        ('site_no', FixedField, 'u4'),
+        ('_port_count', FixedField, 'u8'),
+        ('port_descriptors', ArrayField, P2pPortDescriptor, {'num_elems_field': '_port_count'}),
     ]
 
 
@@ -463,7 +463,7 @@ class CarrierP2pConnectivity(PicmgEntry):
     ''' PICMG AMC.0 Specification R2.0, Table 3-13 '''
 
     _schema = [
-        ('resource_descriptors', array_field(P2pAmcResourceDescriptor)),
+        ('resource_descriptors', ArrayField, P2pAmcResourceDescriptor),
     ]
 
 
@@ -472,11 +472,11 @@ class P2pClockConnectionDescriptor(FruAreaBase):
     ''' PICMG AMC.0 Specification R2.0, Table 3-32 '''
 
     _schema = [
-        ('local_clock_id', fixed_field('u8', constants=_clock_id_constants)),
-        ('remote_clock_id', fixed_field('u8', constants=_clock_id_constants)),
-        ('resource_type', fixed_field('u2', constants=_resource_type_constants)),
-        ('_reserved', fixed_field('u2', default=0)),
-        ('dev_id', fixed_field('u4')),
+        ('local_clock_id', FixedField, 'u8', {'constants': _clock_id_constants}),
+        ('remote_clock_id', FixedField, 'u8', {'constants': _clock_id_constants}),
+        ('resource_type', FixedField, 'u2', {'constants': _resource_type_constants}),
+        ('_reserved', FixedField, 'u2', {'default': 0}),
+        ('dev_id', FixedField, 'u4'),
     ]
 
 
@@ -485,11 +485,11 @@ class ClockP2pResourceDescriptor(FruAreaBase):
     ''' PICMG AMC.0 Specification R2.0, Table 3-30 '''
 
     _schema = [
-        ('resource_type', fixed_field('u2', constants=_resource_type_constants)),
-        ('_reserved', fixed_field('u2', default=0)),
-        ('dev_id', fixed_field('u4')),
-        ('_p2p_clk_conn_count', fixed_field('u8', default=0)),
-        ('p2p_clk_conn_descriptors', array_field(P2pClockConnectionDescriptor, num_elems_field='_p2p_clk_conn_count'))
+        ('resource_type', FixedField, 'u2', {'constants': _resource_type_constants}),
+        ('_reserved', FixedField, 'u2', {'default': 0}),
+        ('dev_id', FixedField, 'u4'),
+        ('_p2p_clk_conn_count', FixedField, 'u8', {'default': 0}),
+        ('p2p_clk_conn_descriptors', ArrayField, P2pClockConnectionDescriptor, {'num_elems_field': '_p2p_clk_conn_count'})
     ]
 
 
@@ -498,8 +498,8 @@ class CarrierClkP2pConnectivity(PicmgEntry):
     ''' PICMG AMC.0 Specification R2.0, Table 3-29 '''
 
     _schema = [
-        ('_clk_p2p_resource_desc_count', fixed_field('u8', default=0)),
-        ('clk_p2p_resource_descriptors', array_field(ClockP2pResourceDescriptor, num_elems_field='_clk_p2p_resource_desc_count')),
+        ('_clk_p2p_resource_desc_count', FixedField, 'u8', {'default': 0}),
+        ('clk_p2p_resource_descriptors', ArrayField, ClockP2pResourceDescriptor, {'num_elems_field': '_clk_p2p_resource_desc_count'}),
     ]
 
 @picmg_multirecord(0x32)
@@ -507,5 +507,5 @@ class Zone3InterfaceDocumentation(PicmgEntry):
     ''' PICMG MicroTCA.4 Enhancements for Rear I/O and Timing R1.0, Table 3-15 '''
 
     _schema = [
-        ('url', bytearray_field(hex=False)),
+        ('url', BytearrayField, None, {'hex': False}),
     ]

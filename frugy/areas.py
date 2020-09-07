@@ -4,16 +4,18 @@ Copyright (c) 2020 Deutsches Elektronen-Synchrotron DESY.
 See LICENSE.txt for license details.
 """
 
-from frugy.types import FruAreaVersioned, FruAreaSized, fixed_field, string_field, StringField, bin2hex_helper, custom_string_array
+from frugy.types import FruAreaVersioned, FruAreaSized, FixedField, StringField, StringField, bin2hex_helper, CustomStringArray
 from frugy.fru_registry import FruRecordType, rec_register
 from datetime import datetime, timedelta
 import logging
 
-_language_code = 0  # Use English and UTF-8 as default encoding
 
 def ipmi_area(cls):
     rec_register(cls, FruRecordType.ipmi_area)
     return cls
+
+
+_default_language_code = 0  # Use English and UTF-8 as default encoding
 
 
 @ipmi_area
@@ -21,11 +23,11 @@ class CommonHeader(FruAreaVersioned):
     ''' Platform Management FRU Information Storage Definition, Table 8-1 '''
 
     _schema = [
-        ('internal_use_offs', fixed_field('u8', default=0)),
-        ('chassis_info_offs', fixed_field('u8', default=0)),
-        ('board_info_offs', fixed_field('u8', default=0)),
-        ('product_info_offs', fixed_field('u8', default=0)),
-        ('multirecord_offs', fixed_field('u8', default=0)),
+        ('internal_use_offs', FixedField, 'u8', {'default': 0}),
+        ('chassis_info_offs', FixedField, 'u8', {'default': 0}),
+        ('board_info_offs', FixedField, 'u8', {'default': 0}),
+        ('product_info_offs', FixedField, 'u8', {'default': 0}),
+        ('multirecord_offs', FixedField, 'u8', {'default': 0}),
     ]
 
     def __getitem__(self, key):
@@ -46,10 +48,10 @@ class ChassisInfo(FruAreaSized):
     ''' Platform Management FRU Information Storage Definition, Table 10-1 '''
 
     _schema = [
-        ('type', fixed_field('u8')),
-        ('part_number', string_field()),
-        ('serial_number', string_field()),
-        ('custom_info_fields', custom_string_array()),
+        ('type', FixedField, 'u8'),
+        ('part_number', StringField),
+        ('serial_number', StringField),
+        ('custom_info_fields', CustomStringArray),
     ]
 
 
@@ -58,14 +60,14 @@ class BoardInfo(FruAreaSized):
     ''' Platform Management FRU Information Storage Definition, Table 11-1 '''
 
     _schema = [
-        ('language_code', fixed_field('u8', default=_language_code)),
-        ('mfg_date_time', fixed_field('u24', default=0)),
-        ('manufacturer', string_field()),
-        ('product_name', string_field()),
-        ('serial_number', string_field()),
-        ('part_number', string_field()),
-        ('fru_file_id', string_field()),
-        ('custom_info_fields', custom_string_array()),
+        ('language_code', FixedField, 'u8', {'default': _default_language_code}),
+        ('mfg_date_time', FixedField, 'u24', {'default': 0}),
+        ('manufacturer', StringField),
+        ('product_name', StringField),
+        ('serial_number', StringField),
+        ('part_number', StringField),
+        ('fru_file_id', StringField),
+        ('custom_info_fields', CustomStringArray),
     ]
 
     _time_ref = datetime(1996, 1, 1)
@@ -92,13 +94,13 @@ class ProductInfo(FruAreaSized):
     ''' Platform Management FRU Information Storage Definition, Table 12-1 '''
 
     _schema = [
-        ('language_code', fixed_field('u8', default=_language_code)),
-        ('manufacturer', string_field()),
-        ('product_name', string_field()),
-        ('part_number', string_field()),
-        ('version', string_field()),
-        ('serial_number', string_field()),
-        ('asset_tag', string_field()),
-        ('fru_file_id', string_field()),
-        ('custom_info_fields', custom_string_array()),
+        ('language_code', FixedField, 'u8', {'default': _default_language_code}),
+        ('manufacturer', StringField),
+        ('product_name', StringField),
+        ('part_number', StringField),
+        ('version', StringField),
+        ('serial_number', StringField),
+        ('asset_tag', StringField),
+        ('fru_file_id', StringField),
+        ('custom_info_fields', CustomStringArray),
     ]

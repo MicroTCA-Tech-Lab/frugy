@@ -3,6 +3,7 @@ import unittest
 from frugy.fru import Fru
 from frugy.fru_registry import FruRecordType, rec_enumerate, rec_lookup_by_name
 
+
 class TestIntrospection(unittest.TestCase):
     _docs_path = 'docs'
 
@@ -23,23 +24,17 @@ class TestIntrospection(unittest.TestCase):
             if e_name.startswith('_'):
                 continue
             e_name = f'`{e_name}`'
-            e_inst = entry[1]
-            e_args = ''
-            e_opt = ''
-            if e_inst._description == 'int':
-                e_args = f'({e_inst.args[0]})'
-                if 'constants' in e_inst.kwargs:
-                    e_opt = ', '.join(k for k in e_inst.kwargs['constants'].keys())
-                    #e_opt = ', '.join(f'{k}={v}' for k, v in e_inst.kwargs['constants'].items())
-            elif e_inst._description == 'array':
-                e_args = f'({e_inst.args[0].__name__})'
-            elif e_inst._description in ('str', 'strarray', 'bytes', 'ipv4'):
-                pass
+            e_inst = entry[1]._shortname
+            if e_inst == 'array':
+                e_args = f'({entry[2].__name__})'
             else:
-                e_args = e_inst.args
-                e_opt = e_inst.kwargs
+                e_args = f'({entry[2]})' if len(entry) > 2 and entry[2] is not None else ''
+            e_opt = ''
+            if len(entry) > 3 and 'constants' in entry[3]:
+                e_opt = ', '.join(k for k in entry[3]['constants'].keys())
 
-            e_type = f'{e_inst._description} {e_args}'
+
+            e_type = f'{e_inst} {e_args}'
             result += f'|{e_name.ljust(w1)}|{e_type.ljust(w2)}|{str(e_opt).ljust(w3)}|\n'
         return result
 

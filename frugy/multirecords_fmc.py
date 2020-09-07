@@ -4,7 +4,7 @@ Copyright (c) 2020 Deutsches Elektronen-Synchrotron DESY.
 See LICENSE.txt for license details.
 """
 
-from frugy.types import fixed_field
+from frugy.types import FixedField
 from frugy.multirecords import ipmi_multirecord, MultirecordEntry
 from frugy.fru_registry import FruRecordType, rec_register, rec_lookup_by_id
 
@@ -63,29 +63,29 @@ class FmcMainDefinition(FmcEntry):
     ''' ANSI/VITA 57.1 FMC Standard, Table 7 '''
 
     _schema = [
-        ('module_size', fixed_field('u2', constants={
+        ('module_size', FixedField, 'u2', {'constants': {
             'single_width': 0b00,
             'double_width': 0b01
-        })),
-        ('p1_connector_size', fixed_field('u2', constants={
+        }}),
+        ('p1_connector_size', FixedField, 'u2', {'constants': {
             'lpc': 0b00,
             'hpc': 0b01
-        })),
-        ('p2_connector_size', fixed_field('u2', constants={
+        }}),
+        ('p2_connector_size', FixedField, 'u2', {'constants': {
             'lpc': 0b00,
             'hpc': 0b01,
             'not_fitted': 0b11,
-        })),
-        ('clock_direction', fixed_field('u1', constants={
+        }}),
+        ('clock_direction', FixedField, 'u1', {'constants': {
             'm2c': 0b0,
             'c2m': 0b1,
-        })),
-        ('_reserved', fixed_field('u1', default=0)),
-        ('p1_a_num_signals', fixed_field('u8')),
-        ('p1_b_num_signals', fixed_field('u8')),
-        ('p2_a_num_signals', fixed_field('u8')),
-        ('p2_b_num_signals', fixed_field('u8')),
-        ('p1_gbt_num_trcv', fixed_field('u4')),
-        ('p2_gbt_num_trcv', fixed_field('u4')),
-        ('tck_max_clock', fixed_field('u8'))
+        }}),
+        ('_reserved', FixedField, 'u1', {'default': 0}),
+        ('p1_a_num_signals', FixedField, 'u8'),
+        ('p1_b_num_signals', FixedField, 'u8'),
+        ('p2_a_num_signals', FixedField, 'u8'),
+        ('p2_b_num_signals', FixedField, 'u8'),
+        ('p1_gbt_num_trcv', FixedField, 'u4'),
+        ('p2_gbt_num_trcv', FixedField, 'u4'),
+        ('tck_max_clock', FixedField, 'u8')
     ]

@@ -104,3 +104,6 @@ class TestFru(unittest.TestCase):
                     name_src = os.path.join(root, name)
                     name_dest = os.path.join('examples', name_base + '.yml')
                     self.bin_to_yaml(name_src, name_dest)
+
+if __name__ == '__main__':
+    unittest.main()

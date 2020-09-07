@@ -56,8 +56,8 @@ PICMG Specification MTCA.0 R1.0, Table 3-12
 |`subnet`                 |ipv4                |                                                            |
 |`gateway0`               |ipv4                |                                                            |
 |`gateway1`               |ipv4                |                                                            |
-|`username`               |str                 |                                                            |
-|`password`               |str                 |                                                            |
+|`username`               |str (17)            |                                                            |
+|`password`               |str (21)            |                                                            |
 
 ## MtcaCarrierInformation
 PICMG Specification MTCA.0 R1.0, Table 3-16

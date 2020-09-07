@@ -6,7 +6,7 @@ See LICENSE.txt for license details.
 
 import unittest
 
-from frugy.types import fixed_field, StringField, StringFmt, GuidField, ArrayField, FruAreaBase
+from frugy.types import FixedField, StringField, StringFmt, GuidField, ArrayField, FruAreaBase
 
 
 class TestString(unittest.TestCase):
@@ -56,10 +56,10 @@ class TestString(unittest.TestCase):
 
 class ArrayTest(FruAreaBase):
     _schema = [
-        ('first_byte', fixed_field('u8', default=0)),
-        ('second_byte', fixed_field('u8', default=0)),
-        ('bits1', fixed_field('u4', default=0)),
-        ('bits2', fixed_field('u4', default=0)),
+        ('first_byte', FixedField, 'u8', {'default': 0}),
+        ('second_byte', FixedField, 'u8', {'default': 0}),
+        ('bits1', FixedField, 'u4', {'default': 0}),
+        ('bits2', FixedField, 'u4', {'default': 0}),
     ]
 
 class TestMisc(unittest.TestCase):
