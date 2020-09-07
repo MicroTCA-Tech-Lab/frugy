@@ -1,8 +1,11 @@
+# created with frugy 0.1.0 from "opalkelly_default_2k.bin"
+
 BoardInfo:
   manufacturer: Opal Kelly Incorporated
   product_name: EVB1006
   serial_number: 1135000OKI
   part_number: EVB1006
+
 MultirecordArea:
 - type: DCLoad
   output_number: P1_VADJ

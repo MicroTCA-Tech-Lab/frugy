@@ -4,6 +4,7 @@ Copyright (c) 2020 Deutsches Elektronen-Synchrotron DESY.
 See LICENSE.txt for license details.
 """
 
+from frugy import __version__
 from frugy.areas import CommonHeader, ChassisInfo, BoardInfo, ProductInfo
 from frugy.multirecords import MultirecordArea
 import frugy.multirecords_ipmi
@@ -11,6 +12,7 @@ import frugy.multirecords_picmg
 import frugy.multirecords_fmc
 import yaml
 from bidict import bidict
+import os
 
 # YAML formatting helpers
 class YamlFlowstyleList(list):
@@ -32,6 +34,7 @@ class Fru:
     def __init__(self, initdict=None):
         self.header = CommonHeader()
         self.areas = {}
+        self.comment = ''
         if initdict is not None:
             self.update(initdict)
 
@@ -47,6 +50,7 @@ class Fru:
         return map[cls_name](cls_args)
 
     def update(self, src):
+        self.comment = ''
         self.areas = {k: self.factory(k, src[k]) for k in src.keys()}
 
     def to_dict(self):
@@ -88,7 +92,7 @@ class Fru:
             fru_dict = yaml.safe_load(infile)
         self.update(fru_dict)
 
-    def dump_yaml(self):
+    def dump_yaml_raw(self):
         def fmt_tree(part):
             ''' Set lists at edges of tree to YAML flow style '''
             if type(part) is list:
@@ -113,11 +117,26 @@ class Fru:
         yaml_dict, _ = fmt_tree(yaml_dict)
         return yaml.dump(yaml_dict, sort_keys=False)
 
+    def postprocess_yaml(self, data):
+        # Since adding rules to PyYAML dumping is over-complicated and badly documented, we just process the bare string
+        result = self.comment
+        for line in data.splitlines():
+            if line.endswith(':') and not line.startswith(' '):
+                # add extra newline before entries on root level
+                result += '\n'
+            result += line + '\n'
+        return result
+
+    def dump_yaml(self):
+        yaml_raw = self.dump_yaml_raw()
+        return self.postprocess_yaml(yaml_raw)
+
     def save_yaml(self, fname):
         with open(fname, 'w') as outfile:
             outfile.write(self.dump_yaml())
 
     def load_bin(self, fname):
+        self.comment = f'# created with frugy {__version__} from "{os.path.basename(fname)}"\n'
         with open(fname, 'rb') as infile:
             self.deserialize(infile.read())
 

@@ -1,9 +1,12 @@
+# created with frugy 0.1.0 from "mmc-breakout.bin"
+
 BoardInfo:
   manufacturer: DESY
   product_name: DAMC-MMC-Breakout
   serial_number: '0000'
   part_number: '0000'
   fru_file_id: none
+
 ProductInfo:
   manufacturer: DESY
   product_name: DAMC-MMC-Breakout

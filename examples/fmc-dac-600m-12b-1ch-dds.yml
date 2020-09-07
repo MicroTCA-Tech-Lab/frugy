@@ -1,3 +1,5 @@
+# created with frugy 0.1.0 from "fmc-dac-600m-12b-1ch-dds.bin"
+
 BoardInfo:
   mfg_date_time: 2020-08-27 13:36:00
   manufacturer: fmc-example
@@ -5,6 +7,7 @@ BoardInfo:
   serial_number: '0001'
   part_number: sample-part
   fru_file_id: '2020-08-27 13:36:47.385748'
+
 MultirecordArea:
 - type: DCLoad
   output_number: P1_12P0V
