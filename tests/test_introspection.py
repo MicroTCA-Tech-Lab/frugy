@@ -22,6 +22,11 @@ class TestIntrospection(unittest.TestCase):
 
         for entry in schema:
             e_name, e_type, e_opt = schema_entry_info(entry)
+            if e_opt is not None and 'constants' in e_opt:
+                e_opt = ', '.join(f'`{k}`' for k in e_opt['constants'].keys())
+            else:
+                e_opt = ''
+
             if e_name.startswith('_'):
                 continue
             e_name = f'`{e_name}`'

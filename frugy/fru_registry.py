@@ -65,9 +65,9 @@ def schema_entry_info(entry):
         e_args = f'({entry[2].__name__})'
     else:
         e_args = f'({entry[2]})' if len(entry) > 2 and entry[2] is not None else ''
-    e_opt = ''
-    if len(entry) > 3 and 'constants' in entry[3]:
-        e_opt = ', '.join(k for k in entry[3]['constants'].keys())
+    e_opt = None
+    if len(entry) > 3:
+        e_opt = entry[3]
 
     e_type = f'{e_inst} {e_args}'
     

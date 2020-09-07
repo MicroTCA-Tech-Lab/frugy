@@ -42,6 +42,10 @@ def list_record_schema(rec_name):
         e_name, e_type, e_opt = schema_entry_info(entry)
         if e_name.startswith('_'):
             continue
+        if e_opt is not None and 'constants' in e_opt:
+            e_opt = ', '.join(k for k in e_opt['constants'].keys())
+        else:
+            e_opt = ''
         print(f'{e_name.ljust(20)} {e_type.ljust(30)} {e_opt}')
 
 
