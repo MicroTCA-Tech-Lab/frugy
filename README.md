@@ -13,9 +13,9 @@ pip3 install git+https://github.com/MicroTCA-Tech-Lab/frugy
 ```
 $ frugy --help
 usage: frugy [-h] [--version] [-o OUTPUT] [-w] [-r] [-d]
-                  [-e EEPROM_SIZE] [-s SET] [-t] [-b] [-l [LIST]]
-                  [-v VERBOSITY]
-                  [srcfile]
+             [-e EEPROM_SIZE] [-s SET] [-t] [-b] [-c] [-l [LIST]]
+             [-v VERBOSITY]
+             [srcfile]
 
 FRU Generator YAML
 
@@ -38,12 +38,13 @@ optional arguments:
   -t, --timestamp       set BoardInfo.mfg_date_time timestamp to current UTC
                         time (only valid in write mode)
   -b, --broken          enable workaround to parse Opal Kelly EEPROMs
+  -c, --ignore-checksum-errors
+                        ignore checksum errors when parsing a FRU image
   -l [LIST], --list [LIST]
                         list supported FRU records or schema of specified
                         record
   -v VERBOSITY, --verbosity VERBOSITY
                         set verbosity (0=quiet, 1=info, 2=debug)
-
 ```
 
 ## Examples

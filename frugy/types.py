@@ -609,6 +609,8 @@ class FruAreaBase:
 class FruAreaChecksummed(FruAreaBase):
     ''' FRU area featuring a checksum in the epilogue '''
 
+    ignore_checksum_errors = False
+
     def _prologue(self) -> bytearray:
         return b''
 
@@ -634,7 +636,7 @@ class FruAreaChecksummed(FruAreaBase):
         payload = input[:offs]
         ep = self._epilogue(payload)
         vfy, remainder = input[offs:offs+len(ep)], input[offs+len(ep):]
-        if ep != vfy:
+        if ep != vfy and not self.ignore_checksum_errors:
             raise RuntimeError(f'padding or checksum verify error in {self.__class__.__name__}: expected {bin2hex_helper(ep)}, received {bin2hex_helper(vfy)}')
         return remainder
 
@@ -697,6 +699,6 @@ class FruAreaSized(FruAreaVersioned):
         self._deserialize(input[2:area_len])
         # The remainder may have arbitrary padding, so just check the last byte, and return only stuff that's behind our area
         cksum = (-sum(input[:area_len])) & 0xff
-        if cksum != 0:
+        if cksum != 0 and not self.ignore_checksum_errors:
             raise RuntimeError(f'{self.__class__.__name__}: checksum doesn\'t add up to zero')
         return input[area_len:]
