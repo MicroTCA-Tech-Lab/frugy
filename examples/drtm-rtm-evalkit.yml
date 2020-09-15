@@ -1,0 +1,15 @@
+# created with frugy 0.1.0 from "drtm-rtm-evalkit.bin"
+
+ProductInfo:
+  language_code: 25
+  manufacturer: TUL/DESY
+  product_name: DRTM-RTM-EvalKit
+  part_number: 0008
+  version: '1.1'
+  serial_number: N/A
+  asset_tag: --
+  fru_file_id: FRU_01.10_03.10.2016
+
+MultirecordArea:
+- type: ModuleCurrentRequirements
+  current_draw: 2.5
