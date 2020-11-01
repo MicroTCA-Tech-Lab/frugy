@@ -4,6 +4,12 @@ This is a tool which generates EEPROM images according to the [IPMI](https://www
 
 ## Installation
 
+From [PyPI](https://pypi.org/project/frugy):
+```
+pip3 install frugy
+```
+
+From [GitHub](https://github.com/MicroTCA-Tech-Lab/frugy):
 ```
 pip3 install git+https://github.com/MicroTCA-Tech-Lab/frugy
 ```
