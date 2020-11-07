@@ -43,7 +43,7 @@ PICMG MicroTCA.4 Enhancements for Rear I/O and Timing R1.0, Table 3-3
 
 |Name                                    |Type                |Opt                           
 |----------------------------------------|--------------------|------------------------------|
-|`identifier_type`                       |int (u8)            |`PICMG_IRTM0_REP`, `PICMG_OTHER`, `GUID`, `OEM`, `MTCA4_REP`|
+|`identifier_type`                       |int (u8)            |`PICMG_IRTM0_REP`, `PICMG_OTHER`, `GUID`, `OEM`, `MTCA4_REP`, `CLASS_ID`|
 |`identifier_body`                       |bytes               |                              |
 
 <br>

@@ -4,10 +4,12 @@ Copyright (c) 2020 Deutsches Elektronen-Synchrotron DESY.
 See LICENSE.txt for license details.
 """
 
-from frugy.types import FruAreaBase, FixedField, FixedStringField, GuidField, ArrayField, BytearrayField, IpV4Field, bin2hex_helper
+from frugy.types import FruAreaBase, FixedField, FixedStringField, GuidField, ArrayField, BytearrayField, IpV4Field, bin2hex_helper, _grouper
 from frugy.multirecords import ipmi_multirecord, MultirecordEntry
 from frugy.fru_registry import FruRecordType, rec_register, rec_lookup_by_id
 
+import re
+import logging
 
 @ipmi_multirecord(0xc0)
 class PicmgEntry(MultirecordEntry):
@@ -252,7 +254,7 @@ class ClockConfig(PicmgEntry):
 @picmg_multirecord(0x30)
 class Zone3InterfaceCompatibility(PicmgEntry):
     ''' PICMG MicroTCA.4 Enhancements for Rear I/O and Timing R1.0, Table 3-3 '''
-    ''' The identifier body is represented as transparent bytearray '''
+    ''' Types 0..4 are treated as opaque hex blob. Type 5 (CLASS_ID) is decoded to plain text. '''
 
     _schema = [
         ('identifier_type', FixedField, 'u8', {'constants': {
@@ -260,11 +262,48 @@ class Zone3InterfaceCompatibility(PicmgEntry):
             'PICMG_OTHER': 1,
             'GUID': 2,
             'OEM': 3,
-            'MTCA4_REP': 4
+            'MTCA4_REP': 4,
+            'CLASS_ID': 5
         }}),
-        # "format depends on the type" so we assume it's a binary blob
         ('identifier_body', BytearrayField, None, {'hex': True}),
     ]
+
+    # Conversion from binary data to plain-text dictionary
+    def to_dict(self):
+        result = super().to_dict()
+        if result['identifier_type'] == 'CLASS_ID':
+            # Convert hex string to raw data
+            raw = bytearray.fromhex(result['identifier_body'])
+            # Convert raw data to plain text
+            # Skip number of elements
+            raw = raw[1:]
+            plain = []
+            for tup in _grouper(3, raw):
+                ad = ['A', 'D'][tup[0]]
+                plain.append(f'{ad}{tup[1]}.{tup[2]}')
+            result['identifier_body'] = plain
+        return result
+    
+    # Conversion from plain-text dictionary to binary data
+    def update(self, val):
+        if val['identifier_type'] == 'CLASS_ID':
+            cls_ver = re.compile(r'^(A|D)(\d+).(\d+)$')
+            ib = val['identifier_body']
+            # Convert plain text to raw data
+            # Number of elements
+            raw = bytearray([len(ib)])
+            for s in ib:
+                grp = cls_ver.match(s)
+                el = grp.groups()
+                if not grp or len(el) != 3:
+                    logging.error(f"Can't parse class definition {s}")
+                    continue
+                ad = {'A':0, 'D':1}[el[0]]
+                raw.extend(bytearray([ad, int(el[1]), int(el[2])]))
+            # Convert raw data to hex string
+            val['identifier_body'] = raw.hex()
+        super().update(val)
+
 
 
 @picmg_secondary
