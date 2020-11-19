@@ -1,0 +1,21 @@
+# created with frugy 0.2.1 from "uLOG_FRU.bin"
+
+BoardInfo:
+  language_code: 25
+  manufacturer: DESY/DMCS
+  product_name: DRTM-LOG1300
+  part_number: '1.0'
+  fru_file_id: '2019-01-10'
+
+ProductInfo:
+  language_code: 25
+  manufacturer: DESY/DMCS
+  product_name: DRTM-LOG1300
+  part_number: '1.0'
+  version: rev. D
+  asset_tag: --
+  fru_file_id: '2019-01-10'
+
+MultirecordArea:
+- type: ModuleCurrentRequirements
+  current_draw: 2.0
