@@ -88,7 +88,9 @@ class Fru:
         self.areas = {}
         self.header.deserialize(input)
         for k, v in self.header.to_dict().items():
-            if v:
+            # Ignore "internal use area"
+            # TODO: Support it as opaque byte array?
+            if v and k != 'internal_use_offs':
                 obj_name = self._area_table_lookup.inverse[k]
                 obj = self.factory(obj_name)
                 obj.deserialize(input[v:])
