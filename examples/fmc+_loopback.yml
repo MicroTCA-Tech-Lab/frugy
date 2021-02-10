@@ -1,0 +1,80 @@
+# created with frugy 0.2.1 from "fmc+_loopback.bin"
+
+BoardInfo:
+  mfg_date_time: 2019-11-07 13:10:00
+  manufacturer: Samtec
+  product_name: FMC+ Loopback
+  serial_number: '1234567'
+  part_number: REF-197618-01
+  fru_file_id: '2019-11-07 13:10:46.587620'
+
+MultirecordArea:
+- type: DCLoad
+  output_number: P1_12P0V
+  nominal_voltage: 12000
+  min_voltage: 11400
+  max_voltage: 12600
+  max_noise_pk2pk: 50
+  min_current_load: 0
+  max_current_load: 0
+
+- type: DCLoad
+  output_number: P1_3P3V
+  nominal_voltage: 3300
+  min_voltage: 3150
+  max_voltage: 3500
+  max_noise_pk2pk: 50
+  min_current_load: 600
+  max_current_load: 750
+
+- type: DCLoad
+  output_number: P1_VADJ
+  nominal_voltage: 2500
+  min_voltage: 1100
+  max_voltage: 3500
+  max_noise_pk2pk: 50
+  min_current_load: 10
+  max_current_load: 1150
+
+- type: DCOutput
+  standby_enable: 0
+  output_number: P1_VREF_B_M2C
+  nominal_voltage: 0
+  max_neg_voltage: 0
+  max_pos_voltage: 0
+  max_noise_pk2pk: 0
+  min_current_draw: 0
+  max_current_draw: 0
+
+- type: DCOutput
+  standby_enable: 0
+  output_number: P1_VREF_A_M2C
+  nominal_voltage: 0
+  max_neg_voltage: 0
+  max_pos_voltage: 0
+  max_noise_pk2pk: 0
+  min_current_draw: 0
+  max_current_draw: 0
+
+- type: DCOutput
+  standby_enable: 0
+  output_number: P1_VIO_B_M2C
+  nominal_voltage: 2500
+  max_neg_voltage: 1100
+  max_pos_voltage: 3500
+  max_noise_pk2pk: 50
+  min_current_draw: 0
+  max_current_draw: 1150
+
+- type: FmcPlusMainDefinition
+  module_size: single_width
+  p1_p3_connector_size: hspc
+  p2_p4_connector_size: not_fitted
+  clock_direction: m2c
+  p1_a_num_signals: 112
+  p2_a_num_signals: 0
+  p1_b_num_signals: 48
+  p2_b_num_signals: 0
+  p1_gbt_num_trcv: 96
+  p2_gbt_num_trcv: 0
+  tck_max_clock: 128
