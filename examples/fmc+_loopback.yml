@@ -75,6 +75,6 @@ MultirecordArea:
   p2_a_num_signals: 0
   p1_b_num_signals: 48
   p2_b_num_signals: 0
-  p1_gbt_num_trcv: 96
+  p1_gbt_num_trcv: 24
   p2_gbt_num_trcv: 0
   tck_max_clock: 128

@@ -138,12 +138,14 @@ class FmcPlusMainDefinition(FmcEntry):
         del result['p2_gbt_num_trcv']
         del result['tck_max_clock']
         result['p2_b_num_signals'] = ord(bitstruct.pack(
-            'u4u2',
+            'u2u4u2',
+            0,
             self['_p2_b_num_sig_5_2'],
             self['_p2_b_num_sig_1_0']
         ))
         result['p1_gbt_num_trcv'] = ord(bitstruct.pack(
-            'u2u4',
+            'u2u2u4',
+            0,
             self['_p1_gbt_num_trcv_5_4'],
             self['_p1_gbt_num_trcv_3_0']
         ))
@@ -152,12 +154,12 @@ class FmcPlusMainDefinition(FmcEntry):
         return result
     
     def update(self, val):
-        self['_p2_b_num_sig_5_2'], self['_p2_b_num_sig_1_0'] = bitstruct.unpack(
-            'u4u2',
+        _, self['_p2_b_num_sig_5_2'], self['_p2_b_num_sig_1_0'] = bitstruct.unpack(
+            'u2u4u2',
             int.to_bytes(val['p2_b_num_signals'], 1, byteorder='little')
         )
-        self['_p1_gbt_num_trcv_5_4'], self['_p1_gbt_num_trcv_3_0'] = bitstruct.unpack(
-            'u2u4',
+        _, self['_p1_gbt_num_trcv_5_4'], self['_p1_gbt_num_trcv_3_0'] = bitstruct.unpack(
+            'u2u2u4',
             int.to_bytes(val['p1_gbt_num_trcv'], 1, byteorder='little')
         )
         del val['p2_b_num_signals']
