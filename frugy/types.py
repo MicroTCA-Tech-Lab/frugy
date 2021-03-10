@@ -119,6 +119,9 @@ class StringField():
         }[self._format]
         return (size_fn(self._value) + 1) * 8
 
+    def size_total(self) -> int:
+        return self.bit_size() // 8
+
     def serialize(self) -> bytearray:
         def ser_plain(val: str) -> bytearray:
             return val.encode('utf-8')
