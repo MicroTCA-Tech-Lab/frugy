@@ -1,0 +1,55 @@
+# created with frugy 0.2.2 from "DWC8VM1.bin"
+
+BoardInfo:
+  mfg_date_time: 2014-06-09 14:51:00
+  manufacturer: Struck Innovative Systeme GmbH
+  product_name: DRTM-DWC8VM1
+  serial_number: '015'
+  part_number: DRTM-DWC8VM1
+  fru_file_id: v0003
+  custom_info_fields:
+  - uDWCVM-18.0018
+
+ProductInfo:
+  manufacturer: Struck Innovative Systeme GmbH
+  product_name: DRTM-DWC8VM1
+  part_number: 8618-01ML
+  version: v1.1
+  serial_number: '015'
+  fru_file_id: v0003
+  custom_info_fields:
+  - ''
+
+MultirecordArea:
+- type: Zone3InterfaceCompatibility
+  identifier_type: OEM
+  identifier_body: bd 92 00 01 00 00 83
+
+- type: Zone3InterfaceCompatibility
+  identifier_type: OEM
+  identifier_body: bd 92 00 02 00 00 83
+
+- type: Zone3InterfaceDocumentation
+  url: 'uDWC Configuration record
+
+    Optioncode : DRTM-DWC8VM1-3000-3025-025-11000-00-0
+
+    RF input freq : 3000 MHz
+
+    LF input freq : 3025 MHz
+
+    IF output freq : 025 MHz
+
+    CH7 : REF
+
+    CH8 : VM
+
+    LO : FP
+
+    CLK : FP
+
+    REF : FP
+
+    Isolation enhancement : 0 dB
+
+    '
