@@ -1,0 +1,19 @@
+# created with frugy 0.2.2 from "drtm-mxc.bin"
+
+BoardInfo:
+  manufacturer: DESY
+  product_name: DRTM-MXC
+  serial_number: '0000'
+  part_number: '0000'
+
+ProductInfo:
+  manufacturer: DESY
+  product_name: DRTM-MXC
+  part_number: '0000'
+  version: '0.0'
+  serial_number: '0000'
+
+MultirecordArea:
+- type: Zone3InterfaceCompatibility
+  identifier_type: MTCA4_REP
+  identifier_body: 11 22 33 44
