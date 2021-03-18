@@ -18,8 +18,13 @@ class PicmgEntry(MultirecordEntry):
 
     _picmg_identifier = 0x315a
 
+    def format_version(self):
+        return 0x00
+
     def _payload_prologue(self):
-        return self._picmg_identifier.to_bytes(3, 'little') + self._record_id.to_bytes(length=1, byteorder='little') + b'\x00'
+        return self._picmg_identifier.to_bytes(3, 'little') \
+               + self._record_id.to_bytes(length=1, byteorder='little') \
+               + self.format_version().to_bytes(length=1, byteorder='little')
     
     @classmethod
     def from_payload(cls, payload):
@@ -267,6 +272,10 @@ class Zone3InterfaceCompatibility(PicmgEntry):
         }}),
         ('identifier_body', BytearrayField, None, {'hex': True}),
     ]
+
+    # Record Format Version - this record is special, it has 0x01 version
+    def format_version(self):
+        return 0x01
 
     # Conversion from binary data to plain-text dictionary
     def to_dict(self):
