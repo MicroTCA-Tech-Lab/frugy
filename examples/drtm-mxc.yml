@@ -1,10 +1,10 @@
-# created with frugy 0.2.2 from "drtm-mxc.bin"
+# created with frugy 0.2.3 from "drtm-mxc.bin"
 
 BoardInfo:
   manufacturer: DESY
   product_name: DRTM-MXC
-  serial_number: '0000'
-  part_number: '0000'
+  serial_number: '0002'
+  part_number: '0002'
 
 ProductInfo:
   manufacturer: DESY
