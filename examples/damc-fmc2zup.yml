@@ -1,18 +1,18 @@
 # created with frugy 0.2.3 from "damc-fmc2zup.bin"
 
 BoardInfo:
-  manufacturer: DESY
-  product_name: DAMC-FMC2ZUP
-  serial_number: '0000'
-  part_number: '0000'
+  manufacturer: DESY/CAEN ELS
+  product_name: DAMC-FMC2ZUP-11EG
+  serial_number: '21Y01W0000'
+  part_number: 'DAMCFMC2ZUP1'
   fru_file_id: fru_damc-fmc2zup.bin
 
 ProductInfo:
-  manufacturer: DESY
-  product_name: DAMC-FMC2ZUP
-  part_number: '0000'
-  version: '0000'
-  serial_number: '0000'
+  manufacturer: DESY/CAEN ELS
+  product_name: DAMC-FMC2ZUP-11EG
+  part_number: 'DAMCFMC2ZUP1'
+  version: 'revB'
+  serial_number: '21Y01W0000'
   asset_tag: none
   fru_file_id: fru_damc-fmc2zup.bin
 
