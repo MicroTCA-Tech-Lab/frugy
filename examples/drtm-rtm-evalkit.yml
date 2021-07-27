@@ -13,3 +13,18 @@ ProductInfo:
 MultirecordArea:
 - type: ModuleCurrentRequirements
   current_draw: 2.5
+
+- type: Zone3InterfaceCompatibility
+  identifier_type: CLASS_ID
+  identifier_body:
+  - D1.0
+
+- type: Zone3InterfaceCompatibility
+  identifier_type: CLASS_ID
+  identifier_body:
+  - D1.1
+
+- type: Zone3InterfaceCompatibility
+  identifier_type: CLASS_ID
+  identifier_body:
+  - D1.2
