@@ -206,7 +206,7 @@ class BytearrayField():
     ''' (e.g. "Zone 3 Interface Compatibility record") '''
     _shortname = 'bytes'
 
-    def __init__(self, num_elems_field=None, default='', hex=True, parent=None):
+    def __init__(self, default='', num_elems_field=None, hex=True, parent=None):
         self._parent = parent
         self._num_elems_field = num_elems_field
         self._default = default

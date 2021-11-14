@@ -412,7 +412,7 @@ class PowerPolicyDescriptor(FruAreaBase):
             'unspecified': 0xff
         }}),
         ('_channel_count', FixedField, 'u8'),
-        ('_channels', BytearrayField, {'num_elems_field': '_channel_count'}),
+        ('_channels', BytearrayField, None, {'num_elems_field': '_channel_count'}),
     ]
 
     def to_dict(self):
