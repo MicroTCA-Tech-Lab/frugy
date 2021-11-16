@@ -25,6 +25,23 @@ def _grouper(n, iterable, padvalue=None):
     "grouper(3, 'abcdefg', 'x') -> ('a','b','c'), ('d','e','f'), ('g','x','x')"
     return zip_longest(*[iter(iterable)]*n, fillvalue=padvalue)
 
+def ser_6bit(val: str) -> bytearray:
+    result = b''
+    for chunk in _grouper(4, val.upper(), padvalue=' '):
+        chunk = list(map(lambda x: ord(x) - 0x20, chunk))
+        chunk.reverse()
+        tmp = bitstruct.pack('u6'*4, *chunk)
+        result += tmp[::-1]
+    return result
+
+def deser_6bit(val: bytearray) -> str:
+    result = b''
+    for chunk in _grouper(3, val, padvalue=' '):
+        tmp = bitstruct.unpack('u6'*4, bytearray(reversed(chunk)))
+        for x in tmp[::-1]:
+            result += bytes((x + 0x20,))
+    return result.decode('utf-8')
+
 def bin2hex_helper(val: bytearray):
     return ' '.join('%02x'%x for x in val)
 
@@ -126,15 +143,6 @@ class StringField():
         def ser_plain(val: str) -> bytearray:
             return val.encode('utf-8')
 
-        def ser_6bit(val: str) -> bytearray:
-            result = b''
-            for chunk in _grouper(4, val.upper(), padvalue=' '):
-                chunk = list(map(lambda x: ord(x) - 0x20, chunk))
-                chunk.reverse()
-                tmp = bitstruct.pack('u6'*4, *chunk)
-                result += tmp[::-1]
-            return result
-
         def ser_bcd_plus(val: str) -> bytearray:
             result = b''
             for chunk in _grouper(2, val, padvalue=' '):
@@ -157,14 +165,6 @@ class StringField():
     def deserialize(self, input: bytearray) -> bytearray:
         def deser_plain(val: bytearray) -> str:
             return val.decode('utf-8')
-
-        def deser_6bit(val: bytearray) -> str:
-            result = b''
-            for chunk in _grouper(3, val, padvalue=' '):
-                tmp = bitstruct.unpack('u6'*4, bytearray(reversed(chunk)))
-                for x in tmp[::-1]:
-                    result += bytes((x + 0x20,))
-            return result.decode('utf-8')
 
         def deser_bcd_plus(val: bytearray) -> str:
             result = ''
