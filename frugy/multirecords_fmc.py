@@ -4,11 +4,12 @@ Copyright (c) 2020 Deutsches Elektronen-Synchrotron DESY.
 See LICENSE.txt for license details.
 """
 
-from frugy.types import FixedField, BytearrayField
+from frugy.types import FixedField, BytearrayField, ser_6bit, deser_6bit
 from frugy.multirecords import ipmi_multirecord, MultirecordEntry
 from frugy.fru_registry import FruRecordType, rec_register, rec_lookup_by_id
 
 import bitstruct
+from bidict import bidict
 
 @ipmi_multirecord(0xfa)
 class FmcEntry(MultirecordEntry):
@@ -172,5 +173,71 @@ class FmcI2cDeviceDefinition(FmcEntry):
     ''' ANSI/VITA 57.1 FMC Standard, Table 9 '''
 
     _schema = [
-        ('device_string', BytearrayField, None, {'hex': False})
+        ('_device_string', BytearrayField, None, {'hex': False})
     ]
+
+    _addr_encoding_lookup = bidict({
+        b'!': 0b0000,
+        b'"': 0b0001,
+        b'#': 0b0010,
+        b'$': 0b0011,
+        b'%': 0b0100,
+        b'&': 0b0101,
+        b'\'':0b0110,
+        b'(': 0b0111,
+        b')': 0b1000,
+        b'*': 0b1001,
+        # 0b1010 is sḱipped - see ANSI/VITA 57.1 page 67
+        b'+': 0b1011,
+        b',': 0b1100,
+        b'-': 0b1101,
+        b'.': 0b1110,
+        b'/': 0b1111,
+    })
+
+    def encode_addr(self, addr_num):
+        if addr_num in self._addr_encoding_lookup.values():
+            return self._addr_encoding_lookup.inverse[addr_num]
+        return None
+    
+    def decode_addr(self, addr_char):
+        key = bytes([addr_char])
+        if key in self._addr_encoding_lookup:
+            return self._addr_encoding_lookup[key]
+        return None
+
+    def to_dict(self):
+        result = super().to_dict()
+        plaintext = deser_6bit(self['_device_string'].encode('utf-8')).encode('utf-8')
+        devices = []
+        while len(plaintext):
+            # Read as many addresses as possible
+            addrs = []
+            while len(plaintext) and self.decode_addr(plaintext[0]) is not None:
+                addrs.append(self.decode_addr(plaintext[0]))
+                plaintext = plaintext[1:]
+            
+            # Read device name, until the next device address shows up
+            device_name = ''
+            while len(plaintext) and self.decode_addr(plaintext[0]) is None:
+                device_name += plaintext[0:1].decode('utf-8')
+                plaintext = plaintext[1:]
+
+            devices.append({
+                'name': device_name.strip(),
+                'addresses': addrs
+            })
+
+        result['devices'] = devices
+        return result
+    
+    def update(self, val):
+        encoded = ''
+        for device in val['devices']:
+            for addr in device['addresses']:
+                encoded += self.encode_addr(addr).decode('utf-8')
+            encoded += device['name']
+
+        self['_device_string'] = ser_6bit(encoded).decode('utf-8')
+        del val['devices']
+        super().update(val)
