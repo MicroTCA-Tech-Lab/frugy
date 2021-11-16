@@ -208,7 +208,7 @@ class FmcI2cDeviceDefinition(FmcEntry):
 
     def to_dict(self):
         result = super().to_dict()
-        plaintext = deser_6bit(self['_device_string'].encode('utf-8')).encode('utf-8')
+        plaintext = deser_6bit(self._dict['_device_string']._value).encode('utf-8')
         devices = []
         while len(plaintext):
             # Read as many addresses as possible
@@ -218,13 +218,13 @@ class FmcI2cDeviceDefinition(FmcEntry):
                 plaintext = plaintext[1:]
             
             # Read device name, until the next device address shows up
-            device_name = ''
+            device_name = b''
             while len(plaintext) and self.decode_addr(plaintext[0]) is None:
-                device_name += plaintext[0:1].decode('utf-8')
+                device_name += plaintext[0:1]
                 plaintext = plaintext[1:]
 
             devices.append({
-                'name': device_name.strip(),
+                'name': device_name.decode('utf-8').strip(),
                 'addresses': addrs
             })
 
@@ -232,12 +232,12 @@ class FmcI2cDeviceDefinition(FmcEntry):
         return result
     
     def update(self, val):
-        encoded = ''
+        encoded = b''
         for device in val['devices']:
             for addr in device['addresses']:
-                encoded += self.encode_addr(addr).decode('utf-8')
-            encoded += device['name']
+                encoded += self.encode_addr(addr)
+            encoded += device['name'].encode('utf-8')
 
-        self['_device_string'] = ser_6bit(encoded).decode('utf-8')
+        self._dict['_device_string']._value = ser_6bit(encoded.decode('utf-8'))
         del val['devices']
         super().update(val)
