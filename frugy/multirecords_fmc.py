@@ -4,7 +4,7 @@ Copyright (c) 2020 Deutsches Elektronen-Synchrotron DESY.
 See LICENSE.txt for license details.
 """
 
-from frugy.types import FixedField
+from frugy.types import FixedField, BytearrayField
 from frugy.multirecords import ipmi_multirecord, MultirecordEntry
 from frugy.fru_registry import FruRecordType, rec_register, rec_lookup_by_id
 
@@ -165,3 +165,12 @@ class FmcPlusMainDefinition(FmcEntry):
         del val['p2_b_num_signals']
         del val['p1_gbt_num_trcv']
         super().update(val)
+
+
+@fmc_multirecord(0x10)
+class FmcI2cDeviceDefinition(FmcEntry):
+    ''' ANSI/VITA 57.1 FMC Standard, Table 9 '''
+
+    _schema = [
+        ('device_string', BytearrayField, None, {'hex': False})
+    ]
