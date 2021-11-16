@@ -73,6 +73,7 @@
 |------------------------------------|--------------------------------------------------------------------------------|
 |FmcMainDefinition                   |ANSI/VITA 57.1 FMC Standard, Table 7                                            |
 |FmcPlusMainDefinition               |ANSI/VITA 57.4-2018 FMC+ Standard, Table 5.3.1-1                                |
+|FmcI2cDeviceDefinition              |ANSI/VITA 57.1 FMC Standard, Table 9                                            |
 
 <br>
 

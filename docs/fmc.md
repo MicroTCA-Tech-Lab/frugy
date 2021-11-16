@@ -39,3 +39,12 @@ ANSI/VITA 57.4-2018 FMC+ Standard, Table 5.3.1-1
 
 <br>
 
+
+## FmcI2cDeviceDefinition
+ANSI/VITA 57.1 FMC Standard, Table 9
+
+|Name                                    |Type                |Opt                           
+|----------------------------------------|--------------------|------------------------------|
+
+<br>
+
