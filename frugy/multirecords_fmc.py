@@ -235,7 +235,11 @@ class FmcI2cDeviceDefinition(FmcEntry):
         encoded = b''
         for device in val['devices']:
             for addr in device['addresses']:
-                encoded += self.encode_addr(addr)
+                addr_enc = self.encode_addr(addr)
+                if addr_enc is None:
+                    raise RuntimeError(f'Invalid address {addr}')
+                else:
+                    encoded += addr_enc
             encoded += device['name'].encode('utf-8')
 
         self._dict['_device_string']._value = ser_6bit(encoded.decode('utf-8'))
