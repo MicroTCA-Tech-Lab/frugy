@@ -1,8 +1,14 @@
-"""
-SPDX-License-Identifier: BSD-3-Clause
-Copyright (c) 2020 Deutsches Elektronen-Synchrotron DESY.
-See LICENSE.txt for license details.
-"""
+###########################################################################
+#      ____  _____________  __    __  __ _           _____ ___   _        #
+#     / __ \/ ____/ ___/\ \/ /   |  \/  (_)__ _ _ __|_   _/ __| /_\  (R)  #
+#    / / / / __/  \__ \  \  /    | |\/| | / _| '_/ _ \| || (__ / _ \      #
+#   / /_/ / /___ ___/ /  / /     |_|  |_|_\__|_| \___/|_| \___/_/ \_\     #
+#  /_____/_____//____/  /_/      T  E  C  H  N  O  L  O  G  Y   L A B     #
+#                                                                         #
+#          Copyright 2021 Deutsches Elektronen-Synchrotron DESY.          #
+#                  SPDX-License-Identifier: BSD-3-Clause                  #
+#                                                                         #
+###########################################################################
 
 from frugy.types import FixedField, BytearrayField
 from frugy.multirecords import ipmi_multirecord, MultirecordEntry
@@ -18,8 +24,10 @@ fmc_voltages_per_port = [
     'VREF_A_M2C',
     'VREF_B_M2C'
 ]
-fmc_voltages_total = [f'{p}_{v}' for p in ['P1', 'P2'] for v in fmc_voltages_per_port]
-fmc_output_constants = {name: idx for idx, name in enumerate(fmc_voltages_total)}
+fmc_voltages_total = [f'{p}_{v}' for p in ['P1', 'P2']
+                      for v in fmc_voltages_per_port]
+fmc_output_constants = {name: idx for idx,
+                        name in enumerate(fmc_voltages_total)}
 
 
 @ipmi_multirecord(0x01)
@@ -30,7 +38,8 @@ class DCOutput(MultirecordEntry):
     _schema = [
         ('standby_enable', FixedField, 'u1'),
         ('_reserved', FixedField, 'u3', {'default': 0}),
-        ('output_number', FixedField, 'u4', {'constants': fmc_output_constants}),
+        ('output_number', FixedField, 'u4', {
+         'constants': fmc_output_constants}),
         ('nominal_voltage', FixedField, 'u16', {'div': 10}),     # 10mV
         ('max_neg_voltage', FixedField, 'u16', {'div': 10}),     # 10mV
         ('max_pos_voltage', FixedField, 'u16', {'div': 10}),     # 10mV
@@ -46,7 +55,8 @@ class DCLoad(MultirecordEntry):
 
     _schema = [
         ('_reserved', FixedField, 'u4', {'default': 0}),
-        ('output_number', FixedField, 'u4', {'constants': fmc_output_constants}),
+        ('output_number', FixedField, 'u4', {
+         'constants': fmc_output_constants}),
         ('nominal_voltage', FixedField, 'u16', {'div': 10}),     # 10mV
         ('min_voltage', FixedField, 'u16', {'div': 10}),         # 10mV
         ('max_voltage', FixedField, 'u16', {'div': 10}),         # 10mV

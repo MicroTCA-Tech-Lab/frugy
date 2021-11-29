@@ -1,8 +1,14 @@
-"""
-SPDX-License-Identifier: BSD-3-Clause
-Copyright (c) 2020 Deutsches Elektronen-Synchrotron DESY.
-See LICENSE.txt for license details.
-"""
+###########################################################################
+#      ____  _____________  __    __  __ _           _____ ___   _        #
+#     / __ \/ ____/ ___/\ \/ /   |  \/  (_)__ _ _ __|_   _/ __| /_\  (R)  #
+#    / / / / __/  \__ \  \  /    | |\/| | / _| '_/ _ \| || (__ / _ \      #
+#   / /_/ / /___ ___/ /  / /     |_|  |_|_\__|_| \___/|_| \___/_/ \_\     #
+#  /_____/_____//____/  /_/      T  E  C  H  N  O  L  O  G  Y   L A B     #
+#                                                                         #
+#          Copyright 2021 Deutsches Elektronen-Synchrotron DESY.          #
+#                  SPDX-License-Identifier: BSD-3-Clause                  #
+#                                                                         #
+###########################################################################
 
 import bitstruct
 from collections import OrderedDict
@@ -15,6 +21,7 @@ import logging
 
 _format_version_default = 1
 
+
 def _sizeAlign(size: int, alignment: int) -> int:
     ''' return number of padding bytes & total length after padding '''
     numPadBytes = -size % alignment
@@ -25,6 +32,7 @@ def _grouper(n, iterable, padvalue=None):
     "grouper(3, 'abcdefg', 'x') -> ('a','b','c'), ('d','e','f'), ('g','x','x')"
     return zip_longest(*[iter(iterable)]*n, fillvalue=padvalue)
 
+
 def ser_6bit(val: str) -> bytearray:
     result = b''
     for chunk in _grouper(4, val.upper(), padvalue=' '):
@@ -34,6 +42,7 @@ def ser_6bit(val: str) -> bytearray:
         result += tmp[::-1]
     return result
 
+
 def deser_6bit(val: bytearray) -> str:
     result = b''
     for chunk in _grouper(3, val, padvalue=' '):
@@ -42,8 +51,10 @@ def deser_6bit(val: bytearray) -> str:
             result += bytes((x + 0x20,))
     return result.decode('utf-8')
 
+
 def bin2hex_helper(val: bytearray):
-    return ' '.join('%02x'%x for x in val)
+    return ' '.join('%02x' % x for x in val)
+
 
 class FixedField():
     ''' Fixed length field for numbers & bitfields '''
@@ -54,7 +65,8 @@ class FixedField():
         self._default = default
         self._value = default
         self._div = div
-        self._constants_lookup = bidict(constants) if constants is not None else None
+        self._constants_lookup = bidict(
+            constants) if constants is not None else None
 
     def bit_fmt(self) -> str:
         return self._format
@@ -82,7 +94,7 @@ class FixedField():
             return self._constants_lookup.inverse[self._value]
         else:
             return self._value
-    
+
     def update(self, value):
         if self._constants_lookup is not None and value in self._constants_lookup:
             self._value = self._constants_lookup[value]
@@ -104,7 +116,7 @@ class StringField():
     ''' Variable length field for strings'''
     _shortname = 'str'
 
-    def __init__(self, default='', format: StringFmt=StringFmt.ASCII_8BIT, parent=None):
+    def __init__(self, default='', format: StringFmt = StringFmt.ASCII_8BIT, parent=None):
         if default is None:
             print(f'ERROR: {parent.__class__.__name__}')
         self._format = format
@@ -176,7 +188,8 @@ class StringField():
 
         fmt_int, payload_len = bitstruct.unpack('u2u6', input[0:1])
         self._format = StringFmt(fmt_int)
-        logging.debug(f'{self.__class__.__name__}: string format: {self._format.name}, length: {payload_len}')
+        logging.debug(
+            f'{self.__class__.__name__}: string format: {self._format.name}, length: {payload_len}')
         remainder = input[1:]
         payload, remainder = remainder[:payload_len], remainder[payload_len:]
 
@@ -188,12 +201,13 @@ class StringField():
         }[self._format]
         self._value = deser_fn(payload)
 
-        logging.debug(f'{self.__class__.__name__}: val: {self._value}, remainder: {bin2hex_helper(remainder[:10])}...')
+        logging.debug(
+            f'{self.__class__.__name__}: val: {self._value}, remainder: {bin2hex_helper(remainder[:10])}...')
         return remainder
 
     def to_dict(self):
         return self._value
-    
+
     def update(self, value):
         self._value = value
 
@@ -235,9 +249,10 @@ class BytearrayField():
 
     def to_dict(self):
         return bin2hex_helper(self._value) if self._hex else self._value.decode('utf-8')
-    
+
     def update(self, value):
-        self._value = bytearray.fromhex(value) if self._hex else value.encode('utf-8')
+        self._value = bytearray.fromhex(
+            value) if self._hex else value.encode('utf-8')
 
     def val_not_default(self):
         return self.to_dict() != self._default
@@ -270,7 +285,7 @@ class FixedStringField():
 
     def to_dict(self):
         return self._value
-    
+
     def update(self, value):
         self._value = value
 
@@ -289,22 +304,22 @@ class CustomStringArray:
         self.strings = []
         if initdict is not None:
             self.update(initdict)
-    
+
     def update(self, initdict):
         self.strings = [StringField(v) for v in initdict]
-    
+
     def __repr__(self):
         return self.to_dict().__repr__()
 
     def to_dict(self):
         return [v.to_dict() for v in self.strings]
-    
+
     def serialize(self):
         result = b''
         for v in self.strings:
             result += v.serialize()
         return result + self._delimiter
-    
+
     def deserialize(self, input):
         self.strings = []
         remainder = input
@@ -316,7 +331,8 @@ class CustomStringArray:
             remainder = tmp.deserialize(remainder)
             self.strings.append(tmp)
 
-        logging.debug(f'{self.__class__.__name__}: parsed {len(self.strings)} strings')
+        logging.debug(
+            f'{self.__class__.__name__}: parsed {len(self.strings)} strings')
         return remainder
 
     def size_total(self):
@@ -354,7 +370,7 @@ class IpV4Field():
 
     def to_dict(self):
         return str(self._value)
-    
+
     def update(self, value):
         self._value = IPv4Address(value)
 
@@ -373,7 +389,7 @@ class GuidField():
 
     def bit_size(self) -> int:
         return GuidField._uuid_len * 8
-    
+
     def size_total(self) -> int:
         return GuidField._uuid_len
 
@@ -387,7 +403,7 @@ class GuidField():
 
     def to_dict(self):
         return str(self._value)
-    
+
     def update(self, value):
         self._value = uuid.UUID(value)
 
@@ -408,13 +424,13 @@ class ArrayField():
         self._records = []
         for v in initdict:
             self._records.append(self._cls(v))
-    
+
     def __repr__(self):
         return self.to_dict().__repr__()
 
     def to_dict(self):
         return [v.to_dict() for v in self._records]
-    
+
     def pre_serialize(self):
         ''' Set number of elements in parent record, _before_ serializing it '''
         if self._num_elems_field:
@@ -425,7 +441,7 @@ class ArrayField():
         for f in self._records:
             result += f.serialize()
         return result
-    
+
     def deserialize(self, input):
         self._records = []
         remainder = input
@@ -441,7 +457,7 @@ class ArrayField():
                 num_elems -= 1
 
         return remainder
-    
+
     def bit_size(self):
         return self.size_total() * 8
 
@@ -523,7 +539,7 @@ class FruAreaBase:
 
     def _set_div(self, key, value, div):
         self._set(key, int(value / div))
-    
+
     def _get_div(self, key, div):
         return float(self._get(key)) * div
 
@@ -582,7 +598,8 @@ class FruAreaBase:
                 return
             bit_length = bitstruct.calcsize(bit_fmt) // 8
             bit_data, remainder = remainder[:bit_length], remainder[bit_length:]
-            logging.debug(f'{self.__class__.__name__}: parse {bit_fmt} from {bin2hex_helper(bit_data)}')
+            logging.debug(
+                f'{self.__class__.__name__}: parse {bit_fmt} from {bin2hex_helper(bit_data)}')
             if not self._mergeBitfield:
                 values = bitstruct.unpack(bit_fmt + '<', bit_data)
             else:
@@ -600,7 +617,8 @@ class FruAreaBase:
             else:
                 # before any other type is deserialized, deserialize bitfield first
                 deserialize_bitfield()
-                logging.debug(f'{self.__class__.__name__}: parse {v} {bin2hex_helper(remainder[:10])}...')
+                logging.debug(
+                    f'{self.__class__.__name__}: parse {v} {bin2hex_helper(remainder[:10])}...')
                 remainder = v.deserialize(remainder)
         # finish deserializing bitfield, if anything is left
         deserialize_bitfield()
@@ -608,6 +626,7 @@ class FruAreaBase:
 
     def deserialize(self, input: bytearray):
         return self._deserialize(input)
+
 
 class FruAreaChecksummed(FruAreaBase):
     ''' FRU area featuring a checksum in the epilogue '''
@@ -640,12 +659,14 @@ class FruAreaChecksummed(FruAreaBase):
         ep = self._epilogue(payload)
         vfy, remainder = input[offs:offs+len(ep)], input[offs+len(ep):]
         if ep != vfy and not self.ignore_checksum_errors:
-            raise RuntimeError(f'padding or checksum verify error in {self.__class__.__name__}: expected {bin2hex_helper(ep)}, received {bin2hex_helper(vfy)}')
+            raise RuntimeError(
+                f'padding or checksum verify error in {self.__class__.__name__}: expected {bin2hex_helper(ep)}, received {bin2hex_helper(vfy)}')
         return remainder
 
     def deserialize(self, input: bytearray):
         remainder = self._deserialize(input)
         return self._verify_epilogue(input, len(input) - len(remainder))
+
 
 class FruAreaVersioned(FruAreaChecksummed):
     ''' FRU area featuring a version field '''
@@ -698,10 +719,12 @@ class FruAreaSized(FruAreaVersioned):
         self._format_version = input[0]
         self._area_length = input[1]
         area_len = self._get_area_length()
-        logging.debug(f'{self.__class__.__name__}: parse {bin2hex_helper(input[:10])}...')
+        logging.debug(
+            f'{self.__class__.__name__}: parse {bin2hex_helper(input[:10])}...')
         self._deserialize(input[2:area_len])
         # The remainder may have arbitrary padding, so just check the last byte, and return only stuff that's behind our area
         cksum = (-sum(input[:area_len])) & 0xff
         if cksum != 0 and not self.ignore_checksum_errors:
-            raise RuntimeError(f'{self.__class__.__name__}: checksum doesn\'t add up to zero')
+            raise RuntimeError(
+                f'{self.__class__.__name__}: checksum doesn\'t add up to zero')
         return input[area_len:]

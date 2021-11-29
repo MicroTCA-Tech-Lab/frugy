@@ -1,8 +1,14 @@
-"""
-SPDX-License-Identifier: BSD-3-Clause
-Copyright (c) 2020 Deutsches Elektronen-Synchrotron DESY.
-See LICENSE.txt for license details.
-"""
+###########################################################################
+#      ____  _____________  __    __  __ _           _____ ___   _        #
+#     / __ \/ ____/ ___/\ \/ /   |  \/  (_)__ _ _ __|_   _/ __| /_\  (R)  #
+#    / / / / __/  \__ \  \  /    | |\/| | / _| '_/ _ \| || (__ / _ \      #
+#   / /_/ / /___ ___/ /  / /     |_|  |_|_\__|_| \___/|_| \___/_/ \_\     #
+#  /_____/_____//____/  /_/      T  E  C  H  N  O  L  O  G  Y   L A B     #
+#                                                                         #
+#          Copyright 2021 Deutsches Elektronen-Synchrotron DESY.          #
+#                  SPDX-License-Identifier: BSD-3-Clause                  #
+#                                                                         #
+###########################################################################
 
 from frugy import __version__
 from frugy.areas import CommonHeader, ChassisInfo, BoardInfo, ProductInfo
@@ -15,11 +21,15 @@ from bidict import bidict
 import os
 
 # YAML formatting helpers
+
+
 class YamlFlowstyleList(list):
     pass
 
+
 def yaml_flowstyle_list_rep(dumper, data):
     return dumper.represent_sequence(u'tag:yaml.org,2002:seq', data, flow_style=True)
+
 
 yaml.add_representer(YamlFlowstyleList, yaml_flowstyle_list_rep)
 
@@ -28,6 +38,7 @@ def import_log(msg):
     if not hasattr(import_log, "str"):
         import_log.str = ''
     import_log.str += msg + '\n'
+
 
 class Fru:
     _area_table_lookup = bidict({
@@ -113,7 +124,7 @@ class Fru:
                     part = YamlFlowstyleList(part)
                 return part, False
             elif type(part) is dict:
-                part = { k: fmt_tree(part[k])[0] for k in part.keys() }
+                part = {k: fmt_tree(part[k])[0] for k in part.keys()}
                 return part, False
             elif type(part) is str:
                 # don't collapse strings in YAML, for better readability

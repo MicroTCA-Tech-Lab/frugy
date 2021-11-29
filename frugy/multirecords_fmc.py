@@ -1,8 +1,14 @@
-"""
-SPDX-License-Identifier: BSD-3-Clause
-Copyright (c) 2020 Deutsches Elektronen-Synchrotron DESY.
-See LICENSE.txt for license details.
-"""
+###########################################################################
+#      ____  _____________  __    __  __ _           _____ ___   _        #
+#     / __ \/ ____/ ___/\ \/ /   |  \/  (_)__ _ _ __|_   _/ __| /_\  (R)  #
+#    / / / / __/  \__ \  \  /    | |\/| | / _| '_/ _ \| || (__ / _ \      #
+#   / /_/ / /___ ___/ /  / /     |_|  |_|_\__|_| \___/|_| \___/_/ \_\     #
+#  /_____/_____//____/  /_/      T  E  C  H  N  O  L  O  G  Y   L A B     #
+#                                                                         #
+#          Copyright 2021 Deutsches Elektronen-Synchrotron DESY.          #
+#                  SPDX-License-Identifier: BSD-3-Clause                  #
+#                                                                         #
+###########################################################################
 
 from frugy.types import FixedField, BytearrayField, ser_6bit, deser_6bit
 from frugy.multirecords import ipmi_multirecord, MultirecordEntry
@@ -10,6 +16,7 @@ from frugy.fru_registry import FruRecordType, rec_register, rec_lookup_by_id
 
 import bitstruct
 from bidict import bidict
+
 
 @ipmi_multirecord(0xfa)
 class FmcEntry(MultirecordEntry):
@@ -20,7 +27,7 @@ class FmcEntry(MultirecordEntry):
 
     def _payload_prologue(self):
         return self._fmc_identifier.to_bytes(3, 'little') + self._record_id.to_bytes(length=1, byteorder='little')
-    
+
     @classmethod
     def from_payload(cls, payload):
         if not MultirecordEntry.opalkelly_workaround_enabled:
@@ -30,14 +37,15 @@ class FmcEntry(MultirecordEntry):
             fmc_id = int.from_bytes(fmc_id, 'little')
 
             if fmc_id != cls._fmc_identifier:
-                raise ValueError(f"FMC identifier mismatch: expected 0x{cls._fmc_identifier:06x}, received 0x{fmc_id:06x} ({fmc_id})")
+                raise ValueError(
+                    f"FMC identifier mismatch: expected 0x{cls._fmc_identifier:06x}, received 0x{fmc_id:06x} ({fmc_id})")
         else:
             # Opal Kelly FMC records seem to have the rec_id as _last_ instead of first byte
             rec_id, payload = payload[-1], payload[:-1]
 
-
         try:
-            cls_inst = rec_lookup_by_id(FruRecordType.fmc_multirecord, rec_id)()
+            cls_inst = rec_lookup_by_id(
+                FruRecordType.fmc_multirecord, rec_id)()
         except KeyError:
             raise RuntimeError(f"Unknown FMC entry 0x{rec_id:02x}")
 
@@ -54,6 +62,7 @@ def fmc_multirecord(rec_id):
         rec_register(cls, FruRecordType.fmc_multirecord, rec_id)
         return cls
     return register_and_set_id
+
 
 def fmc_secondary(cls):
     rec_register(cls, FruRecordType.fmc_secondary)
@@ -153,7 +162,7 @@ class FmcPlusMainDefinition(FmcEntry):
         result['p2_gbt_num_trcv'] = p2nt
         result['tck_max_clock'] = tck
         return result
-    
+
     def update(self, val):
         _, self['_p2_b_num_sig_5_2'], self['_p2_b_num_sig_1_0'] = bitstruct.unpack(
             'u2u4u2',
@@ -183,7 +192,7 @@ class FmcI2cDeviceDefinition(FmcEntry):
         b'$': 0b0011,
         b'%': 0b0100,
         b'&': 0b0101,
-        b'\'':0b0110,
+        b'\'': 0b0110,
         b'(': 0b0111,
         b')': 0b1000,
         b'*': 0b1001,
@@ -199,7 +208,7 @@ class FmcI2cDeviceDefinition(FmcEntry):
         if addr_num in self._addr_encoding_lookup.values():
             return self._addr_encoding_lookup.inverse[addr_num]
         return None
-    
+
     def decode_addr(self, addr_char):
         key = bytes([addr_char])
         if key in self._addr_encoding_lookup:
@@ -208,7 +217,8 @@ class FmcI2cDeviceDefinition(FmcEntry):
 
     def to_dict(self):
         result = super().to_dict()
-        plaintext = deser_6bit(self._dict['_device_string']._value).encode('utf-8')
+        plaintext = deser_6bit(
+            self._dict['_device_string']._value).encode('utf-8')
         devices = []
         while len(plaintext):
             # Read as many addresses as possible
@@ -216,7 +226,7 @@ class FmcI2cDeviceDefinition(FmcEntry):
             while len(plaintext) and self.decode_addr(plaintext[0]) is not None:
                 addrs.append(self.decode_addr(plaintext[0]))
                 plaintext = plaintext[1:]
-            
+
             # Read device name, until the next device address shows up
             device_name = b''
             while len(plaintext) and self.decode_addr(plaintext[0]) is None:
@@ -230,7 +240,7 @@ class FmcI2cDeviceDefinition(FmcEntry):
 
         result['devices'] = devices
         return result
-    
+
     def update(self, val):
         encoded = b''
         for device in val['devices']:

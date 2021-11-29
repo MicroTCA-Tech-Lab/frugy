@@ -1,8 +1,14 @@
-"""
-SPDX-License-Identifier: BSD-3-Clause
-Copyright (c) 2020 Deutsches Elektronen-Synchrotron DESY.
-See LICENSE.txt for license details.
-"""
+###########################################################################
+#      ____  _____________  __    __  __ _           _____ ___   _        #
+#     / __ \/ ____/ ___/\ \/ /   |  \/  (_)__ _ _ __|_   _/ __| /_\  (R)  #
+#    / / / / __/  \__ \  \  /    | |\/| | / _| '_/ _ \| || (__ / _ \      #
+#   / /_/ / /___ ___/ /  / /     |_|  |_|_\__|_| \___/|_| \___/_/ \_\     #
+#  /_____/_____//____/  /_/      T  E  C  H  N  O  L  O  G  Y   L A B     #
+#                                                                         #
+#          Copyright 2021 Deutsches Elektronen-Synchrotron DESY.          #
+#                  SPDX-License-Identifier: BSD-3-Clause                  #
+#                                                                         #
+###########################################################################
 
 from frugy.types import FruAreaVersioned, FruAreaSized, FixedField, StringField, StringField, bin2hex_helper, CustomStringArray
 from frugy.fru_registry import FruRecordType, rec_register
@@ -34,10 +40,10 @@ class CommonHeader(FruAreaVersioned):
         return self._get(key) * 8
 
     def __setitem__(self, key, value):
-            if value % 8 != 0:
-                raise RuntimeError("Offset not aligned to 64 bit")
-            self._set(key, value // 8)
-    
+        if value % 8 != 0:
+            raise RuntimeError("Offset not aligned to 64 bit")
+        self._set(key, value // 8)
+
     def reset(self):
         for item in self._dict:
             self._set(item, 0)
@@ -60,7 +66,8 @@ class BoardInfo(FruAreaSized):
     ''' Platform Management FRU Information Storage Definition, Table 11-1 '''
 
     _schema = [
-        ('language_code', FixedField, 'u8', {'default': _default_language_code}),
+        ('language_code', FixedField, 'u8', {
+         'default': _default_language_code}),
         ('mfg_date_time', FixedField, 'u24', {'default': 0}),
         ('manufacturer', StringField),
         ('product_name', StringField),
@@ -94,7 +101,8 @@ class ProductInfo(FruAreaSized):
     ''' Platform Management FRU Information Storage Definition, Table 12-1 '''
 
     _schema = [
-        ('language_code', FixedField, 'u8', {'default': _default_language_code}),
+        ('language_code', FixedField, 'u8', {
+         'default': _default_language_code}),
         ('manufacturer', StringField),
         ('product_name', StringField),
         ('part_number', StringField),

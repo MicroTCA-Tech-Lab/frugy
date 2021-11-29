@@ -1,8 +1,14 @@
-"""
-SPDX-License-Identifier: BSD-3-Clause
-Copyright (c) 2020 Deutsches Elektronen-Synchrotron DESY.
-See LICENSE.txt for license details.
-"""
+###########################################################################
+#      ____  _____________  __    __  __ _           _____ ___   _        #
+#     / __ \/ ____/ ___/\ \/ /   |  \/  (_)__ _ _ __|_   _/ __| /_\  (R)  #
+#    / / / / __/  \__ \  \  /    | |\/| | / _| '_/ _ \| || (__ / _ \      #
+#   / /_/ / /___ ___/ /  / /     |_|  |_|_\__|_| \___/|_| \___/_/ \_\     #
+#  /_____/_____//____/  /_/      T  E  C  H  N  O  L  O  G  Y   L A B     #
+#                                                                         #
+#          Copyright 2021 Deutsches Elektronen-Synchrotron DESY.          #
+#                  SPDX-License-Identifier: BSD-3-Clause                  #
+#                                                                         #
+###########################################################################
 
 from frugy.types import FruAreaBase, FixedField, FixedStringField, GuidField, ArrayField, BytearrayField, IpV4Field, bin2hex_helper, _grouper
 from frugy.multirecords import ipmi_multirecord, MultirecordEntry
@@ -10,6 +16,7 @@ from frugy.fru_registry import FruRecordType, rec_register, rec_lookup_by_id
 
 import re
 import logging
+
 
 @ipmi_multirecord(0xc0)
 class PicmgEntry(MultirecordEntry):
@@ -23,9 +30,9 @@ class PicmgEntry(MultirecordEntry):
 
     def _payload_prologue(self):
         return self._picmg_identifier.to_bytes(3, 'little') \
-               + self._record_id.to_bytes(length=1, byteorder='little') \
-               + self.format_version().to_bytes(length=1, byteorder='little')
-    
+            + self._record_id.to_bytes(length=1, byteorder='little') \
+            + self.format_version().to_bytes(length=1, byteorder='little')
+
     @classmethod
     def from_payload(cls, payload):
         picmg_id, payload = payload[:3], payload[3:]
@@ -33,22 +40,26 @@ class PicmgEntry(MultirecordEntry):
         picmg_id = int.from_bytes(picmg_id, 'little')
 
         if picmg_id != cls._picmg_identifier:
-            raise ValueError(f"PICMG identifier mismatch: expected 0x{cls._picmg_identifier:06x}, received 0x{picmg_id:06x} ({picmg_id})")
+            raise ValueError(
+                f"PICMG identifier mismatch: expected 0x{cls._picmg_identifier:06x}, received 0x{picmg_id:06x} ({picmg_id})")
 
         if rec_fmt_version not in [0x00, 0x01]:
-            raise RuntimeError(f"Unexpected record format version: 0x{rec_fmt_version:02x}")
+            raise RuntimeError(
+                f"Unexpected record format version: 0x{rec_fmt_version:02x}")
 
         try:
-            cls_inst = rec_lookup_by_id(FruRecordType.picmg_multirecord, rec_id)()
+            cls_inst = rec_lookup_by_id(
+                FruRecordType.picmg_multirecord, rec_id)()
         except KeyError:
             raise RuntimeError(f"Unknown PICMG entry 0x{rec_id:02x}")
 
         if len(payload) == 0:
-            raise EOFError(f"Skipping creation of {cls_inst.__class__.__name__} due to empty payload")
+            raise EOFError(
+                f"Skipping creation of {cls_inst.__class__.__name__} due to empty payload")
 
         cls_inst._deserialize(payload)
         return cls_inst
-        
+
 
 # PICMG AMC.0 multirecords
 
@@ -58,6 +69,7 @@ def picmg_multirecord(rec_id):
         rec_register(cls, FruRecordType.picmg_multirecord, rec_id)
         return cls
     return register_and_set_id
+
 
 def picmg_secondary(cls):
     rec_register(cls, FruRecordType.picmg_secondary)
@@ -74,6 +86,7 @@ class ModuleCurrentRequirements(PicmgEntry):
 
 # Array entry classes for PointToPointConnectivity
 
+
 @picmg_secondary
 class AmcChannelDescriptor(FruAreaBase):
     ''' PICMG AMC.0 Specification R2.0, Table 3-17 '''
@@ -89,13 +102,14 @@ class AmcChannelDescriptor(FruAreaBase):
         ('_lane0_port', FixedField, 'u5', {'default': _lane_unused}),
     ]
     _mergeBitfield = True
-    
+
     def to_dict(self):
         return [self[l] for l in AmcChannelDescriptor._lanes if self[l] != AmcChannelDescriptor._lane_unused]
-    
+
     def update(self, val):
         for i, l in enumerate(AmcChannelDescriptor._lanes):
-            self[l] = val[i] if i < len(val) else AmcChannelDescriptor._lane_unused
+            self[l] = val[i] if i < len(
+                val) else AmcChannelDescriptor._lane_unused
 
 
 @picmg_secondary
@@ -105,12 +119,12 @@ class AmcLinkDescriptor(FruAreaBase):
     _lane_flag_names = [f'_lane{n}_flag' for n in range(4)]
 
     _link_type_standard_constants = {
-            'pcie': 0x02,
-            'pcie_advanced': 0x03,
-            'pci_advanced_1': 0x04,
-            'ethernet': 0x05,
-            'serial_rapidio': 0x06,
-            'storage': 0x07
+        'pcie': 0x02,
+        'pcie_advanced': 0x03,
+        'pci_advanced_1': 0x04,
+        'ethernet': 0x05,
+        'serial_rapidio': 0x06,
+        'storage': 0x07
     }
     _link_type_oem_constants = {
         f'oem_guid_{n}': n+0xf0 for n in range(15)
@@ -141,7 +155,7 @@ class AmcLinkDescriptor(FruAreaBase):
         result = super().to_dict()
         result['lane_flags'] = [self[f] for f in self._lane_flag_names]
         return result
-    
+
     def update(self, val):
         for n, f in enumerate(self._lane_flag_names):
             self[f] = val['lane_flags'][n]
@@ -163,7 +177,8 @@ class PointToPointConnectivity(PicmgEntry):
         ('_reserved', FixedField, 'u3', {'default': 0}),
         ('connected_dev_id', FixedField, 'u4', {'default': 0}),
         ('_channel_desc_count', FixedField, 'u8', {'default': 0}),
-        ('channel_descriptors', ArrayField, AmcChannelDescriptor, {'num_elems_field': '_channel_desc_count'}),
+        ('channel_descriptors', ArrayField, AmcChannelDescriptor,
+         {'num_elems_field': '_channel_desc_count'}),
         ('link_descriptors', ArrayField, AmcLinkDescriptor),
     ]
 
@@ -186,6 +201,7 @@ _resource_type_constants = {
     'amc_module': 0b01,
     'backplane': 0b10
 }
+
 
 @picmg_secondary
 class DirectClockDescriptor(FruAreaBase):
@@ -228,7 +244,7 @@ class IndirectClockDescriptor(FruAreaBase):
 @picmg_secondary
 class ClockConfigDescriptor(FruAreaBase):
     ''' PICMG AMC.0 Specification R2.0, Table 3-36 '''
-    
+
     _schema = [
         ('clk_id', FixedField, 'u8', {'constants': _clock_id_constants}),
         ('_reserved', FixedField, 'u7', {'default': 0}),
@@ -238,8 +254,10 @@ class ClockConfigDescriptor(FruAreaBase):
         }}),
         ('_indirect_clk_desc_count', FixedField, 'u8', {'default': 0}),
         ('_direct_clk_desc_count', FixedField, 'u8', {'default': 0}),
-        ('indirect_clk_desc', ArrayField, IndirectClockDescriptor, {'num_elems_field': '_indirect_clk_desc_count'}),
-        ('direct_clk_desc', ArrayField, DirectClockDescriptor, {'num_elems_field': '_direct_clk_desc_count'}),
+        ('indirect_clk_desc', ArrayField, IndirectClockDescriptor,
+         {'num_elems_field': '_indirect_clk_desc_count'}),
+        ('direct_clk_desc', ArrayField, DirectClockDescriptor,
+         {'num_elems_field': '_direct_clk_desc_count'}),
     ]
 
 
@@ -248,11 +266,13 @@ class ClockConfig(PicmgEntry):
     ''' PICMG AMC.0 Specification R2.0, Table 3-35 '''
 
     _schema = [
-        ('resource_type', FixedField, 'u2', {'constants': _resource_type_constants}),
+        ('resource_type', FixedField, 'u2', {
+         'constants': _resource_type_constants}),
         ('_reserved', FixedField, 'u2', {'default': 0}),
         ('dev_id', FixedField, 'u4'),
         ('_conf_desc_count', FixedField, 'u8', {'default': 0}),
-        ('conf_desc', ArrayField, ClockConfigDescriptor, {'num_elems_field': '_conf_desc_count'}),
+        ('conf_desc', ArrayField, ClockConfigDescriptor,
+         {'num_elems_field': '_conf_desc_count'}),
     ]
 
 
@@ -292,7 +312,7 @@ class Zone3InterfaceCompatibility(PicmgEntry):
                 plain.append(f'{ad}{tup[1]}.{tup[2]}')
             result['identifier_body'] = plain
         return result
-    
+
     # Conversion from plain-text dictionary to binary data
     def update(self, val):
         if val['identifier_type'] == 'CLASS_ID':
@@ -307,12 +327,11 @@ class Zone3InterfaceCompatibility(PicmgEntry):
                 if not grp or len(el) != 3:
                     logging.error(f"Can't parse class definition {s}")
                     continue
-                ad = {'A':0, 'D':1}[el[0]]
+                ad = {'A': 0, 'D': 1}[el[0]]
                 raw.extend(bytearray([ad, int(el[1]), int(el[2])]))
             # Convert raw data to hex string
             val['identifier_body'] = raw.hex()
         super().update(val)
-
 
 
 @picmg_secondary
@@ -331,7 +350,8 @@ class FruPartition(PicmgEntry):
 
     _schema = [
         ('_desc_count', FixedField, 'u8', {'default': 0}),
-        ('descriptors', ArrayField, PartitionDescriptor, {'num_elems_field': '_desc_count'}),
+        ('descriptors', ArrayField, PartitionDescriptor,
+         {'num_elems_field': '_desc_count'}),
     ]
 
 
@@ -395,7 +415,8 @@ class MtcaCarrierInformation(PicmgEntry):
             'b2t': 1
         }}),
         ('_slot_entry_count', FixedField, 'u7', {'default': 0}),
-        ('slot_entries', ArrayField, SlotEntry, {'num_elems_field': '_slot_entry_count'}),
+        ('slot_entries', ArrayField, SlotEntry, {
+         'num_elems_field': '_slot_entry_count'}),
     ]
 
 
@@ -412,7 +433,8 @@ class PowerPolicyDescriptor(FruAreaBase):
             'unspecified': 0xff
         }}),
         ('_channel_count', FixedField, 'u8'),
-        ('_channels', BytearrayField, None, {'num_elems_field': '_channel_count'}),
+        ('_channels', BytearrayField, None, {
+         'num_elems_field': '_channel_count'}),
     ]
 
     def to_dict(self):
@@ -420,7 +442,7 @@ class PowerPolicyDescriptor(FruAreaBase):
         result = super().to_dict()
         result['channels'] = list(self._dict['_channels']._value)
         return result
-    
+
     def update(self, val):
         ''' Convert channels from list of ints to bytearray '''
         self._dict['_channels']._value = bytearray(val['channels'])
@@ -434,7 +456,8 @@ class PowerPolicyRecord(PicmgEntry):
 
     _schema = [
         ('_num_descriptors', FixedField, 'u8', {'default': 0}),
-        ('descriptors', ArrayField, PowerPolicyDescriptor, {'num_elems_field': '_num_descriptors'}),
+        ('descriptors', ArrayField, PowerPolicyDescriptor,
+         {'num_elems_field': '_num_descriptors'}),
     ]
 
 
@@ -442,7 +465,7 @@ class PowerPolicyRecord(PicmgEntry):
 class MtcaCarrierActivCurrDescriptor(FruAreaBase):
     ''' PICMG Specification MTCA.0 R1.0, Table 3-26 '''
 
-    _mgr_constants={
+    _mgr_constants = {
         'reserved': 0b11,
         'shelf_mgr': 0b10,
         'carrier_mgr': 0b01,
@@ -467,7 +490,8 @@ class MtcaCarrierActivationPm(PicmgEntry):
     _schema = [
         ('readiness_allowance', FixedField, 'u8'),
         ('_num_descriptors', FixedField, 'u8', {'default': 0}),
-        ('descriptors', ArrayField, MtcaCarrierActivCurrDescriptor, {'num_elems_field': '_num_descriptors'}),
+        ('descriptors', ArrayField, MtcaCarrierActivCurrDescriptor,
+         {'num_elems_field': '_num_descriptors'}),
     ]
 
 
@@ -502,7 +526,8 @@ class P2pAmcResourceDescriptor(FruAreaBase):
         ('_reserved', FixedField, 'u3', {'default': 0}),
         ('site_no', FixedField, 'u4'),
         ('_port_count', FixedField, 'u8'),
-        ('port_descriptors', ArrayField, P2pPortDescriptor, {'num_elems_field': '_port_count'}),
+        ('port_descriptors', ArrayField, P2pPortDescriptor,
+         {'num_elems_field': '_port_count'}),
     ]
 
 
@@ -520,9 +545,12 @@ class P2pClockConnectionDescriptor(FruAreaBase):
     ''' PICMG AMC.0 Specification R2.0, Table 3-32 '''
 
     _schema = [
-        ('local_clock_id', FixedField, 'u8', {'constants': _clock_id_constants}),
-        ('remote_clock_id', FixedField, 'u8', {'constants': _clock_id_constants}),
-        ('resource_type', FixedField, 'u2', {'constants': _resource_type_constants}),
+        ('local_clock_id', FixedField, 'u8',
+         {'constants': _clock_id_constants}),
+        ('remote_clock_id', FixedField, 'u8',
+         {'constants': _clock_id_constants}),
+        ('resource_type', FixedField, 'u2', {
+         'constants': _resource_type_constants}),
         ('_reserved', FixedField, 'u2', {'default': 0}),
         ('dev_id', FixedField, 'u4'),
     ]
@@ -533,11 +561,13 @@ class ClockP2pResourceDescriptor(FruAreaBase):
     ''' PICMG AMC.0 Specification R2.0, Table 3-30 '''
 
     _schema = [
-        ('resource_type', FixedField, 'u2', {'constants': _resource_type_constants}),
+        ('resource_type', FixedField, 'u2', {
+         'constants': _resource_type_constants}),
         ('_reserved', FixedField, 'u2', {'default': 0}),
         ('dev_id', FixedField, 'u4'),
         ('_p2p_clk_conn_count', FixedField, 'u8', {'default': 0}),
-        ('p2p_clk_conn_descriptors', ArrayField, P2pClockConnectionDescriptor, {'num_elems_field': '_p2p_clk_conn_count'})
+        ('p2p_clk_conn_descriptors', ArrayField, P2pClockConnectionDescriptor,
+         {'num_elems_field': '_p2p_clk_conn_count'})
     ]
 
 
@@ -547,8 +577,10 @@ class CarrierClkP2pConnectivity(PicmgEntry):
 
     _schema = [
         ('_clk_p2p_resource_desc_count', FixedField, 'u8', {'default': 0}),
-        ('clk_p2p_resource_descriptors', ArrayField, ClockP2pResourceDescriptor, {'num_elems_field': '_clk_p2p_resource_desc_count'}),
+        ('clk_p2p_resource_descriptors', ArrayField, ClockP2pResourceDescriptor, {
+         'num_elems_field': '_clk_p2p_resource_desc_count'}),
     ]
+
 
 @picmg_multirecord(0x32)
 class Zone3InterfaceDocumentation(PicmgEntry):

@@ -1,8 +1,14 @@
-"""
-SPDX-License-Identifier: BSD-3-Clause
-Copyright (c) 2020 Deutsches Elektronen-Synchrotron DESY.
-See LICENSE.txt for license details.
-"""
+###########################################################################
+#      ____  _____________  __    __  __ _           _____ ___   _        #
+#     / __ \/ ____/ ___/\ \/ /   |  \/  (_)__ _ _ __|_   _/ __| /_\  (R)  #
+#    / / / / __/  \__ \  \  /    | |\/| | / _| '_/ _ \| || (__ / _ \      #
+#   / /_/ / /___ ___/ /  / /     |_|  |_|_\__|_| \___/|_| \___/_/ \_\     #
+#  /_____/_____//____/  /_/      T  E  C  H  N  O  L  O  G  Y   L A B     #
+#                                                                         #
+#          Copyright 2021 Deutsches Elektronen-Synchrotron DESY.          #
+#                  SPDX-License-Identifier: BSD-3-Clause                  #
+#                                                                         #
+###########################################################################
 
 import argparse
 import os
@@ -35,6 +41,7 @@ def list_supported_records():
             print(lf)
             print(separator)
 
+
 def list_record_schema(rec_name):
     schema = rec_lookup_by_name(rec_name)._schema
     print(f'{"Name".ljust(20)} {"Type".ljust(30)} {"Opt"}')
@@ -60,6 +67,7 @@ def writer(fname, content, bin_mode=False):
         else:
             sys.stdout.write(content)
 
+
 def dict_set(d, keys, item):
     if len(keys) > 1:
         key, rest = keys[0], keys[1:]
@@ -69,6 +77,7 @@ def dict_set(d, keys, item):
     else:
         d[keys[0]] = item
 
+
 def main():
     parser = argparse.ArgumentParser(
         description='FRU Generator YAML'
@@ -77,59 +86,59 @@ def main():
                         type=str,
                         nargs='?',
                         help='Source file for reading'
-    )
+                        )
     parser.add_argument('--version',
                         action='version',
                         version='%(prog)s ' + __version__
-    )
+                        )
     parser.add_argument('-o', '--output',
                         type=str,
                         help='output file (derived from input file if not set)'
-    )
+                        )
     parser.add_argument('-w', '--write',
                         action='store_true',
                         help='FRU write mode (convert YAML to FRU image), default'
-    )
+                        )
     parser.add_argument('-r', '--read',
                         action='store_true',
                         help='FRU read mode (convert FRU image to YAML)'
-    )
+                        )
     parser.add_argument('-d', '--dump',
                         action='store_true',
                         help='dump FRU information to stdout (same as -r -o -)'
-    )
+                        )
     parser.add_argument('-e', '--eeprom-size',
                         type=int,
                         help='pad FRU image to match EEPROM size in bytes (only valid in write mode)'
-    )
+                        )
     parser.add_argument('-s', '--set',
                         type=str,
                         action='append',
                         help='set FRU record field to a value (only valid in write mode)'
-    )
+                        )
     parser.add_argument('-t', '--timestamp',
                         action='store_true',
                         help='set BoardInfo.mfg_date_time timestamp to current UTC time (only valid in write mode)'
-    )
+                        )
     parser.add_argument('-b', '--broken',
                         action='store_true',
                         help='enable workaround to parse Opal Kelly EEPROMs'
-    )
+                        )
     parser.add_argument('-c', '--ignore-checksum-errors',
                         action='store_true',
                         help='ignore checksum errors when parsing a FRU image'
-    )
+                        )
     parser.add_argument('-l', '--list',
                         type=str,
                         default=None,
                         const='',
                         nargs='?',
                         help='list supported FRU records or schema of specified record'
-    )
+                        )
     parser.add_argument('-v', '--verbosity',
                         type=int,
                         help='set verbosity (0=quiet, 1=info, 2=debug)'
-    )
+                        )
     args = parser.parse_args()
 
     verbosity = args.verbosity if args.verbosity is not None else 0
@@ -144,7 +153,7 @@ def main():
         else:
             list_record_schema(args.list)
         sys.exit(0)
-    
+
     if args.srcfile is None:
         parser.print_help(sys.stderr)
         sys.exit(1)
@@ -160,7 +169,7 @@ def main():
 
     if read_mode and args.broken:
         MultirecordEntry.opalkelly_workaround_enabled = True
-    
+
     if read_mode and args.ignore_checksum_errors:
         FruAreaChecksummed.ignore_checksum_errors = True
 
@@ -174,7 +183,8 @@ def main():
     basename, ext = os.path.splitext(os.path.basename(args.srcfile))
 
     if read_mode and ext != '.bin':
-        print('Cowardly refusing to read a FRU file not ending with .bin', file=sys.stderr)
+        print('Cowardly refusing to read a FRU file not ending with .bin',
+              file=sys.stderr)
         sys.exit(1)
     if not read_mode and ext != '.yml' and ext != '.yaml':
         print('Cowardly refusing to read a YAML file not ending with .yaml or .yml', file=sys.stderr)
@@ -206,7 +216,8 @@ def main():
             if 'BoardInfo' in fru_dict:
                 fru_dict['BoardInfo']['mfg_date_time'] = datetime.utcnow()
             else:
-                print('Error: FRU needs BoardInfo area to carry the timestamp', file=sys.stderr)
+                print(
+                    'Error: FRU needs BoardInfo area to carry the timestamp', file=sys.stderr)
                 sys.exit(1)
 
         fru.update(fru_dict)
@@ -215,7 +226,8 @@ def main():
             if len(img) <= args.eeprom_size:
                 img += b'\xff' * (args.eeprom_size - len(img))
             else:
-                print(f'Error: Image size ({len(img)}) exceeds EEPROM size ({args.eeprom_size})', file=sys.stderr)
+                print(
+                    f'Error: Image size ({len(img)}) exceeds EEPROM size ({args.eeprom_size})', file=sys.stderr)
                 sys.exit(1)
         writer(outfile, img, bin_mode=True)
 
