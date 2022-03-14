@@ -1,0 +1,29 @@
+# created with frugy 0.2.3 from "drtm-ad84_revD.bin"
+
+BoardInfo:
+  mfg_date_time: 2018-05-24 15:00:00
+  manufacturer: DESY
+  product_name: DRTM-AD84
+  serial_number: 05637/102018009
+  part_number: '30.0029'
+
+ProductInfo:
+  manufacturer: DESY
+  product_name: DRTM-AD84
+  version: RevD
+  serial_number: 05637/102018009
+  asset_tag: AD84-30.0029
+
+MultirecordArea:
+- type: ModuleCurrentRequirements
+  current_draw: 1.0
+
+- type: Zone3InterfaceCompatibility
+  identifier_type: CLASS_ID
+  identifier_body:
+  - D1.0
+
+- type: Zone3InterfaceCompatibility
+  identifier_type: CLASS_ID
+  identifier_body:
+  - D1.1

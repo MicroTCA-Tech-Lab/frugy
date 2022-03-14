@@ -10,10 +10,20 @@ BoardInfo:
 ProductInfo:
   manufacturer: DESY
   product_name: DRTM-AD84
-  version: RevD
+  version: RevE
   serial_number: '05637/102018011 '
   asset_tag: AD84-30.0024
 
 MultirecordArea:
 - type: ModuleCurrentRequirements
   current_draw: 1.0
+
+- type: Zone3InterfaceCompatibility
+  identifier_type: CLASS_ID
+  identifier_body:
+  - D1.0
+
+- type: Zone3InterfaceCompatibility
+  identifier_type: CLASS_ID
+  identifier_body:
+  - D1.1
