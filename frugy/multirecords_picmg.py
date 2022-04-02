@@ -6,6 +6,7 @@
 #  /_____/_____//____/  /_/      T  E  C  H  N  O  L  O  G  Y   L A B     #
 #                                                                         #
 #          Copyright 2021 Deutsches Elektronen-Synchrotron DESY.          #
+#                    2022 Atom Computing, Inc                             #
 #                  SPDX-License-Identifier: BSD-3-Clause                  #
 #                                                                         #
 ###########################################################################
@@ -579,6 +580,43 @@ class CarrierClkP2pConnectivity(PicmgEntry):
         ('_clk_p2p_resource_desc_count', FixedField, 'u8', {'default': 0}),
         ('clk_p2p_resource_descriptors', ArrayField, ClockP2pResourceDescriptor, {
          'num_elems_field': '_clk_p2p_resource_desc_count'}),
+    ]
+
+
+@picmg_secondary
+class BusedDeviceDescriptors(FruAreaBase):
+    ''' PICMG MicroTCA.4 Enhancements for Rear I/O and Timing R1.0, Table 3-14 '''
+
+    _resource_id_constants = {
+        'on_carrier': 0b0,
+        'AMC': 0b1,
+    }
+
+    _schema = [
+        ('resource_id', FixedField, 'u1', {'constants': _resource_id_constants}),
+        ('_rsvd', FixedField, 'u3', {'default': 0}),
+        ('amc_site', FixedField, 'u4'),
+        ('port', FixedField, 'u8'),
+    ]
+
+
+@picmg_secondary
+class BusedConnectionDescriptors(FruAreaBase):
+    ''' PICMG MicroTCA.4 Enhancements for Rear I/O and Timing R1.0, Table 3-13 '''
+    _schema = [
+        ('bused_device_count', FixedField, 'u8'),
+        ('bused_connection_descriptor', ArrayField, BusedDeviceDescriptors,
+            {'num_elems_field': 'bused_device_count'}),
+    ]
+
+
+@picmg_multirecord(0x31)
+class CarrierBusedConnectivity(PicmgEntry):
+    ''' PICMG MicroTCA.4 Enhancements for Rear I/O and Timing R1.0, Table 3-12 '''
+    _schema = [
+        ('_count', FixedField, 'u8'),
+        ('bused_connection_descriptors', ArrayField, BusedConnectionDescriptors,
+            {'num_elems_field': '_count'})
     ]
 
 
