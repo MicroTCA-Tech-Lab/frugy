@@ -584,7 +584,7 @@ class CarrierClkP2pConnectivity(PicmgEntry):
 
 
 @picmg_secondary
-class BusedDeviceDescriptors(FruAreaBase):
+class BusedDeviceDescriptor(FruAreaBase):
     ''' PICMG MicroTCA.4 Enhancements for Rear I/O and Timing R1.0, Table 3-14 '''
 
     _resource_id_constants = {
@@ -601,12 +601,12 @@ class BusedDeviceDescriptors(FruAreaBase):
 
 
 @picmg_secondary
-class BusedConnectionDescriptors(FruAreaBase):
+class BusedConnectionDescriptor(FruAreaBase):
     ''' PICMG MicroTCA.4 Enhancements for Rear I/O and Timing R1.0, Table 3-13 '''
     _schema = [
-        ('bused_device_count', FixedField, 'u8'),
-        ('bused_connection_descriptor', ArrayField, BusedDeviceDescriptors,
-            {'num_elems_field': 'bused_device_count'}),
+        ('_bused_device_count', FixedField, 'u8'),
+        ('bused_device_descriptor', ArrayField, BusedDeviceDescriptor,
+            {'num_elems_field': '_bused_device_count'}),
     ]
 
 
@@ -615,7 +615,7 @@ class CarrierBusedConnectivity(PicmgEntry):
     ''' PICMG MicroTCA.4 Enhancements for Rear I/O and Timing R1.0, Table 3-12 '''
     _schema = [
         ('_count', FixedField, 'u8'),
-        ('bused_connection_descriptors', ArrayField, BusedConnectionDescriptors,
+        ('bused_connection_descriptors', ArrayField, BusedConnectionDescriptor,
             {'num_elems_field': '_count'})
     ]
 
