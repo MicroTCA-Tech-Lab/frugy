@@ -73,7 +73,12 @@ Read and parse FRU image `damc-fmc2zup.bin`, generate YAML file `damc-fmc2zup.ym
 ```
 frugy dmmc-stamp.yml -s BoardInfo.serial_number=1234 -s ProductInfo.version=1.0 -t
 ```
-Read `dmmc-stamp.yml`, generate FRU with `BoardInfo.serial_number` set to *REV_A*, `ProductInfo.version` to *0.01-alpha* and `BoardInfo.mfg_date_time` to current UTC time.
+Read `dmmc-stamp.yml`, generate FRU with `BoardInfo.serial_number` set to *1234*, `ProductInfo.version` to *1.0* and `BoardInfo.mfg_date_time` to current UTC time.
+
+```
+frugy dmmc-stamp.yml -s serial_number=1234 -t
+```
+Read `dmmc-stamp.yml`, generate FRU with `BoardInfo.serial_number` *and* `ProductInfo.serial_number` set to *1234* and `BoardInfo.mfg_date_time` to current UTC time.
 
 ```
 frugy -l
