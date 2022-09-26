@@ -210,7 +210,16 @@ def main():
         if args.set is not None:
             for s in args.set:
                 k, v = s.split('=')
-                dict_set(fru_dict, k.split('.'), v)
+                key_path = k.split('.')
+                if len(key_path) > 1:
+                    # Traverse hierarchy of selected key_path e.g. ['BoardInfo', 'serial_number']
+                    dict_set(fru_dict, key_path, v)
+                else:
+                    # Set property e.g 'serial_number' of all first level records (e.g. 'BoardInfo', 'ProductInfo')
+                    key = key_path[0]
+                    for k in fru_dict.keys():
+                        if key in fru_dict[k]:
+                            fru_dict[k][key] = v
 
         if args.timestamp:
             if 'BoardInfo' in fru_dict:
