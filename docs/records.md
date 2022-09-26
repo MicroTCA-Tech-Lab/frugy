@@ -41,6 +41,7 @@
 |MtcaCarrierActivationPm             |PICMG Specification MTCA.0 R1.0, Table 3-25                                     |
 |CarrierP2pConnectivity              |PICMG AMC.0 Specification R2.0, Table 3-13                                      |
 |CarrierClkP2pConnectivity           |PICMG AMC.0 Specification R2.0, Table 3-29                                      |
+|CarrierBusedConnectivity            |PICMG MicroTCA.4 Enhancements for Rear I/O and Timing R1.0, Table 3-12          |
 |Zone3InterfaceDocumentation         |PICMG MicroTCA.4 Enhancements for Rear I/O and Timing R1.0, Table 3-15          |
 
 <br>
@@ -63,6 +64,8 @@
 |P2pAmcResourceDescriptor            |PICMG AMC.0 Specification R2.0, Table 3-14                                      |
 |P2pClockConnectionDescriptor        |PICMG AMC.0 Specification R2.0, Table 3-32                                      |
 |ClockP2pResourceDescriptor          |PICMG AMC.0 Specification R2.0, Table 3-30                                      |
+|BusedDeviceDescriptor               |PICMG MicroTCA.4 Enhancements for Rear I/O and Timing R1.0, Table 3-14          |
+|BusedConnectionDescriptor           |PICMG MicroTCA.4 Enhancements for Rear I/O and Timing R1.0, Table 3-13          |
 
 <br>
 

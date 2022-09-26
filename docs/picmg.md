@@ -130,6 +130,16 @@ PICMG AMC.0 Specification R2.0, Table 3-29
 <br>
 
 
+## CarrierBusedConnectivity
+PICMG MicroTCA.4 Enhancements for Rear I/O and Timing R1.0, Table 3-12
+
+|Name                                    |Type                |Opt                           
+|----------------------------------------|--------------------|------------------------------|
+|`bused_connection_descriptors`          |array (BusedConnectionDescriptor)|                              |
+
+<br>
+
+
 ## Zone3InterfaceDocumentation
 PICMG MicroTCA.4 Enhancements for Rear I/O and Timing R1.0, Table 3-15
 
@@ -304,6 +314,28 @@ PICMG AMC.0 Specification R2.0, Table 3-30
 |`resource_type`                         |int (u2)            |`on_carrier`, `amc_module`, `backplane`|
 |`dev_id`                                |int (u4)            |                              |
 |`p2p_clk_conn_descriptors`              |array (P2pClockConnectionDescriptor)|                              |
+
+<br>
+
+
+## BusedDeviceDescriptor
+PICMG MicroTCA.4 Enhancements for Rear I/O and Timing R1.0, Table 3-14
+
+|Name                                    |Type                |Opt                           
+|----------------------------------------|--------------------|------------------------------|
+|`resource_id`                           |int (u1)            |`on_carrier`, `AMC`           |
+|`amc_site`                              |int (u4)            |                              |
+|`port`                                  |int (u8)            |                              |
+
+<br>
+
+
+## BusedConnectionDescriptor
+PICMG MicroTCA.4 Enhancements for Rear I/O and Timing R1.0, Table 3-13
+
+|Name                                    |Type                |Opt                           
+|----------------------------------------|--------------------|------------------------------|
+|`bused_device_descriptor`               |array (BusedDeviceDescriptor)|                              |
 
 <br>
 

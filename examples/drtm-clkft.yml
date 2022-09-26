@@ -1,0 +1,40 @@
+# created with frugy 0.4.0 from "drtm-clkft.bin"
+
+BoardInfo:
+  language_code: 25
+  mfg_date_time: 2019-01-29 00:00:00
+  manufacturer: Deutsches Elektronen-Synchrotron
+  product_name: DRTM-CLKFT
+  serial_number: N/A
+
+ProductInfo:
+  language_code: 25
+  manufacturer: Deutsches Elektronen-Synchrotron
+  product_name: DRTM-CLKFT
+  version: Rev. B1
+  serial_number: N/A
+  asset_tag: N/A
+
+MultirecordArea:
+- type: ModuleCurrentRequirements
+  current_draw: 2.0
+
+- type: Zone3InterfaceCompatibility
+  identifier_type: CLASS_ID
+  identifier_body:
+  - D1.0
+
+- type: Zone3InterfaceCompatibility
+  identifier_type: CLASS_ID
+  identifier_body:
+  - D1.1
+
+- type: Zone3InterfaceCompatibility
+  identifier_type: CLASS_ID
+  identifier_body:
+  - D1.2
+
+- type: Zone3InterfaceCompatibility
+  identifier_type: CLASS_ID
+  identifier_body:
+  - D1.3
