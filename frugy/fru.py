@@ -19,6 +19,8 @@ import frugy.multirecords_fmc
 import yaml
 from bidict import bidict
 import os
+from copy import deepcopy
+
 
 # YAML formatting helpers
 
@@ -64,11 +66,12 @@ class Fru:
         }
         if cls_name not in map:
             raise ValueError(f"unknown FRU area: {cls_name}")
-        return map[cls_name](cls_args)
+        # Some constructors modify their arguments; make sure to leave the user-supplied initdict intact
+        return map[cls_name](deepcopy(cls_args))
 
     def update(self, src):
         self.comment = ''
-        self.areas = {k: self.factory(k, src[k]) for k in src.keys()}
+        self.areas = {k: self.factory(k, v) for k, v in src.items()}
 
     def to_dict(self):
         return {k: v.to_dict() for k, v in self.areas.items()}
