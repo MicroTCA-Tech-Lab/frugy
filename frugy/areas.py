@@ -81,6 +81,8 @@ class BoardInfo(FruAreaSized):
 
     def _set_mfg_date_time(self, timestamp):
         if timestamp is not None:
+            if type(timestamp) == str:
+                timestamp = datetime.fromisoformat(timestamp)
             td = timestamp - BoardInfo._time_ref
             minutes = td.seconds // 60 + td.days * (60*24)
             self._set('mfg_date_time', minutes)
