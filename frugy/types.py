@@ -20,7 +20,7 @@ from ipaddress import IPv4Address
 import logging
 
 _format_version_default = 1
-
+_en_decode='ISO-8859-1'
 
 def _sizeAlign(size: int, alignment: int) -> int:
     ''' return number of padding bytes & total length after padding '''
@@ -49,7 +49,7 @@ def deser_6bit(val: bytearray) -> str:
         tmp = bitstruct.unpack('u6'*4, bytearray(reversed(chunk)))
         for x in tmp[::-1]:
             result += bytes((x + 0x20,))
-    return result.decode('utf-8')
+    return result.decode(_en_decode)
 
 
 def bin2hex_helper(val: bytearray):
@@ -153,7 +153,7 @@ class StringField():
 
     def serialize(self) -> bytearray:
         def ser_plain(val: str) -> bytearray:
-            return val.encode('utf-8')
+            return val.encode(_en_decode)
 
         def ser_bcd_plus(val: str) -> bytearray:
             result = b''
@@ -176,7 +176,7 @@ class StringField():
 
     def deserialize(self, input: bytearray) -> bytearray:
         def deser_plain(val: bytearray) -> str:
-            return val.decode('utf-8')
+            return val.decode(_en_decode)
 
         def deser_bcd_plus(val: bytearray) -> str:
             result = ''
@@ -248,11 +248,11 @@ class BytearrayField():
             return b''
 
     def to_dict(self):
-        return bin2hex_helper(self._value) if self._hex else self._value.decode('utf-8')
+        return bin2hex_helper(self._value) if self._hex else self._value.decode(_en_decode)
 
     def update(self, value):
         self._value = bytearray.fromhex(
-            value) if self._hex else value.encode('utf-8')
+            value) if self._hex else value.encode(_en_decode)
 
     def val_not_default(self):
         return self.to_dict() != self._default
@@ -273,14 +273,14 @@ class FixedStringField():
         return self._bufsize * 8
 
     def serialize(self) -> bytearray:
-        return self._value[:self._bufsize-1].encode('utf-8') + self._null_term
+        return self._value[:self._bufsize-1].encode(_en_decode) + self._null_term
 
     def deserialize(self, input: bytearray) -> bytearray:
         tmp, remainder = input[:self._bufsize], input[self._bufsize:]
         if self._null_term in tmp:
             pos = tmp.index(self._null_term)
             tmp = tmp[:pos]
-        self._value = tmp.decode('utf-8')
+        self._value = tmp.decode(_en_decode)
         return remainder
 
     def to_dict(self):
@@ -306,7 +306,7 @@ class CustomStringArray:
             self.update(initdict)
 
     def update(self, initdict):
-        self.strings = [StringField(v) for v in initdict]
+        self.strings = [StringField(v, format = StringFmt.BIN) for v in initdict]
 
     def __repr__(self):
         return self.to_dict().__repr__()
@@ -327,7 +327,7 @@ class CustomStringArray:
             if remainder[0:1] == self._delimiter:
                 remainder = remainder[1:]
                 break
-            tmp = StringField()
+            tmp = StringField(format = StringFmt.BIN)
             remainder = tmp.deserialize(remainder)
             self.strings.append(tmp)
 
