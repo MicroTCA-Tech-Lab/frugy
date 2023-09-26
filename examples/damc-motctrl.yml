@@ -1,0 +1,72 @@
+# created with frugy 0.4.2 from "damc-motctrl.bin"
+
+BoardInfo:
+  mfg_date_time: 2022-09-08 09:00:00
+  manufacturer: DESY
+  product_name: DAMC-MOTCTRL
+  serial_number: '0000'
+  part_number: XCZU2EG-L1SBVA484I XC7K160T-2FFG676C
+
+ProductInfo:
+  manufacturer: DESY
+  product_name: DAMC-MOTCTRL
+  part_number: XCZU2EG-L1SBVA484I XC7K160T-2FFG676C
+  version: Rev. A
+  serial_number: '0000'
+
+MultirecordArea:
+- type: ModuleCurrentRequirements
+  current_draw: 6.5
+
+- type: PointToPointConnectivity
+  guids:
+  - 2d776f4c-616c-6574-6e63-79206c696e6b
+  record_type: amc_module
+  channel_descriptors:
+  - [4, 5]
+  - [0]
+  - [12]
+  - [13]
+  - [14]
+  - [15]
+  link_descriptors:
+  - asymm_match: match_10b
+    grouping_id: 0
+    link_type: pcie
+    channel_id: 0
+    lane_flags: [1, 1, 0, 0]
+  - asymm_match: match_10b
+    grouping_id: 0
+    link_type: pcie
+    channel_id: 0
+    lane_flags: [1, 0, 0, 0]
+  - asymm_match: match_exact
+    grouping_id: 0
+    link_type: ethernet
+    channel_id: 1
+    lane_flags: [1, 0, 0, 0]
+  - asymm_match: match_exact
+    grouping_id: 0
+    link_type: oem_guid_0
+    channel_id: 2
+    lane_flags: [1, 0, 0, 0]
+  - asymm_match: match_exact
+    grouping_id: 0
+    link_type: oem_guid_0
+    channel_id: 3
+    lane_flags: [1, 0, 0, 0]
+  - asymm_match: match_exact
+    grouping_id: 0
+    link_type: oem_guid_0
+    channel_id: 4
+    lane_flags: [1, 0, 0, 0]
+  - asymm_match: match_exact
+    grouping_id: 0
+    link_type: oem_guid_0
+    channel_id: 5
+    lane_flags: [1, 0, 0, 0]
+
+- type: Zone3InterfaceCompatibility
+  identifier_type: CLASS_ID
+  identifier_body:
+  - D1.1
