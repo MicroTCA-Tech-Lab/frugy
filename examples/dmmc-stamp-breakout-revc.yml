@@ -1,0 +1,19 @@
+# created with frugy 0.4.2 from "dmmc-stamp-breakout-revc.bin"
+
+BoardInfo:
+  manufacturer: DESY
+  product_name: DMMC-STAMP-BoB
+  serial_number: '25.0001'
+  fru_file_id: none
+
+ProductInfo:
+  manufacturer: DESY
+  product_name: DMMC-STAMP-BoB
+  version: Rev. C
+  serial_number: '25.0001'
+  asset_tag: STAMPBOB-25.0001
+  fru_file_id: none
+
+MultirecordArea:
+- type: ModuleCurrentRequirements
+  current_draw: 6.5

@@ -1,18 +1,19 @@
-# created with frugy 0.4.0 from "damc-fmc1z7io.bin"
+# created with frugy 0.4.2 from "damc-fmc1z7io.bin"
 
 BoardInfo:
+  mfg_date_time: 2023-04-14 09:00:00
   manufacturer: DESY
   product_name: DAMC-FMC1Z7IO
-  serial_number: '0000'
-  part_number: '0000'
+  serial_number: '0001'
+  part_number: DAMC-FMC1Z7IO_XC7Z035-2FFG676I
   fru_file_id: fru_damc-fmc1z7io.bin
 
 ProductInfo:
   manufacturer: DESY
   product_name: DAMC-FMC1Z7IO
-  part_number: '0000'
-  version: '0000'
-  serial_number: '0000'
+  part_number: DAMC-FMC1Z7IO_XC7Z035-2FFG676I
+  version: Rev. C
+  serial_number: '0001'
   asset_tag: none
   fru_file_id: fru_damc-fmc1z7io.bin
 
@@ -89,4 +90,4 @@ MultirecordArea:
 - type: Zone3InterfaceCompatibility
   identifier_type: CLASS_ID
   identifier_body:
-  - D1.1
+  - D1.0
