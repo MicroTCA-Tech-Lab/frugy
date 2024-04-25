@@ -1,0 +1,109 @@
+# created with frugy 0.4.2 from "damc-unizup-fru.bin"
+
+BoardInfo:
+  mfg_date_time: 2024-04-01 00:00:00
+  manufacturer: DESY
+  product_name: DAMC-UNIZUP
+  serial_number: '0000'
+  part_number: DAMC-UNIZUP_ZU11EG
+
+ProductInfo:
+  manufacturer: DESY
+  product_name: DAMC-UNIZUP
+  part_number: DAMC-UNIZUP_ZU11EG
+  version: Rev. 1.0
+  serial_number: '0000'
+  asset_tag: DAMC-UNIZUP-111.0000
+
+MultirecordArea:
+- type: ModuleCurrentRequirements
+  current_draw: 6.5
+
+- type: PointToPointConnectivity
+  guids:
+  - 2d776f4c-616c-6574-6e63-79206c696e6b
+  record_type: amc_module
+  channel_descriptors:
+  - [4, 5, 6, 7]
+  - [8, 9, 10, 11]
+  - [0]
+  - [1]
+  - [2]
+  - [3]
+  - [12]
+  - [13]
+  - [14]
+  - [15]
+  link_descriptors:
+  - asymm_match: match_10b
+    grouping_id: 1
+    link_type_ext: 4
+    link_type: pcie
+    channel_id: 0
+    lane_flags: [1, 1, 1, 1]
+  - asymm_match: match_10b
+    grouping_id: 1
+    link_type_ext: 4
+    link_type: pcie
+    channel_id: 1
+    lane_flags: [1, 1, 1, 1]
+  - asymm_match: match_10b
+    grouping_id: 0
+    link_type_ext: 4
+    link_type: pcie
+    channel_id: 0
+    lane_flags: [1, 1, 1, 1]
+  - asymm_match: match_10b
+    grouping_id: 0
+    link_type_ext: 4
+    link_type: pcie
+    channel_id: 0
+    lane_flags: [1, 1, 0, 0]
+  - asymm_match: match_10b
+    grouping_id: 0
+    link_type_ext: 4
+    link_type: pcie
+    channel_id: 0
+    lane_flags: [1, 0, 0, 0]
+  - asymm_match: match_exact
+    grouping_id: 0
+    link_type: ethernet
+    channel_id: 2
+    lane_flags: [1, 0, 0, 0]
+  - asymm_match: match_01b
+    grouping_id: 0
+    link_type_ext: 1
+    link_type: storage
+    channel_id: 4
+    lane_flags: [1, 0, 0, 0]
+  - asymm_match: match_01b
+    grouping_id: 0
+    link_type_ext: 1
+    link_type: storage
+    channel_id: 5
+    lane_flags: [1, 0, 0, 0]
+  - asymm_match: match_exact
+    grouping_id: 0
+    link_type: oem_guid_0
+    channel_id: 6
+    lane_flags: [1, 0, 0, 0]
+  - asymm_match: match_exact
+    grouping_id: 0
+    link_type: oem_guid_0
+    channel_id: 7
+    lane_flags: [1, 0, 0, 0]
+  - asymm_match: match_exact
+    grouping_id: 0
+    link_type: oem_guid_0
+    channel_id: 8
+    lane_flags: [1, 0, 0, 0]
+  - asymm_match: match_exact
+    grouping_id: 0
+    link_type: oem_guid_0
+    channel_id: 9
+    lane_flags: [1, 0, 0, 0]
+
+- type: Zone3InterfaceCompatibility
+  identifier_type: CLASS_ID
+  identifier_body:
+  - D1.2
