@@ -142,10 +142,11 @@ class Fru:
 
     def postprocess_yaml(self, data):
         result = ''
-        if len(import_log.str) != 0:
-            import_log.str = '\n' + import_log.str
-        for line in [self.comment, *import_log.str.splitlines()]:
-            result += f'# {line}\n'
+        if hasattr(import_log, 'str'):
+            if len(import_log.str) != 0:
+                import_log.str = '\n' + import_log.str
+            for line in [self.comment, *import_log.str.splitlines()]:
+                result += f'# {line}\n'
         line_prev = ''
         for line in data.splitlines():
             if line.endswith(':') and not line.startswith(' '):
