@@ -182,10 +182,10 @@ def main():
 
     basename, ext = os.path.splitext(os.path.basename(args.srcfile))
 
-    if read_mode and ext != '.bin':
-        print('Cowardly refusing to read a FRU file not ending with .bin',
-              file=sys.stderr)
-        sys.exit(1)
+    #if read_mode and ext != '.bin':
+    #    print('Cowardly refusing to read a FRU file not ending with .bin',
+    #          file=sys.stderr)
+    #    sys.exit(1)
     if not read_mode and ext != '.yml' and ext != '.yaml':
         print('Cowardly refusing to read a YAML file not ending with .yaml or .yml', file=sys.stderr)
         sys.exit(1)
