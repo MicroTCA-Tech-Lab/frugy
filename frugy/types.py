@@ -129,6 +129,9 @@ class StringField():
     })
 
     def bit_size(self) -> int:
+        def size_bin(val: str) -> int:
+            return int(len(val) / 2)
+
         def size_plain(val: str) -> int:
             return len(val)
 
@@ -141,7 +144,7 @@ class StringField():
             return n // 2
 
         size_fn = {
-            StringFmt.BIN: size_plain,
+            StringFmt.BIN: size_bin,
             StringFmt.BCD_PLUS: size_bcd_plus,
             StringFmt.ASCII_6BIT: size_6bit,
             StringFmt.ASCII_8BIT: size_plain
@@ -152,6 +155,13 @@ class StringField():
         return self.bit_size() // 8
 
     def serialize(self) -> bytearray:
+        def ser_bin(val: str) -> bytearray:
+            try:
+                val = bytearray(bytes.fromhex(val))
+            except:
+                val = b""
+            return val
+
         def ser_plain(val: str) -> bytearray:
             return val.encode(_en_decode)
 
@@ -166,7 +176,7 @@ class StringField():
             return bitstruct.pack('u2u6', self._format.value, len(val))
 
         ser_fn = {
-            StringFmt.BIN: ser_plain,
+            StringFmt.BIN: ser_bin,
             StringFmt.BCD_PLUS: ser_bcd_plus,
             StringFmt.ASCII_6BIT: ser_6bit,
             StringFmt.ASCII_8BIT: ser_plain
@@ -175,6 +185,10 @@ class StringField():
         return ser_type_length(result) + result
 
     def deserialize(self, input: bytearray) -> bytearray:
+        def deser_bin(val: bytearray) -> str:
+            strval = str(val)
+            return val.hex()
+
         def deser_plain(val: bytearray) -> str:
             return val.decode(_en_decode)
 
@@ -194,7 +208,7 @@ class StringField():
         payload, remainder = remainder[:payload_len], remainder[payload_len:]
 
         deser_fn = {
-            StringFmt.BIN: deser_plain,
+            StringFmt.BIN: deser_bin,
             StringFmt.BCD_PLUS: deser_bcd_plus,
             StringFmt.ASCII_6BIT: deser_6bit,
             StringFmt.ASCII_8BIT: deser_plain
