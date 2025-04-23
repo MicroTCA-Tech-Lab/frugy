@@ -17,6 +17,7 @@ from itertools import zip_longest
 import uuid
 from bidict import bidict
 from ipaddress import IPv4Address
+from macaddress import MAC
 import logging
 
 _format_version_default = 1
@@ -373,6 +374,46 @@ class IpV4Field():
 
     def update(self, value):
         self._value = IPv4Address(value)
+
+    def val_not_default(self):
+        return self.to_dict() != self._default
+
+
+class MacField():
+    ''' Field containing a IPv4 address '''
+    _shortname = 'mac'
+
+    _num_bytes = 6
+
+    def __init__(self, default='00:00:00:00:00:00', parent=None):
+        self._default = default
+        if (default == None):
+            self._value = None
+        else:
+            self._value = MAC(default)
+
+    def bit_size(self) -> int:
+        return self._num_bytes * 8
+
+    def serialize(self) -> bytearray:
+        if (self._value == None):
+            return b''
+        return int(self._value).to_bytes(self._num_bytes, 'big')
+
+    def deserialize(self, input: bytearray) -> bytearray:
+        tmp, remainder = input[:self._num_bytes], input[self._num_bytes:]
+        tmp = int.from_bytes(tmp, 'big')
+        if (tmp == 0):
+            self._value = ''
+        else:
+            self._value = MAC(tmp)
+        return remainder
+
+    def to_dict(self):
+        return str(self._value)
+
+    def update(self, value):
+        self._value = MAC(value)
 
     def val_not_default(self):
         return self.to_dict() != self._default

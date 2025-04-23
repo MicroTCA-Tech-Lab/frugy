@@ -22,6 +22,7 @@ class FruRecordType(Enum):
     picmg_secondary = auto()
     fmc_multirecord = auto()
     fmc_secondary = auto()
+    xilinx_multirecord = auto()
 
 
 _registry = defaultdict(list)
