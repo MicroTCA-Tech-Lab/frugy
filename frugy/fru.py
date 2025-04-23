@@ -16,6 +16,7 @@ from frugy.multirecords import MultirecordArea
 import frugy.multirecords_ipmi
 import frugy.multirecords_picmg
 import frugy.multirecords_fmc
+import frugy.multirecords_xilinx
 import yaml
 from bidict import bidict
 import os
