@@ -222,6 +222,9 @@ class StringField():
     def to_dict(self):
         return self._value
 
+    def format(self):
+        return self._format
+
     def update(self, value):
         self._value = value
 
@@ -320,13 +323,51 @@ class CustomStringArray:
             self.update(initdict)
 
     def update(self, initdict):
-        self.strings = [StringField(v, format = StringFmt.BIN) for v in initdict]
+        try:
+            for v, k in initdict.items():
+                if v == "ASCII_8BIT":
+                    for s in k:
+                        self.strings += [StringField(s, format = StringFmt.ASCII_8BIT)]
+                elif v == "BIN":
+                    for s in k:
+                        self.strings += [StringField(s, format = StringFmt.BIN)]
+                elif v == "BCD_PLUS":
+                    for s in k:
+                        self.strings += [StringField(s, format = StringFmt.BCD_PLUS)]
+                elif v == "ASCII_6BIT":
+                    for s in k:
+                        self.strings += [StringField(s, format = StringFmt.ASCII_6BIT)]
+        except:
+            self.strings = [StringField(v, format = StringFmt.BIN) for v in initdict]
 
     def __repr__(self):
         return self.to_dict().__repr__()
 
     def to_dict(self):
-        return [v.to_dict() for v in self.strings]
+        ret = {}
+        for v in self.strings:
+            if v.format() == StringFmt.ASCII_8BIT:
+                if "ASCII_8BIT" in ret:
+                    ret["ASCII_8BIT"] += [v.to_dict()]
+                else:
+                    ret["ASCII_8BIT"] = [v.to_dict()]
+            elif v.format() == StringFmt.ASCII_6BIT:
+                if "ASCII_6BIT" in ret:
+                    ret["ASCII_6BIT"] += [v.to_dict()]
+                else:
+                    ret["ASCII_6BIT"] = [v.to_dict()]
+            elif v.format() == StringFmt.BCD_PLUS:
+                if "BCD_PLUS" in ret:
+                    ret["BCD_PLUS"] += [v.to_dict()]
+                else:
+                    ret["BCD_PLUS"] = [v.to_dict()]
+            elif v.format() == StringFmt.BIN:
+                if "BIN" in ret:
+                    ret["BIN"] += [v.to_dict()]
+                else:
+                    ret["BIN"] = [v.to_dict()]
+
+        return ret
 
     def serialize(self):
         result = b''
