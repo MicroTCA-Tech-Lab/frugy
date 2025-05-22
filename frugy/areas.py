@@ -14,7 +14,7 @@ from frugy.types import FruAreaVersioned, FruAreaSized, FixedField, StringField,
 from frugy.fru_registry import FruRecordType, rec_register
 from datetime import datetime, timedelta
 import logging
-
+import frugy
 
 def ipmi_area(cls):
     rec_register(cls, FruRecordType.ipmi_area)
@@ -77,14 +77,52 @@ class BoardInfo(FruAreaSized):
         ('custom_info_fields', CustomStringArray),
     ]
 
+    # With a Y2K27 rollover baked into the specification, we have to deal with
+    # - 24bit overflow when converting yaml to bin
+    # - uncertainty of original 25th bit when converting bin to yaml
+    # see also: https://github.com/MicroTCA-Tech-Lab/frugy/issues/11
     _time_ref = datetime(1996, 1, 1)
+    _time_rollover_limit = 2**24
+
+    def _timestamp_to_minutes(self, timestamp):
+        td = timestamp - self._time_ref
+        return td.seconds // 60 + td.days * (60*24)
+
+    def _timestamp_from_minutes(self, minutes):
+        return BoardInfo._time_ref + timedelta(minutes=minutes)
+
+    def _handle_y2k27_rollover_yaml2bin(self, minutes):
+        # Truncate the timestamp to 24 bits
+        # If the remainder is nonzero, log a warning.
+        minutes_truncated = minutes % BoardInfo._time_rollover_limit
+        if minutes != minutes_truncated:
+            min_str = self._timestamp_from_minutes(minutes).isoformat()
+            min_trunc_str = self._timestamp_from_minutes(minutes_truncated).isoformat()
+            logging.warning(f'Timestamp {min_str} truncated; may be interpreted by FRU parsers as {min_trunc_str}')
+        return minutes_truncated
+
+    def _handle_y2k27_rollover_bin2yaml(self, minutes, now):
+        # Apply heuristic to possibly truncated timestamp:
+        # If it is "too old" relative to the system time, add rollover timedelta and log a warning.
+        # We draw the line at 31 years into the past (not the full 2**24 minutes).
+        # This will allow a margin of a couple months in case the system time is incorrect
+        # or the board is dated a bit into the future.
+        if now - self._timestamp_from_minutes(minutes) > timedelta(days=31*365):
+            minutes_ext = minutes + self._time_rollover_limit
+            min_str = self._timestamp_from_minutes(minutes).isoformat()
+            min_ext_str = self._timestamp_from_minutes(minutes_ext).isoformat()
+            warn_str = f'BoardInfo.mfg_date_time: possible Y2K27 rollover detected; timestamp bumped to {min_ext_str} - original timestamp was {min_str}'
+            logging.warning(warn_str)
+            frugy.fru.import_log(warn_str)
+            return minutes_ext
+        return minutes
 
     def _set_mfg_date_time(self, timestamp):
         if timestamp is not None:
             if type(timestamp) == str:
                 timestamp = datetime.fromisoformat(timestamp)
-            td = timestamp - BoardInfo._time_ref
-            minutes = td.seconds // 60 + td.days * (60*24)
+            minutes = self._timestamp_to_minutes(timestamp)
+            minutes = self._handle_y2k27_rollover_yaml2bin(minutes)
             self._set('mfg_date_time', minutes)
         else:
             self._set('mfg_date_time', 0)
@@ -92,8 +130,8 @@ class BoardInfo(FruAreaSized):
     def _get_mfg_date_time(self):
         minutes = self._get('mfg_date_time')
         if minutes != 0:
-            timestamp = BoardInfo._time_ref + timedelta(minutes=minutes)
-            return timestamp
+            minutes = self._handle_y2k27_rollover_bin2yaml(minutes, datetime.now())
+            return self._timestamp_from_minutes(minutes)
         else:
             return None
 

@@ -5,7 +5,7 @@ See LICENSE.txt for license details.
 """
 
 import unittest
-from datetime import datetime
+from datetime import date, datetime
 from frugy.areas import CommonHeader, ChassisInfo, BoardInfo, ProductInfo
 from frugy.types import FruAreaBase, FixedField
 
@@ -89,6 +89,25 @@ class TestAreas(unittest.TestCase):
         v = e.deserialize(v)
         self.assertEqual(v, b'remainder')
         self.assertEqual(e.to_dict(), {'first2': 2, 'second2': 1, 'then4': 5, 'lastone': 7})
+
+
+    def test_y2k_rollover(self):
+        bi = BoardInfo()
+        dt_2000 = bi._timestamp_to_minutes(datetime(2000, 2, 3))
+        dt_2031 = bi._timestamp_to_minutes(datetime(2031, 12, 27, 20, 16, 0))
+
+        # Test truncation (yaml 2 bin)
+        self.assertEqual(bi._handle_y2k27_rollover_yaml2bin(dt_2000), dt_2000)
+        self.assertEqual(bi._handle_y2k27_rollover_yaml2bin(dt_2031), dt_2000)
+
+        # Test extension (bin 2 yaml)
+        now_2025 = datetime(2025, 1, 1)
+        now_2031 = datetime(2031, 5, 1)
+        now_2032 = datetime(2032, 1, 1)
+
+        self.assertEqual(bi._handle_y2k27_rollover_bin2yaml(dt_2000, now_2025), dt_2000)
+        self.assertEqual(bi._handle_y2k27_rollover_bin2yaml(dt_2000, now_2031), dt_2031)
+        self.assertEqual(bi._handle_y2k27_rollover_bin2yaml(dt_2000, now_2032), dt_2031)
 
 if __name__ == '__main__':
     unittest.main()
