@@ -694,6 +694,47 @@ class FruAreaVersioned(FruAreaChecksummed):
         remainder = self._deserialize(input[1:])
         return self._verify_epilogue(input, len(input) - len(remainder))
 
+class FruAreaInternalUse(FruAreaBase):
+    ''' FRU Internal use area featuring a version field but no checksum, will
+    be padded to whatever internal area is specified'''
+
+    internal_area_size = 72
+
+    def __init__(self, initdict=None):
+        self._format_version = _format_version_default
+        super().__init__(initdict=initdict)
+
+    def _set_format_version(self, val):
+        self._format_version = val
+
+    def _get_format_version(self):
+        return self._format_version
+
+    def _prologue(self) -> bytearray:
+        ''' return data to prepend (format version) '''
+        return self._format_version.to_bytes(1, 'little')
+
+    def _epilogue(self, payload: bytearray) -> bytearray:
+        ''' return data to append, padded of zero bytes'''
+        numPadBytes, _ = _sizeAlign(len(payload), self.internal_area_size)
+        return b'\xff' * numPadBytes
+
+    def size_payload(self) -> int:
+        return self.internal_area_size
+
+    def size_total(self) -> int:
+        return self.internal_area_size
+
+    def serialize(self) -> bytearray:
+        payload = self._prologue()
+        body = self._serialize()
+        payload += body[:self.internal_area_size - 1]
+        return payload + self._epilogue(payload)
+
+    def deserialize(self, input: bytearray):
+        self._format_version = input[0]
+        return self._deserialize(input[1:])
+
 
 class FruAreaSized(FruAreaVersioned):
     ''' FRU area featuring version and length fields '''

@@ -20,7 +20,7 @@ import logging
 from frugy.__init__ import __version__
 from frugy.fru import Fru
 from frugy.fru_registry import FruRecordType, rec_enumerate, rec_lookup_by_name, rec_info, schema_entry_info
-from frugy.types import FruAreaChecksummed
+from frugy.types import FruAreaChecksummed, FruAreaInternalUse
 from frugy.multirecords import MultirecordEntry
 
 
@@ -135,6 +135,11 @@ def main():
                         nargs='?',
                         help='list supported FRU records or schema of specified record'
                         )
+
+    parser.add_argument('--internal-area-size',
+                        type=int,
+                        help='set internal area size (including format byte), default is recommended 72 (only valid in write mode)'
+                        )
     parser.add_argument('-v', '--verbosity',
                         type=int,
                         help='set verbosity (0=quiet, 1=info, 2=debug)'
@@ -163,7 +168,7 @@ def main():
         parser.print_help(sys.stderr)
         sys.exit(1)
 
-    if read_mode and (args.eeprom_size is not None or args.set or args.timestamp):
+    if read_mode and (args.eeprom_size is not None or args.set or args.timestamp or args.internal_area_size):
         parser.print_help(sys.stderr)
         sys.exit(1)
 
@@ -172,6 +177,15 @@ def main():
 
     if read_mode and args.ignore_checksum_errors:
         FruAreaChecksummed.ignore_checksum_errors = True
+
+    if args.internal_area_size == None:
+        args.internal_area_size = 72 # Recommended size in FRU document
+    if args.internal_area_size % 8 != 0:
+        print("Internal area size must be a multiple of 8 bytes", file=sys.stderr)
+        sys.exit(1)
+    # In read mode, this isn't used, we always use the size of the section in
+    # the file since there is no length field.
+    FruAreaInternalUse.internal_area_size = args.internal_area_size
 
     outfile = args.output
     if args.dump:
