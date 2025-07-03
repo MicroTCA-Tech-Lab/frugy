@@ -1,4 +1,4 @@
-# created with frugy 0.4.2 from "DWC8VM1_HF.bin"
+# created with frugy 0.5.0 from "DWC8VM1_HF.bin"
 
 BoardInfo:
   mfg_date_time: 2016-06-03 10:00:00
@@ -8,7 +8,8 @@ BoardInfo:
   part_number: DRTM-DWC8VM1_HF
   fru_file_id: v0004
   custom_info_fields:
-  - uDWCVMHF-43.0001
+    ASCII_8BIT:
+    - uDWCVMHF-43.0001
 
 ProductInfo:
   manufacturer: Struck Innovative Systeme GmbH
@@ -17,7 +18,8 @@ ProductInfo:
   serial_number: '001'
   fru_file_id: v0001
   custom_info_fields:
-  - ''
+    BIN:
+    - ''
 
 MultirecordArea:
 - type: Zone3InterfaceCompatibility

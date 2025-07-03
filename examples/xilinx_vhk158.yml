@@ -1,4 +1,4 @@
-# created with frugy 0.4.3 from "eeprom_orig.bin"
+# created with frugy 0.5.0 from "xilinx_vhk158.bin"
 
 BoardInfo:
   mfg_date_time: 2025-03-07 09:19:00
@@ -15,11 +15,11 @@ BoardInfo:
     - 9410a013589040a29546680ed49daaa6
 
 MultirecordArea:
-- type: dut_xilinx_mac
+- type: DutXilinxMac
   mac0: 00-0A-35-1D-5B-90
 
-- type: sys_ctrl_xilinx_mac
+- type: SysCtrlXilinxMac
   mac0: 00-0A-35-1D-5B-93
 
-- type: xilinx_oem_d3
+- type: XilinxOemD3
   data: memory qspi:512Mb

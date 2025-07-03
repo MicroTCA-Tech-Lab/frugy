@@ -1,4 +1,4 @@
-# created with frugy 0.4.2 from "ADRV9375-N.bin"
+# created with frugy 0.5.0 from "ADRV9375-N.bin"
 
 BoardInfo:
   language_code: 25
@@ -8,10 +8,11 @@ BoardInfo:
   serial_number: '0000'
   part_number: ADRV9375-N/PCBZ
   custom_info_fields:
-  - "\001A"
-  - "\x0108-045800"
-  - "\x02A"
-  - "\x03Y"
+    BIN:
+    - '00303141'
+    - 0130382d303435383030
+    - '0241'
+    - 0359
 
 MultirecordArea:
 - type: DCOutput
