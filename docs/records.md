@@ -22,6 +22,8 @@
 |MgmtAccessRecord                    |Platform Management FRU Information Storage Definition, Table 18-6              |
 |PicmgEntry                          |PICMG AMC.0 Specification R2.0                                                  |
 |FmcEntry                            |ANSI/VITA 57.1 FMC Standard                                                     |
+|OemXilinxEntry                      |Xilinx proprietary, not published                                               |
+|OemXilinxD3Entry                    |Xilinx proprietary, not published                                               |
 
 <br>
 
@@ -77,6 +79,17 @@
 |FmcMainDefinition                   |ANSI/VITA 57.1 FMC Standard, Table 7                                            |
 |FmcPlusMainDefinition               |ANSI/VITA 57.4-2018 FMC+ Standard, Table 5.3.1-1                                |
 |FmcI2cDeviceDefinition              |ANSI/VITA 57.1 FMC Standard, Table 9                                            |
+
+<br>
+
+
+## xilinx_multirecord
+
+|Name                                |Definition                                                                      |
+|------------------------------------|--------------------------------------------------------------------------------|
+|DutXilinxMac                        |None                                                                            |
+|SysCtrlXilinxMac                    |None                                                                            |
+|XilinxOemD3                         |None                                                                            |
 
 <br>
 
