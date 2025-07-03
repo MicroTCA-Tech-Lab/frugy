@@ -81,7 +81,7 @@ def xilinx_multirecord(rec_id):
     return register_and_set_id
 
 @xilinx_multirecord(0x31)
-class dut_xilinx_mac(OemXilinxEntry):
+class DutXilinxMac(OemXilinxEntry):
     _schema = [
         ('mac0', MacField),
         ('mac1', MacField, None),
@@ -100,7 +100,7 @@ class dut_xilinx_mac(OemXilinxEntry):
 
 
 @xilinx_multirecord(0x11)
-class sys_ctrl_xilinx_mac(OemXilinxEntry):
+class SysCtrlXilinxMac(OemXilinxEntry):
     _schema = [
         ('mac0', MacField),
         ('mac1', MacField, None),
@@ -117,7 +117,7 @@ class sys_ctrl_xilinx_mac(OemXilinxEntry):
         return new_result
 
 @xilinx_multirecord(0xd3)
-class xilinx_oem_d3(OemXilinxD3Entry):
+class XilinxOemD3(OemXilinxD3Entry):
     _schema = [
         ('data', FixedStringField, 80, {'default': ''}),
     ]
