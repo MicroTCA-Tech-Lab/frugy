@@ -1,0 +1,25 @@
+# created with frugy 0.4.3 from "eeprom_orig.bin"
+
+BoardInfo:
+  mfg_date_time: 2025-03-07 09:19:00
+  manufacturer: XILINX
+  product_name: VEK385
+  serial_number: 519101A01220
+  part_number: 5191-01
+  fru_file_id: '00'
+  custom_info_fields:
+    ASCII_8BIT:
+    - A01
+    BIN:
+    - 10ee000000000000
+    - 9410a013589040a29546680ed49daaa6
+
+MultirecordArea:
+- type: dut_xilinx_mac
+  mac0: 00-0A-35-1D-5B-90
+
+- type: sys_ctrl_xilinx_mac
+  mac0: 00-0A-35-1D-5B-93
+
+- type: xilinx_oem_d3
+  data: memory qspi:512Mb

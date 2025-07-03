@@ -1,14 +1,15 @@
-###########################################################################
-#      ____  _____________  __    __  __ _           _____ ___   _        #
-#     / __ \/ ____/ ___/\ \/ /   |  \/  (_)__ _ _ __|_   _/ __| /_\  (R)  #
-#    / / / / __/  \__ \  \  /    | |\/| | / _| '_/ _ \| || (__ / _ \      #
-#   / /_/ / /___ ___/ /  / /     |_|  |_|_\__|_| \___/|_| \___/_/ \_\     #
-#  /_____/_____//____/  /_/      T  E  C  H  N  O  L  O  G  Y   L A B     #
-#                                                                         #
-#          Copyright 2021 Deutsches Elektronen-Synchrotron DESY.          #
-#                  SPDX-License-Identifier: BSD-3-Clause                  #
-#                                                                         #
-###########################################################################
+####################################################################################
+#      ____  _____________  __    __  __ _           _____ ___   _                 #
+#     / __ \/ ____/ ___/\ \/ /   |  \/  (_)__ _ _ __|_   _/ __| /_\  (R)           #
+#    / / / / __/  \__ \  \  /    | |\/| | / _| '_/ _ \| || (__ / _ \               #
+#   / /_/ / /___ ___/ /  / /     |_|  |_|_\__|_| \___/|_| \___/_/ \_\              #
+#  /_____/_____//____/  /_/      T  E  C  H  N  O  L  O  G  Y   L A B              #
+#                                                                                  #
+#          Copyright 2021 Deutsches Elektronen-Synchrotron DESY.                   #
+# Modifications Copyright(C) 2025 Advanced Micro Devices, Inc. All rights reserved #
+#                  SPDX-License-Identifier: BSD-3-Clause                           #
+#                                                                                  #
+####################################################################################
 
 import bitstruct
 from collections import OrderedDict
@@ -17,6 +18,7 @@ from itertools import zip_longest
 import uuid
 from bidict import bidict
 from ipaddress import IPv4Address
+from macaddress import MAC
 import logging
 
 _format_version_default = 1
@@ -129,6 +131,9 @@ class StringField():
     })
 
     def bit_size(self) -> int:
+        def size_bin(val: str) -> int:
+            return int(len(val) / 2)
+
         def size_plain(val: str) -> int:
             return len(val)
 
@@ -141,7 +146,7 @@ class StringField():
             return n // 2
 
         size_fn = {
-            StringFmt.BIN: size_plain,
+            StringFmt.BIN: size_bin,
             StringFmt.BCD_PLUS: size_bcd_plus,
             StringFmt.ASCII_6BIT: size_6bit,
             StringFmt.ASCII_8BIT: size_plain
@@ -152,6 +157,13 @@ class StringField():
         return self.bit_size() // 8
 
     def serialize(self) -> bytearray:
+        def ser_bin(val: str) -> bytearray:
+            try:
+                val = bytearray(bytes.fromhex(val))
+            except:
+                val = b""
+            return val
+
         def ser_plain(val: str) -> bytearray:
             return val.encode(_en_decode)
 
@@ -166,7 +178,7 @@ class StringField():
             return bitstruct.pack('u2u6', self._format.value, len(val))
 
         ser_fn = {
-            StringFmt.BIN: ser_plain,
+            StringFmt.BIN: ser_bin,
             StringFmt.BCD_PLUS: ser_bcd_plus,
             StringFmt.ASCII_6BIT: ser_6bit,
             StringFmt.ASCII_8BIT: ser_plain
@@ -175,6 +187,10 @@ class StringField():
         return ser_type_length(result) + result
 
     def deserialize(self, input: bytearray) -> bytearray:
+        def deser_bin(val: bytearray) -> str:
+            strval = str(val)
+            return val.hex()
+
         def deser_plain(val: bytearray) -> str:
             return val.decode(_en_decode)
 
@@ -194,7 +210,7 @@ class StringField():
         payload, remainder = remainder[:payload_len], remainder[payload_len:]
 
         deser_fn = {
-            StringFmt.BIN: deser_plain,
+            StringFmt.BIN: deser_bin,
             StringFmt.BCD_PLUS: deser_bcd_plus,
             StringFmt.ASCII_6BIT: deser_6bit,
             StringFmt.ASCII_8BIT: deser_plain
@@ -207,6 +223,9 @@ class StringField():
 
     def to_dict(self):
         return self._value
+
+    def format(self):
+        return self._format
 
     def update(self, value):
         self._value = value
@@ -306,13 +325,51 @@ class CustomStringArray:
             self.update(initdict)
 
     def update(self, initdict):
-        self.strings = [StringField(v, format = StringFmt.BIN) for v in initdict]
+        try:
+            for v, k in initdict.items():
+                if v == "ASCII_8BIT":
+                    for s in k:
+                        self.strings += [StringField(s, format = StringFmt.ASCII_8BIT)]
+                elif v == "BIN":
+                    for s in k:
+                        self.strings += [StringField(s, format = StringFmt.BIN)]
+                elif v == "BCD_PLUS":
+                    for s in k:
+                        self.strings += [StringField(s, format = StringFmt.BCD_PLUS)]
+                elif v == "ASCII_6BIT":
+                    for s in k:
+                        self.strings += [StringField(s, format = StringFmt.ASCII_6BIT)]
+        except:
+            self.strings = [StringField(v, format = StringFmt.BIN) for v in initdict]
 
     def __repr__(self):
         return self.to_dict().__repr__()
 
     def to_dict(self):
-        return [v.to_dict() for v in self.strings]
+        ret = {}
+        for v in self.strings:
+            if v.format() == StringFmt.ASCII_8BIT:
+                if "ASCII_8BIT" in ret:
+                    ret["ASCII_8BIT"] += [v.to_dict()]
+                else:
+                    ret["ASCII_8BIT"] = [v.to_dict()]
+            elif v.format() == StringFmt.ASCII_6BIT:
+                if "ASCII_6BIT" in ret:
+                    ret["ASCII_6BIT"] += [v.to_dict()]
+                else:
+                    ret["ASCII_6BIT"] = [v.to_dict()]
+            elif v.format() == StringFmt.BCD_PLUS:
+                if "BCD_PLUS" in ret:
+                    ret["BCD_PLUS"] += [v.to_dict()]
+                else:
+                    ret["BCD_PLUS"] = [v.to_dict()]
+            elif v.format() == StringFmt.BIN:
+                if "BIN" in ret:
+                    ret["BIN"] += [v.to_dict()]
+                else:
+                    ret["BIN"] = [v.to_dict()]
+
+        return ret
 
     def serialize(self):
         result = b''
@@ -373,6 +430,46 @@ class IpV4Field():
 
     def update(self, value):
         self._value = IPv4Address(value)
+
+    def val_not_default(self):
+        return self.to_dict() != self._default
+
+
+class MacField():
+    ''' Field containing a IPv4 address '''
+    _shortname = 'mac'
+
+    _num_bytes = 6
+
+    def __init__(self, default='00:00:00:00:00:00', parent=None):
+        self._default = default
+        if (default == None):
+            self._value = None
+        else:
+            self._value = MAC(default)
+
+    def bit_size(self) -> int:
+        return self._num_bytes * 8
+
+    def serialize(self) -> bytearray:
+        if (self._value == None):
+            return b''
+        return int(self._value).to_bytes(self._num_bytes, 'big')
+
+    def deserialize(self, input: bytearray) -> bytearray:
+        tmp, remainder = input[:self._num_bytes], input[self._num_bytes:]
+        tmp = int.from_bytes(tmp, 'big')
+        if (tmp == 0):
+            self._value = ''
+        else:
+            self._value = MAC(tmp)
+        return remainder
+
+    def to_dict(self):
+        return str(self._value)
+
+    def update(self, value):
+        self._value = MAC(value)
 
     def val_not_default(self):
         return self.to_dict() != self._default

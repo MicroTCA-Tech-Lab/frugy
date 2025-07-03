@@ -1,3 +1,4 @@
 bitstruct>=8.0.0
 PyYAML>=5.1.0
 bidict>=0.20.0
+macaddress>=2.0.2
