@@ -138,7 +138,7 @@ def main():
 
     parser.add_argument('--internal-area-size',
                         type=int,
-                        help='set internal area size (including format byte), default is recommended 72 (only valid in write mode)'
+                        help='set fixed size for internal use area (including format byte)'
                         )
     parser.add_argument('-v', '--verbosity',
                         type=int,
@@ -178,11 +178,10 @@ def main():
     if read_mode and args.ignore_checksum_errors:
         FruAreaChecksummed.ignore_checksum_errors = True
 
-    if args.internal_area_size == None:
-        args.internal_area_size = 72 # Recommended size in FRU document
-    if args.internal_area_size % 8 != 0:
+    if args.internal_area_size and args.internal_area_size % 8 != 0:
         print("Internal area size must be a multiple of 8 bytes", file=sys.stderr)
         sys.exit(1)
+
     # In read mode, this isn't used, we always use the size of the section in
     # the file since there is no length field.
     FruAreaInternalUse.internal_area_size = args.internal_area_size

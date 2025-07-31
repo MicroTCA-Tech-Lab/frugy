@@ -698,7 +698,7 @@ class FruAreaInternalUse(FruAreaBase):
     ''' FRU Internal use area featuring a version field but no checksum, will
     be padded to whatever internal area is specified'''
 
-    internal_area_size = 72
+    internal_area_size = None
 
     def __init__(self, initdict=None):
         self._format_version = _format_version_default
@@ -715,23 +715,23 @@ class FruAreaInternalUse(FruAreaBase):
         return self._format_version.to_bytes(1, 'little')
 
     def _epilogue(self, payload: bytearray) -> bytearray:
-        ''' return data to append, padded of zero bytes'''
-        numPadBytes, _ = _sizeAlign(len(payload), self.internal_area_size)
+        ''' return data to append, padded of 0xff bytes'''
+        numPadBytes, _ = _sizeAlign(len(payload), self.internal_area_size or 8)
         return b'\xff' * numPadBytes
 
-    def size_payload(self) -> int:
-        return self.internal_area_size
-
     def size_total(self) -> int:
-        return self.internal_area_size
+        # payload plus "format version" prologue
+        total_size_base = self.size_payload() + 1
+        _, total_size_base = _sizeAlign(total_size_base, self.internal_area_size or 8)
+        return total_size_base
 
     def serialize(self) -> bytearray:
         payload = self._prologue()
-        body = self._serialize()
-        payload += body[:self.internal_area_size - 1]
+        payload += self._serialize()
         return payload + self._epilogue(payload)
-
+        
     def deserialize(self, input: bytearray):
+        logging.debug(f"bytearray: {input} len: {len(input)}")
         self._format_version = input[0]
         return self._deserialize(input[1:])
 
