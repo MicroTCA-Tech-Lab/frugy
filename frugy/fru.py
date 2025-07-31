@@ -107,27 +107,19 @@ class Fru:
         # The internal record does not have a length field in it,
         # and it is just a byte array. So we have to find the start
         # of the next record and slice the input on that boundary.
-        end_of_internal = 0;
-        internal_use_offset = 0
-        offset_list = []
-        for k, v in self.header.to_dict().items():
-            if v and k == 'internal_use_offs':
-                internal_use_offset = v
-            offset_list.append(v)
-        offset_list.sort()
-
-        if internal_use_offset != 0:
-            index = offset_list.index(internal_use_offset)
-            # Check it isn't the last on the list
-            if index != len(offset_list) - 1:
-                end_of_internal = offset_list[index + 1]
+        offsets = self.header.to_dict()
+        if "internal_use_offs" in offsets:
+            internal_use_start = offsets["internal_use_offs"]
+            internal_use_end = next(
+                (o for o in sorted(offsets.values()) if o > internal_use_start), None
+            )
 
         for k, v in self.header.to_dict().items():
             if v:
                 obj_name = self._area_table_lookup.inverse[k]
                 obj = self.factory(obj_name)
-                if k == 'internal_use_offs' and end_of_internal != 0:
-                    obj.deserialize(input[v:end_of_internal])
+                if k == "internal_use_offs" and internal_use_end is not None:
+                    obj.deserialize(input[v:internal_use_end])
                 else:
                     obj.deserialize(input[v:])
                 self.areas[obj_name] = obj
