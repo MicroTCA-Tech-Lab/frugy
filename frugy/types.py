@@ -728,6 +728,8 @@ class FruAreaInternalUse(FruAreaBase):
     def serialize(self) -> bytearray:
         payload = self._prologue()
         payload += self._serialize()
+        if self.internal_area_size and len(payload) > self.internal_area_size:
+            raise RuntimeError(f"internal area size ({self.internal_area_size}) too small; need at least {len(payload)} bytes")
         return payload + self._epilogue(payload)
         
     def deserialize(self, input: bytearray):
