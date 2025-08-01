@@ -20,7 +20,7 @@ pip3 install git+https://github.com/MicroTCA-Tech-Lab/frugy
 $ frugy --help
 usage: frugy [-h] [--version] [-o OUTPUT] [-w] [-r] [-d]
              [-e EEPROM_SIZE] [-s SET] [-t] [-b] [-c] [-l [LIST]]
-             [-v VERBOSITY]
+             [-v VERBOSITY] [--internal-area-size SIZE]
              [srcfile]
 
 FRU Generator YAML

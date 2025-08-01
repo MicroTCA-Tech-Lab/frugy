@@ -12,7 +12,7 @@
 ####################################################################################
 
 from frugy import __version__
-from frugy.areas import CommonHeader, ChassisInfo, BoardInfo, ProductInfo
+from frugy.areas import CommonHeader, ChassisInfo, BoardInfo, ProductInfo, InternalUse
 from frugy.multirecords import MultirecordArea
 import frugy.multirecords_ipmi
 import frugy.multirecords_picmg
@@ -46,6 +46,7 @@ def import_log(msg):
 
 class Fru:
     _area_table_lookup = bidict({
+        'InternalUse': 'internal_use_offs',
         'ChassisInfo': 'chassis_info_offs',
         'BoardInfo': 'board_info_offs',
         'ProductInfo': 'product_info_offs',
@@ -61,6 +62,7 @@ class Fru:
 
     def factory(self, cls_name, cls_args=None):
         map = {
+            'InternalUse': InternalUse,
             'ChassisInfo': ChassisInfo,
             'BoardInfo': BoardInfo,
             'ProductInfo': ProductInfo,
@@ -103,13 +105,25 @@ class Fru:
         import_log.str = ''
         self.areas = {}
         self.header.deserialize(input)
+
+        # The internal record does not have a length field in it,
+        # and it is just a byte array. So we have to find the start
+        # of the next record and slice the input on that boundary.
+        offsets = self.header.to_dict()
+        if "internal_use_offs" in offsets:
+            internal_use_start = offsets["internal_use_offs"]
+            internal_use_end = next(
+                (o for o in sorted(offsets.values()) if o > internal_use_start), None
+            )
+
         for k, v in self.header.to_dict().items():
-            # Ignore "internal use area"
-            # TODO: Support it as opaque byte array?
-            if v and k != 'internal_use_offs':
+            if v:
                 obj_name = self._area_table_lookup.inverse[k]
                 obj = self.factory(obj_name)
-                obj.deserialize(input[v:])
+                if k == "internal_use_offs" and internal_use_end is not None:
+                    obj.deserialize(input[v:internal_use_end])
+                else:
+                    obj.deserialize(input[v:])
                 self.areas[obj_name] = obj
 
     def load_yaml(self, fname):

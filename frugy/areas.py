@@ -10,7 +10,7 @@
 #                                                                         #
 ###########################################################################
 
-from frugy.types import FruAreaVersioned, FruAreaSized, FixedField, StringField, StringField, bin2hex_helper, CustomStringArray
+from frugy.types import FruAreaInternalUse, FruAreaVersioned, FruAreaSized, FixedField, StringField, StringField, bin2hex_helper, CustomStringArray, BytearrayField
 from frugy.fru_registry import FruRecordType, rec_register
 from datetime import datetime, timedelta
 import logging
@@ -151,4 +151,13 @@ class ProductInfo(FruAreaSized):
         ('asset_tag', StringField),
         ('fru_file_id', StringField),
         ('custom_info_fields', CustomStringArray),
+    ]
+
+
+@ipmi_area
+class InternalUse(FruAreaInternalUse):
+    ''' Platform Management FRU Information Storage Definition, Table 9-1 '''
+
+    _schema = [
+        ('data', BytearrayField),
     ]

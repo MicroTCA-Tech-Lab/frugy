@@ -791,6 +791,49 @@ class FruAreaVersioned(FruAreaChecksummed):
         remainder = self._deserialize(input[1:])
         return self._verify_epilogue(input, len(input) - len(remainder))
 
+class FruAreaInternalUse(FruAreaBase):
+    ''' FRU Internal use area featuring a version field but no checksum, will
+    be padded to whatever internal area is specified'''
+
+    internal_area_size = None
+
+    def __init__(self, initdict=None):
+        self._format_version = _format_version_default
+        super().__init__(initdict=initdict)
+
+    def _set_format_version(self, val):
+        self._format_version = val
+
+    def _get_format_version(self):
+        return self._format_version
+
+    def _prologue(self) -> bytearray:
+        ''' return data to prepend (format version) '''
+        return self._format_version.to_bytes(1, 'little')
+
+    def _epilogue(self, payload: bytearray) -> bytearray:
+        ''' return data to append, padded of 0xff bytes'''
+        numPadBytes, _ = _sizeAlign(len(payload), self.internal_area_size or 8)
+        return b'\xff' * numPadBytes
+
+    def size_total(self) -> int:
+        # payload plus "format version" prologue
+        total_size_base = self.size_payload() + 1
+        _, total_size_base = _sizeAlign(total_size_base, self.internal_area_size or 8)
+        return total_size_base
+
+    def serialize(self) -> bytearray:
+        payload = self._prologue()
+        payload += self._serialize()
+        if self.internal_area_size and len(payload) > self.internal_area_size:
+            raise RuntimeError(f"internal area size ({self.internal_area_size}) too small; need at least {len(payload)} bytes")
+        return payload + self._epilogue(payload)
+        
+    def deserialize(self, input: bytearray):
+        logging.debug(f"bytearray: {input} len: {len(input)}")
+        self._format_version = input[0]
+        return self._deserialize(input[1:])
+
 
 class FruAreaSized(FruAreaVersioned):
     ''' FRU area featuring version and length fields '''
