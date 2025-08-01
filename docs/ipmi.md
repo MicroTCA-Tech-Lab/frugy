@@ -64,6 +64,16 @@ Platform Management FRU Information Storage Definition, Table 12-1
 <br>
 
 
+## InternalUse
+Platform Management FRU Information Storage Definition, Table 9-1
+
+|Name                                    |Type                |Opt                           
+|----------------------------------------|--------------------|------------------------------|
+|`data`                                  |bytes               |                              |
+
+<br>
+
+
 ## DCOutput
 Platform Management FRU Information Storage Definition, Table 18-2
 

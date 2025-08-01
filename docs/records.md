@@ -8,6 +8,7 @@
 |ChassisInfo                         |Platform Management FRU Information Storage Definition, Table 10-1              |
 |BoardInfo                           |Platform Management FRU Information Storage Definition, Table 11-1              |
 |ProductInfo                         |Platform Management FRU Information Storage Definition, Table 12-1              |
+|InternalUse                         |Platform Management FRU Information Storage Definition, Table 9-1               |
 |MultirecordArea                     |Platform Management FRU Information Storage Definition, Table 16-1              |
 
 <br>
