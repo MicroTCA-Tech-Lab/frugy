@@ -30,6 +30,65 @@ fmc_output_constants = {name: idx for idx,
                         name in enumerate(fmc_voltages_total)}
 
 
+@ipmi_multirecord(0x00)
+class PowerSupplyInformation(MultirecordEntry):
+    ''' Platform Management FRU Information Storage Definition, Table 18-1 '''
+
+    # Need to see the fields as big-endian so that 12-bit sub-fields can be
+    # properly extracted from 2-byte fields.
+    _mergeBitfield = True
+
+    # TODO: add unit metadata to fields
+    _schema = [
+        ('predictive_fail_lower_thresh', FixedField, 'u8'),
+        ('combined_wattage', FixedField, 'u16', {'constants': {
+            'no_combined_voltages': 0
+        }}),
+        ('voltage1', FixedField, 'u4', {'constants': {
+            '12v': 0,
+            '-12v': 1,
+            '5v': 2,
+            '3.3v': 3,
+        }}),
+        ('voltage2', FixedField, 'u4', {'constants': {
+            '12v': 0,
+            '-12v': 1,
+            '5v': 2,
+            '3.3v': 3,
+        }}),
+        ('holdup_time', FixedField, 'u4'),
+        ('peak_capacity', FixedField, 'u12', {'constants': {
+            'unspecified': 0xfff
+        }}),
+        ('_reserved2', FixedField, 'u3', {'default': 0}),
+        ('pin_polarity', FixedField, 'u1'),
+        ('hot_swap', FixedField, 'u1'),
+        ('autoswitch', FixedField, 'u1'),
+        ('pfc', FixedField, 'u1'),
+        ('predictive_fail_support', FixedField, 'u1'),
+        ('dropout_tolerance', FixedField, 'u8'),
+        ('high_freq', FixedField, 'u8', {'constants': {
+            'only_dc': 0
+        }}),
+        ('low_freq', FixedField, 'u8', {'constants': {
+            'accepts_dc': 0
+        }}),
+        ('high_input_voltage_2', FixedField, 's16', {'div': 10}),     # 10mV
+        ('low_input_voltage_2', FixedField, 's16', {'div': 10}),     # 10mV
+        ('high_input_voltage_1', FixedField, 's16', {'div': 10}),     # 10mV
+        ('low_input_voltage_1', FixedField, 's16', {'div': 10}),     # 10mV
+        ('inrush_interval', FixedField, 'u8'),
+        ('inrush_current', FixedField, 'u8', {'constants': {
+            'unspecified': 0xff
+        }}),
+        ('peak_va', FixedField, 'u16', {'constants': {
+            'unspecified': 0xffff
+        }}),
+        ('_reserved', FixedField, 'u4', {'default': 0}),
+        ('overall_capacity', FixedField, 'u12'),
+    ]
+
+
 @ipmi_multirecord(0x01)
 class DCOutput(MultirecordEntry):
     ''' Platform Management FRU Information Storage Definition, Table 18-2 '''
