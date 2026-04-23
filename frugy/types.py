@@ -79,7 +79,7 @@ class FixedField():
     def to_serialized(self):
         tmp = self._value
         if self._div is not None:
-            tmp = int(tmp / self._div)
+            tmp = round(tmp / self._div)
         return tmp
 
     def from_serialized(self, value):
@@ -635,7 +635,7 @@ class FruAreaBase:
     # Fixed point integer helpers
 
     def _set_div(self, key, value, div):
-        self._set(key, int(value / div))
+        self._set(key, round(value / div))
 
     def _get_div(self, key, div):
         return float(self._get(key)) * div
