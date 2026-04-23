@@ -18,6 +18,7 @@
 
 |Name                                |Definition                                                                      |
 |------------------------------------|--------------------------------------------------------------------------------|
+|PowerSupplyInformation              |Platform Management FRU Information Storage Definition, Table 18-1              |
 |DCOutput                            |Platform Management FRU Information Storage Definition, Table 18-2              |
 |DCLoad                              |Platform Management FRU Information Storage Definition, Table 18-4              |
 |MgmtAccessRecord                    |Platform Management FRU Information Storage Definition, Table 18-6              |

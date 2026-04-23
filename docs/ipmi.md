@@ -74,6 +74,37 @@ Platform Management FRU Information Storage Definition, Table 9-1
 <br>
 
 
+## PowerSupplyInformation
+Platform Management FRU Information Storage Definition, Table 18-1
+
+|Name                                    |Type                |Opt                           
+|----------------------------------------|--------------------|------------------------------|
+|`predictive_fail_lower_thresh`          |int (u8)            |                              |
+|`combined_wattage`                      |int (u16)           |`no_combined_voltages`        |
+|`voltage1`                              |int (u4)            |`12v`, `-12v`, `5v`, `3.3v`   |
+|`voltage2`                              |int (u4)            |`12v`, `-12v`, `5v`, `3.3v`   |
+|`holdup_time`                           |int (u4)            |                              |
+|`peak_capacity`                         |int (u12)           |`unspecified`                 |
+|`pin_polarity`                          |int (u1)            |                              |
+|`hot_swap`                              |int (u1)            |                              |
+|`autoswitch`                            |int (u1)            |                              |
+|`pfc`                                   |int (u1)            |                              |
+|`predictive_fail_support`               |int (u1)            |                              |
+|`dropout_tolerance`                     |int (u8)            |                              |
+|`high_freq`                             |int (u8)            |`only_dc`                     |
+|`low_freq`                              |int (u8)            |`accepts_dc`                  |
+|`high_input_voltage_2`                  |int (s16)           |                              |
+|`low_input_voltage_2`                   |int (s16)           |                              |
+|`high_input_voltage_1`                  |int (s16)           |                              |
+|`low_input_voltage_1`                   |int (s16)           |                              |
+|`inrush_interval`                       |int (u8)            |                              |
+|`inrush_current`                        |int (u8)            |`unspecified`                 |
+|`peak_va`                               |int (u16)           |`unspecified`                 |
+|`overall_capacity`                      |int (u12)           |                              |
+
+<br>
+
+
 ## DCOutput
 Platform Management FRU Information Storage Definition, Table 18-2
 
