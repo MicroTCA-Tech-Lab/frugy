@@ -6,16 +6,28 @@
 #  /_____/_____//____/  /_/      T  E  C  H  N  O  L  O  G  Y   L A B     #
 #                                                                         #
 #          Copyright 2021 Deutsches Elektronen-Synchrotron DESY.          #
+#                    2026 Atom Computing, Inc.
 #                  SPDX-License-Identifier: BSD-3-Clause                  #
 #                                                                         #
 ###########################################################################
 
 from frugy.types import FruAreaBase, FixedField, FixedStringField, GuidField, ArrayField, BytearrayField, IpV4Field, bin2hex_helper
 import bitstruct
-from frugy.fru_registry import FruRecordType, rec_register, rec_lookup_by_id, rec_lookup_by_name
+from frugy.fru_registry import (
+    FruRecordType,
+    rec_register,
+    rec_register_oem,
+    rec_lookup_by_id,
+    rec_lookup_by_name,
+    rec_lookup_oem,
+    rec_lookup_oem_unique,
+)
 from frugy.areas import ipmi_area
 import logging
 import frugy.fru
+
+
+OEM_TYPE_ID_RANGE = range(0xC0, 0x100)
 
 
 @ipmi_area
@@ -137,11 +149,40 @@ class MultirecordEntry(FruAreaBase):
                 end_of_list = 1
                 raise RuntimeError("MultirecordEntry payload checksum invalid")
 
-            try:
-                cls_id = rec_lookup_by_id(
-                    FruRecordType.ipmi_multirecord, type_id)
-            except KeyError:
-                raise RuntimeError(f"Unknown multirecord type 0x{type_id:02x}")
+            if type_id in OEM_TYPE_ID_RANGE:
+                # OEM record (IPMI spec 18.7): first 3 payload bytes are the
+                # IANA Enterprise Number identifying the vendor. The router
+                # dispatches on (type_id, IANA) so multiple vendors can share
+                # the same type_id (e.g. PICMG and VadaTech both use 0xC0).
+                if MultirecordEntry.opalkelly_workaround_enabled and type_id == 0xFA:
+                    # Opal Kelly FMC variant omits the IANA prologue, so we
+                    # cannot peek it. Fall back to the unique vendor for 0xFA.
+                    try:
+                        cls_id = rec_lookup_oem_unique(type_id)
+                    except KeyError:
+                        raise RuntimeError(
+                            f"Unknown multirecord type 0x{type_id:02x}")
+                else:
+                    if len(payload) < 3:
+                        raise ValueError(
+                            f"OEM payload too short to contain IANA Enterprise Number "
+                            f"(type_id=0x{type_id:02x}, len={len(payload)})")
+                    iana = int.from_bytes(payload[:3], 'little')
+                    try:
+                        cls_id = rec_lookup_oem(type_id, iana)
+                    except KeyError:
+                        # No decoder registered for this (type_id, IANA) pair:
+                        # treat as private/proprietary and silently drop.
+                        raise ValueError(
+                            f"No decoder registered for OEM multirecord "
+                            f"(type_id=0x{type_id:02x}, IANA=0x{iana:06x})")
+            else:
+                try:
+                    cls_id = rec_lookup_by_id(
+                        FruRecordType.ipmi_multirecord, type_id)
+                except KeyError:
+                    raise RuntimeError(
+                        f"Unknown multirecord type 0x{type_id:02x}")
 
             if hasattr(cls_id, 'from_payload'):
                 new_entry = cls_id.from_payload(payload)
@@ -180,9 +221,30 @@ class MultirecordEntry(FruAreaBase):
         return new_entry, remainder, end_of_list
 
 
-def ipmi_multirecord(rec_id):
+def ipmi_standard_record(type_id):
+    ''' Register a standard IPMI multirecord (type_id 0x00-0x05).
+
+    See IPMI Platform Management FRU Information Storage Definition, Table 18-1
+    through Table 18-6 for the predefined standard record types.
+    '''
     def register_and_set_id(cls):
-        cls._type_id = rec_id
-        rec_register(cls, FruRecordType.ipmi_multirecord, rec_id)
+        cls._type_id = type_id
+        rec_register(cls, FruRecordType.ipmi_multirecord, type_id)
+        return cls
+    return register_and_set_id
+
+
+def oem_multirecord(type_id, vendor_iana):
+    ''' Register an OEM multirecord superclass under (type_id, vendor_iana).
+
+    OEM record types (0xC0-0xFF, see IPMI spec 18.7) use the first three
+    payload bytes as an IANA Enterprise Number to identify the vendor. The
+    router in `MultirecordEntry.deserialize` dispatches on this tuple so
+    several vendors can coexist at the same `type_id`.
+    '''
+    def register_and_set_id(cls):
+        cls._type_id = type_id
+        cls._vendor_iana = vendor_iana
+        rec_register_oem(cls, type_id, vendor_iana)
         return cls
     return register_and_set_id

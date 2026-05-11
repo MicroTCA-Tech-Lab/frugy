@@ -11,7 +11,7 @@
 ###########################################################################
 
 from frugy.types import FixedField, BytearrayField
-from frugy.multirecords import ipmi_multirecord, MultirecordEntry
+from frugy.multirecords import ipmi_standard_record, MultirecordEntry
 
 
 # IPMI standard multirecords
@@ -30,7 +30,7 @@ fmc_output_constants = {name: idx for idx,
                         name in enumerate(fmc_voltages_total)}
 
 
-@ipmi_multirecord(0x00)
+@ipmi_standard_record(0x00)
 class PowerSupplyInformation(MultirecordEntry):
     ''' Platform Management FRU Information Storage Definition, Table 18-1 '''
 
@@ -89,7 +89,7 @@ class PowerSupplyInformation(MultirecordEntry):
     ]
 
 
-@ipmi_multirecord(0x01)
+@ipmi_standard_record(0x01)
 class DCOutput(MultirecordEntry):
     ''' Platform Management FRU Information Storage Definition, Table 18-2 '''
 
@@ -108,7 +108,7 @@ class DCOutput(MultirecordEntry):
     ]
 
 
-@ipmi_multirecord(0x02)
+@ipmi_standard_record(0x02)
 class DCLoad(MultirecordEntry):
     ''' Platform Management FRU Information Storage Definition, Table 18-4 '''
 
@@ -125,7 +125,7 @@ class DCLoad(MultirecordEntry):
     ]
 
 
-@ipmi_multirecord(0x03)
+@ipmi_standard_record(0x03)
 class MgmtAccessRecord(MultirecordEntry):
     ''' Platform Management FRU Information Storage Definition, Table 18-6 '''
 

@@ -7,6 +7,7 @@
 #                                                                                  #
 #          Copyright 2021 Deutsches Elektronen-Synchrotron DESY.                   #
 # Modifications Copyright(C) 2025 Advanced Micro Devices, Inc. All rights reserved #
+#                            2026 Atom Computing, Inc.                             #
 #                  SPDX-License-Identifier: BSD-3-Clause                           #
 #                                                                                  #
 ####################################################################################
@@ -19,6 +20,7 @@ from itertools import chain
 class FruRecordType(Enum):
     ipmi_area = auto()
     ipmi_multirecord = auto()
+    oem_multirecord = auto()
     picmg_multirecord = auto()
     picmg_secondary = auto()
     fmc_multirecord = auto()
@@ -31,6 +33,10 @@ _registry = defaultdict(list)
 _lookup_by_id = defaultdict(dict)
 _lookup_by_name = {}
 
+# OEM router lookup, keyed by (type_id, iana_enterprise_number).
+# Populated by `rec_register_oem` via the `@oem_multirecord` decorator.
+_lookup_oem = {}
+
 
 def rec_register(cls, rec_type: FruRecordType, rec_id=None):
     ''' Register FRU record type in central registry and lookup table '''
@@ -38,6 +44,41 @@ def rec_register(cls, rec_type: FruRecordType, rec_id=None):
     _lookup_by_name[cls.__name__] = cls
     if rec_id is not None:
         _lookup_by_id[rec_type][rec_id] = cls
+
+
+def rec_register_oem(cls, type_id: int, iana: int):
+    ''' Register an OEM multirecord superclass under (type_id, IANA Enterprise Number).
+
+    OEM records share the same IPMI `type_id` (0xC0-0xFF) across vendors; the
+    actual vendor is encoded in the IANA Enterprise Number prologue of the
+    payload (see IPMI Platform Management FRU Information Storage Definition,
+    section 18.7). Registering by the tuple lets multiple vendors coexist on
+    the same `type_id`.
+    '''
+    _registry[FruRecordType.oem_multirecord].append(cls)
+    _lookup_by_name[cls.__name__] = cls
+    _lookup_oem[(type_id, iana)] = cls
+
+
+def rec_lookup_oem(type_id: int, iana: int):
+    ''' Lookup OEM multirecord superclass by (type_id, IANA Enterprise Number). '''
+    return _lookup_oem[(type_id, iana)]
+
+
+def rec_lookup_oem_unique(type_id: int):
+    ''' Return the single OEM vendor registered for `type_id`.
+
+    Used by escape hatches like the Opal Kelly FMC workaround that need to
+    dispatch without an IANA prologue. Raises `KeyError` if zero or multiple
+    vendors are registered for this `type_id`.
+    '''
+    matches = [cls for (tid, _iana), cls in _lookup_oem.items()
+               if tid == type_id]
+    if len(matches) != 1:
+        raise KeyError(
+            f"Expected exactly one OEM vendor for type_id=0x{type_id:02x}, "
+            f"found {len(matches)}")
+    return matches[0]
 
 
 def rec_enumerate(rec_type_filter=None):
