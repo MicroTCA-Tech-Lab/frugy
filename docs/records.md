@@ -34,6 +34,7 @@
 |FmcEntry                            |ANSI/VITA 57.1 FMC Standard                                                     |
 |OemXilinxEntry                      |Xilinx proprietary, not published                                               |
 |OemXilinxD3Entry                    |Xilinx proprietary, not published                                               |
+|OemVadatechC0Entry                  |VadaTech proprietary OEM multirecord (type 0xC0), opaque hex payload            |
 
 <br>
 
