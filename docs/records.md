@@ -22,10 +22,19 @@
 |DCOutput                            |Platform Management FRU Information Storage Definition, Table 18-2              |
 |DCLoad                              |Platform Management FRU Information Storage Definition, Table 18-4              |
 |MgmtAccessRecord                    |Platform Management FRU Information Storage Definition, Table 18-6              |
+
+<br>
+
+
+## oem_multirecord
+
+|Name                                |Definition                                                                      |
+|------------------------------------|--------------------------------------------------------------------------------|
 |PicmgEntry                          |PICMG AMC.0 Specification R2.0                                                  |
 |FmcEntry                            |ANSI/VITA 57.1 FMC Standard                                                     |
 |OemXilinxEntry                      |Xilinx proprietary, not published                                               |
 |OemXilinxD3Entry                    |Xilinx proprietary, not published                                               |
+|OemVadatechC0Entry                  |VadaTech proprietary OEM multirecord (type 0xC0), opaque hex payload            |
 
 <br>
 

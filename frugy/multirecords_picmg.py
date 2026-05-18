@@ -7,42 +7,38 @@
 #                                                                         #
 #          Copyright 2021 Deutsches Elektronen-Synchrotron DESY.          #
 #                    2022 Atom Computing, Inc                             #
+#                    2026 Atom Computing, Inc                             #
 #                  SPDX-License-Identifier: BSD-3-Clause                  #
 #                                                                         #
 ###########################################################################
 
 from frugy.types import FruAreaBase, FixedField, FixedStringField, GuidField, ArrayField, BytearrayField, IpV4Field, bin2hex_helper, _grouper
-from frugy.multirecords import ipmi_multirecord, MultirecordEntry
+from frugy.multirecords import oem_multirecord, MultirecordEntry
 from frugy.fru_registry import FruRecordType, rec_register, rec_lookup_by_id
 
 import re
 import logging
 
+PICMG_IDENTIFIER = 0x315a
 
-@ipmi_multirecord(0xc0)
+@oem_multirecord(0xc0, PICMG_IDENTIFIER)
 class PicmgEntry(MultirecordEntry):
     ''' PICMG AMC.0 Specification R2.0 '''
     ''' Superclass of all PICMG OEM multirecords '''
-
-    _picmg_identifier = 0x315a
 
     def format_version(self):
         return 0x00
 
     def _payload_prologue(self):
-        return self._picmg_identifier.to_bytes(3, 'little') \
+        return PICMG_IDENTIFIER.to_bytes(3, 'little') \
             + self._record_id.to_bytes(length=1, byteorder='little') \
             + self.format_version().to_bytes(length=1, byteorder='little')
 
     @classmethod
     def from_payload(cls, payload):
-        picmg_id, payload = payload[:3], payload[3:]
+        # IANA prologue already validated by the OEM router; just skip it.
+        payload = payload[3:]
         rec_id, rec_fmt_version, payload = payload[0], payload[1], payload[2:]
-        picmg_id = int.from_bytes(picmg_id, 'little')
-
-        if picmg_id != cls._picmg_identifier:
-            raise ValueError(
-                f"PICMG identifier mismatch: expected 0x{cls._picmg_identifier:06x}, received 0x{picmg_id:06x} ({picmg_id})")
 
         if rec_fmt_version not in [0x00, 0x01]:
             raise RuntimeError(

@@ -6,41 +6,37 @@
 #  /_____/_____//____/  /_/      T  E  C  H  N  O  L  O  G  Y   L A B     #
 #                                                                         #
 #          Copyright 2021 Deutsches Elektronen-Synchrotron DESY.          #
+#                    2026 Atom Computing, Inc.                            #
 #                  SPDX-License-Identifier: BSD-3-Clause                  #
 #                                                                         #
 ###########################################################################
 
 from frugy.types import FixedField, BytearrayField, ser_6bit, deser_6bit
-from frugy.multirecords import ipmi_multirecord, MultirecordEntry
+from frugy.multirecords import oem_multirecord, MultirecordEntry
 from frugy.fru_registry import FruRecordType, rec_register, rec_lookup_by_id
 
 import bitstruct
 from bidict import bidict
 
+VITA_IDENTIFIER = 0x12a2
 
-@ipmi_multirecord(0xfa)
+@oem_multirecord(0xfa, VITA_IDENTIFIER)
 class FmcEntry(MultirecordEntry):
     ''' ANSI/VITA 57.1 FMC Standard '''
     ''' Superclass of all ANSI/VITA FMC OEM multirecords '''
 
-    _fmc_identifier = 0x12a2
-
     def _payload_prologue(self):
-        return self._fmc_identifier.to_bytes(3, 'little') + self._record_id.to_bytes(length=1, byteorder='little')
+        return VITA_IDENTIFIER.to_bytes(3, 'little') + self._record_id.to_bytes(length=1, byteorder='little')
 
     @classmethod
     def from_payload(cls, payload):
         if not MultirecordEntry.opalkelly_workaround_enabled:
-            # Opal Kelly FMC records seem to skip the manufacturer ID ...
-            fmc_id, payload = payload[:3], payload[3:]
+            # IANA prologue already validated by the OEM router; just skip it.
+            payload = payload[3:]
             rec_id, payload = payload[0], payload[1:]
-            fmc_id = int.from_bytes(fmc_id, 'little')
-
-            if fmc_id != cls._fmc_identifier:
-                raise ValueError(
-                    f"FMC identifier mismatch: expected 0x{cls._fmc_identifier:06x}, received 0x{fmc_id:06x} ({fmc_id})")
         else:
-            # Opal Kelly FMC records seem to have the rec_id as _last_ instead of first byte
+            # Opal Kelly FMC records skip the IANA prologue and put rec_id as
+            # the _last_ byte of the payload instead of the first.
             rec_id, payload = payload[-1], payload[:-1]
 
         try:

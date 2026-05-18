@@ -292,7 +292,8 @@ class FixedStringField():
         return self._bufsize * 8
 
     def serialize(self) -> bytearray:
-        return self._value[:self._bufsize-1].encode(_en_decode) + self._null_term
+        encoded = self._value[:self._bufsize-1].encode(_en_decode) + self._null_term
+        return encoded + b'\x00' * (self._bufsize - len(encoded))
 
     def deserialize(self, input: bytearray) -> bytearray:
         tmp, remainder = input[:self._bufsize], input[self._bufsize:]

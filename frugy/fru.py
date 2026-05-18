@@ -18,6 +18,7 @@ import frugy.multirecords_ipmi
 import frugy.multirecords_picmg
 import frugy.multirecords_fmc
 import frugy.multirecords_xilinx
+import frugy.multirecords_vadatech
 import yaml
 from bidict import bidict
 import os

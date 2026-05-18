@@ -7,37 +7,33 @@
 #                                                                          #
 #          Copyright 2021 Deutsches Elektronen-Synchrotron DESY.           #
 #                    2025 Advanced Micro Devices, Inc. All rights reserved #
+#                    2026 Atom Computing, Inc.                             #
 #                  SPDX-License-Identifier: BSD-3-Clause                   #
 #                                                                          #
 ############################################################################
 
 from frugy.types import *
-from frugy.multirecords import ipmi_multirecord, MultirecordEntry
+from frugy.multirecords import oem_multirecord, MultirecordEntry
 from frugy.fru_registry import FruRecordType, rec_register, rec_lookup_by_id
 
 
-# IPMI standard multirecords
+# Xilinx OEM multirecords
 
+XILINX_IDENTIFIER = 0x10da
 
-@ipmi_multirecord(0xd2)
+@oem_multirecord(0xd2, XILINX_IDENTIFIER)
 class OemXilinxEntry(MultirecordEntry):
     ''' Xilinx proprietary, not published '''
 
-    _xilinx_identifier = 0x10da
-
     def _payload_prologue(self):
-        return self._xilinx_identifier.to_bytes(3, 'little') + self._record_id.to_bytes(length=1, byteorder='little')
+        return XILINX_IDENTIFIER.to_bytes(3, 'little') + self._record_id.to_bytes(length=1, byteorder='little')
 
     @classmethod
     def from_payload(cls, payload):
-        xilinx_id, payload = payload[:3], payload[3:]
-        xilinx_id = int.from_bytes(xilinx_id, 'little')
+        # IANA prologue already validated by the OEM router; just skip it.
+        payload = payload[3:]
         rec_id, payload = payload[0], payload[1:]
 
-
-        if xilinx_id != cls._xilinx_identifier:
-            raise ValueError(
-                f"FMC identifier mismatch: expected 0x{cls._xilinx_identifier:06x}, received 0x{xilinx_id:06x} ({xilinx_id})")
         try:
             cls_inst = rec_lookup_by_id(
                 FruRecordType.xilinx_multirecord, rec_id)()
@@ -49,14 +45,12 @@ class OemXilinxEntry(MultirecordEntry):
         return cls_inst
 
 
-@ipmi_multirecord(0xd3)
+@oem_multirecord(0xd3, XILINX_IDENTIFIER)
 class OemXilinxD3Entry(MultirecordEntry):
     ''' Xilinx proprietary, not published '''
 
-    _xilinx_identifier = 0x10da
-
     def _payload_prologue(self):
-        return self._xilinx_identifier.to_bytes(3, 'little')
+        return XILINX_IDENTIFIER.to_bytes(3, 'little')
 
     @classmethod
     def from_payload(cls, payload):
