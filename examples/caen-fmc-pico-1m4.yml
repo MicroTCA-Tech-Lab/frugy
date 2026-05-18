@@ -1,4 +1,4 @@
-# created with frugy 0.5.2 from "caen-fmc-pico-1m4.bin"
+# created with frugy 0.5.3 from "caen-fmc-pico-1m4.bin"
 
 InternalUse:
   data: 50 00 00 00 50 e1 e2 ca c0 71 2c f2 a5 16 0a 31 c0 cf 29 b3 eb 11 0a 31 8f
