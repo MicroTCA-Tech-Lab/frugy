@@ -69,6 +69,8 @@ def fmc_secondary(cls):
 class FmcMainDefinition(FmcEntry):
     ''' ANSI/VITA 57.1 FMC Standard, Table 7 '''
 
+    vadatech_workaround_enabled = False
+
     _schema = [
         ('module_size', FixedField, 'u2', {'constants': {
             'single_width': 0b00,
@@ -96,6 +98,30 @@ class FmcMainDefinition(FmcEntry):
         ('p2_gbt_num_trcv', FixedField, 'u4'),
         ('tck_max_clock', FixedField, 'u8')
     ]
+
+    def _serialize(self):
+        payload = super()._serialize()
+        if not self.vadatech_workaround_enabled:
+            return payload
+
+        # VadaTech's legacy FMC parser interprets the connector definition
+        # byte in the opposite field order from ANSI/VITA 57.1 Table 7:
+        #
+        #   VITA:     module[7:6], P1[5:4], P2[3:2], clock[1]
+        #   VadaTech: P2[5:4], P1[3:2], module[1:0]
+        #
+        # Its generator does not encode clock_direction, so bits [7:6]
+        # remain zero in compatibility mode.
+        definition = payload[0]
+        module_size = (definition >> 6) & 0b11
+        p1_connector_size = (definition >> 4) & 0b11
+        p2_connector_size = (definition >> 2) & 0b11
+        vadatech_definition = (
+            module_size
+            | (p1_connector_size << 2)
+            | (p2_connector_size << 4)
+        )
+        return bytes([vadatech_definition]) + payload[1:]
 
 
 @fmc_multirecord(0x01)
