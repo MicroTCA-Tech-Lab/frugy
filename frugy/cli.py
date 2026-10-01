@@ -131,7 +131,7 @@ def main():
                         )
     parser.add_argument('--vadatech-fmc-bit-order',
                         action='store_true',
-                        help='write FMC base definitions using VadaTech legacy connector bit ordering'
+                        help='read or write FMC base definitions using VadaTech legacy connector bit ordering'
                         )
     parser.add_argument('-l', '--list',
                         type=str,
@@ -174,7 +174,7 @@ def main():
         sys.exit(1)
 
     if read_mode and (args.eeprom_size is not None or args.set or args.timestamp or
-                      args.internal_area_size or args.vadatech_fmc_bit_order):
+                      args.internal_area_size):
         parser.print_help(sys.stderr)
         sys.exit(1)
 

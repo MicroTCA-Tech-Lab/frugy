@@ -5,7 +5,7 @@ See LICENSE.txt for license details.
 """
 
 import unittest
-from frugy.multirecords import MultirecordArea
+from frugy.multirecords import MultirecordArea, MultirecordEntry
 from frugy.multirecords_fmc import FmcMainDefinition
 from frugy.multirecords_picmg import ModuleCurrentRequirements
 
@@ -48,7 +48,12 @@ class TestFmc(unittest.TestCase):
             self.assertEqual(definition.serialize()[9], 0x0c)
 
             FmcMainDefinition.vadatech_workaround_enabled = True
-            self.assertEqual(definition.serialize()[9], 0x30)
+            serialized = definition.serialize()
+            self.assertEqual(serialized[9], 0x30)
+
+            decoded, remainder, _ = MultirecordEntry.deserialize(serialized)
+            self.assertEqual(remainder, b'')
+            self.assertEqual(decoded.to_dict(), definition.to_dict())
         finally:
             FmcMainDefinition.vadatech_workaround_enabled = False
 

@@ -123,6 +123,23 @@ class FmcMainDefinition(FmcEntry):
         )
         return bytes([vadatech_definition]) + payload[1:]
 
+    def _deserialize(self, input):
+        if self.vadatech_workaround_enabled:
+            # Convert VadaTech's legacy field order back to the VITA layout
+            # expected by the schema. clock_direction is not present in the
+            # legacy layout and therefore decodes to its default, m2c.
+            definition = input[0]
+            module_size = definition & 0b11
+            p1_connector_size = (definition >> 2) & 0b11
+            p2_connector_size = (definition >> 4) & 0b11
+            vita_definition = (
+                (module_size << 6)
+                | (p1_connector_size << 4)
+                | (p2_connector_size << 2)
+            )
+            input = bytes([vita_definition]) + input[1:]
+        return super()._deserialize(input)
+
 
 @fmc_multirecord(0x01)
 class FmcPlusMainDefinition(FmcEntry):
