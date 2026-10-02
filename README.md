@@ -19,7 +19,8 @@ pip3 install git+https://github.com/MicroTCA-Tech-Lab/frugy
 ```
 $ frugy --help
 usage: frugy [-h] [--version] [-o OUTPUT] [-w] [-r] [-d]
-             [-e EEPROM_SIZE] [-s SET] [-t] [-b] [-c] [-l [LIST]]
+             [-e EEPROM_SIZE] [-s SET] [-t] [-b] [-c]
+             [--vadatech-fmc-bit-order] [-l [LIST]]
              [-v VERBOSITY] [--internal-area-size SIZE]
              [srcfile]
 
@@ -46,6 +47,9 @@ optional arguments:
   -b, --broken          enable workaround to parse Opal Kelly EEPROMs
   -c, --ignore-checksum-errors
                         ignore checksum errors when parsing a FRU image
+  --vadatech-fmc-bit-order
+                        read or write FMC base definitions using VadaTech
+                        legacy connector bit ordering
   -l [LIST], --list [LIST]
                         list supported FRU records or schema of specified
                         record
@@ -64,6 +68,19 @@ Read `damc-fmc2zup.yml` configuration, generate FRU image `damc-fmc2zup.bin`.
 frugy damc-fmc2zup.yml -o fmc2zup_fru_eeprom.bin -e 2048
 ```
 Read `damc-fmc2zup.yml` configuration, generate `fmc2zup_fru_eeprom.bin`, make it 2048 bytes (pad with 0xff).
+
+```
+frugy mumble_fmc.yml -o mumble_fmc_vadatech.bin --vadatech-fmc-bit-order
+```
+Generate a non-standard FMC FRU using the legacy connector bit ordering
+expected by VadaTech carriers. Without `--vadatech-fmc-bit-order`, frugy
+uses the ANSI/VITA 57.1 field ordering.
+
+```
+frugy mumble_fmc_vadatech.bin -r --vadatech-fmc-bit-order
+```
+Decode a VadaTech-compatible FRU back into its semantic FMC connector
+definition.
 
 ```
 frugy damc-fmc2zup.bin -r

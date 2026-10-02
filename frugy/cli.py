@@ -22,6 +22,7 @@ from frugy.fru import Fru
 from frugy.fru_registry import FruRecordType, rec_enumerate, rec_lookup_by_name, rec_info, schema_entry_info
 from frugy.types import FruAreaChecksummed, FruAreaInternalUse
 from frugy.multirecords import MultirecordEntry
+from frugy.multirecords_fmc import FmcMainDefinition
 
 
 def list_supported_records():
@@ -128,6 +129,10 @@ def main():
                         action='store_true',
                         help='ignore checksum errors when parsing a FRU image'
                         )
+    parser.add_argument('--vadatech-fmc-bit-order',
+                        action='store_true',
+                        help='read or write FMC base definitions using VadaTech legacy connector bit ordering'
+                        )
     parser.add_argument('-l', '--list',
                         type=str,
                         default=None,
@@ -168,7 +173,8 @@ def main():
         parser.print_help(sys.stderr)
         sys.exit(1)
 
-    if read_mode and (args.eeprom_size is not None or args.set or args.timestamp or args.internal_area_size):
+    if read_mode and (args.eeprom_size is not None or args.set or args.timestamp or
+                      args.internal_area_size):
         parser.print_help(sys.stderr)
         sys.exit(1)
 
@@ -185,6 +191,7 @@ def main():
     # In read mode, this isn't used, we always use the size of the section in
     # the file since there is no length field.
     FruAreaInternalUse.internal_area_size = args.internal_area_size
+    FmcMainDefinition.vadatech_workaround_enabled = args.vadatech_fmc_bit_order
 
     outfile = args.output
     if args.dump:
