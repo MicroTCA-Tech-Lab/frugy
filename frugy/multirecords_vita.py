@@ -1,7 +1,7 @@
 # Copyright 2026 Kontron Europe GmbH
 # SPDX-License-Identifier: BSD-3-Clause
 
-from frugy.types import FruAreaBase, FixedField, FixedTypeLengthStringField, ArrayField
+from frugy.types import FruAreaBase, FixedField, FixedTypeLengthStringField, ArrayField, IpV4Field
 from frugy.multirecords import oem_multirecord, MultirecordEntry
 from frugy.fru_registry import FruRecordType, rec_register, rec_lookup_by_id
 
@@ -104,4 +104,16 @@ class ChassisAddressTable(VitaEntry):
         ('_entry_count', FixedField, 'u8', {'default': 0}),
         ('entries', ArrayField, ChassisAddressTableEntry,
          {'num_elems_field': '_entry_count'}),
+    ]
+
+
+@vita_multirecord(0x13)
+class ChassisManagerIpConnection(VitaEntry):
+    ''' ANSI/VITA 46.11-2022, Table 10.3.2-1 '''
+
+    # 0.0.0.0: not defined
+    _schema = [
+        ('ip_address', IpV4Field),
+        ('default_gateway', IpV4Field),
+        ('subnet_mask', IpV4Field),
     ]

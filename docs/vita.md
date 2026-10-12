@@ -13,6 +13,18 @@ ANSI/VITA 46.11-2022, Table 10.3.1-1
 <br>
 
 
+## ChassisManagerIpConnection
+ANSI/VITA 46.11-2022, Table 10.3.2-1
+
+|Name                                    |Type                |Opt                           
+|----------------------------------------|--------------------|------------------------------|
+|`ip_address`                            |ipv4                |                              |
+|`default_gateway`                       |ipv4                |                              |
+|`subnet_mask`                           |ipv4                |                              |
+
+<br>
+
+
 ## ChassisAddressTableEntry
 ANSI/VITA 46.11-2022, Table 10.3.1-2
 

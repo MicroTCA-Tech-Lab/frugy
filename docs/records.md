@@ -111,6 +111,7 @@
 |Name                                |Definition                                                                      |
 |------------------------------------|--------------------------------------------------------------------------------|
 |ChassisAddressTable                 |ANSI/VITA 46.11-2022, Table 10.3.1-1                                            |
+|ChassisManagerIpConnection          |ANSI/VITA 46.11-2022, Table 10.3.2-1                                            |
 
 <br>
 

@@ -8,7 +8,7 @@ import unittest
 from frugy.multirecords import MultirecordArea, MultirecordEntry
 from frugy.multirecords_fmc import FmcMainDefinition
 from frugy.multirecords_picmg import ModuleCurrentRequirements
-from frugy.multirecords_vita import ChassisAddressTable
+from frugy.multirecords_vita import ChassisAddressTable, ChassisManagerIpConnection
 
 class TestPicmg(unittest.TestCase):
     def test_module_current(self):
@@ -97,3 +97,19 @@ class TestVita(unittest.TestCase):
         table = ChassisAddressTable({'chassis_identifier': 'X' * 21})
         with self.assertRaises(ValueError):
             table.serialize()
+
+    def test_chassis_manager_ip_connection(self):
+        record = ChassisManagerIpConnection({
+            'ip_address': '192.168.0.10',
+            'default_gateway': '192.168.0.1',
+            'subnet_mask': '255.255.255.0',
+        })
+        serialized = record.serialize()
+        payload = serialized[5:]
+        # VITA manufacturer ID, record ID 13h, format version, then the
+        # addresses MS byte first
+        self.assertEqual(payload, b'\xac\x81\x00\x13\x00'
+                         b'\xc0\xa8\x00\x0a\xc0\xa8\x00\x01\xff\xff\xff\x00')
+        decoded, remainder, _ = MultirecordEntry.deserialize(serialized)
+        self.assertEqual(remainder, b'')
+        self.assertEqual(decoded.to_dict()['ip_address'], '192.168.0.10')
