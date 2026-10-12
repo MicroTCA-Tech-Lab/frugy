@@ -35,6 +35,7 @@
 |OemXilinxEntry                      |Xilinx proprietary, not published                                               |
 |OemXilinxD3Entry                    |Xilinx proprietary, not published                                               |
 |OemVadatechC0Entry                  |VadaTech proprietary OEM multirecord (type 0xC0), opaque hex payload            |
+|VitaEntry                           |ANSI/VITA 46.11-2022, Section 10.3                                              |
 
 <br>
 
@@ -101,6 +102,24 @@
 |DutXilinxMac                        |None                                                                            |
 |SysCtrlXilinxMac                    |None                                                                            |
 |XilinxOemD3                         |None                                                                            |
+
+<br>
+
+
+## vita_multirecord
+
+|Name                                |Definition                                                                      |
+|------------------------------------|--------------------------------------------------------------------------------|
+|ChassisAddressTable                 |ANSI/VITA 46.11-2022, Table 10.3.1-1                                            |
+
+<br>
+
+
+## vita_secondary
+
+|Name                                |Definition                                                                      |
+|------------------------------------|--------------------------------------------------------------------------------|
+|ChassisAddressTableEntry            |ANSI/VITA 46.11-2022, Table 10.3.1-2                                            |
 
 <br>
 

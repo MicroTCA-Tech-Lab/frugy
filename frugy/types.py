@@ -313,6 +313,48 @@ class FixedStringField():
         return self.to_dict() != self._default
 
 
+class FixedTypeLengthStringField():
+    ''' 8-bit ASCII string with type/length byte in a fixed size buffer '''
+    ''' The type/length byte gives the length of the string, the buffer is '''
+    ''' padded with zeros (e.g. the Chassis Identifier of ANSI/VITA 46.11) '''
+    _shortname = 'str'
+
+    def __init__(self, bufsize, default='', parent=None):
+        self._bufsize = bufsize
+        self._default = default
+        self._value = default
+
+    def bit_size(self) -> int:
+        return (self._bufsize + 1) * 8
+
+    def serialize(self) -> bytearray:
+        encoded = self._value.encode(_en_decode)
+        if len(encoded) > self._bufsize:
+            raise ValueError(
+                f'String "{self._value}" exceeds {self._bufsize} bytes')
+        type_length = bitstruct.pack('u2u6', StringFmt.ASCII_8BIT.value,
+                                     len(encoded))
+        return type_length + encoded + b'\x00' * (self._bufsize - len(encoded))
+
+    def deserialize(self, input: bytearray) -> bytearray:
+        _, length = bitstruct.unpack('u2u6', input[0:1])
+        if length > self._bufsize:
+            raise ValueError(
+                f'String length {length} exceeds {self._bufsize} bytes')
+        buf, remainder = input[1:self._bufsize + 1], input[self._bufsize + 1:]
+        self._value = bytes(buf[:length]).decode(_en_decode)
+        return remainder
+
+    def to_dict(self):
+        return self._value
+
+    def update(self, value):
+        self._value = value
+
+    def val_not_default(self):
+        return self.to_dict() != self._default
+
+
 class CustomStringArray:
     ''' Platform Management FRU Information Storage Definition, Table 10-1, 11-1, 12-1 '''
     ''' This is a daisy-chain of StringField objects, delimited with 0xc1 '''

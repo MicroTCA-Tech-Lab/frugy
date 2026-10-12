@@ -8,6 +8,7 @@ import unittest
 from frugy.multirecords import MultirecordArea, MultirecordEntry
 from frugy.multirecords_fmc import FmcMainDefinition
 from frugy.multirecords_picmg import ModuleCurrentRequirements
+from frugy.multirecords_vita import ChassisAddressTable
 
 class TestPicmg(unittest.TestCase):
     def test_module_current(self):
@@ -60,3 +61,39 @@ class TestFmc(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class TestVita(unittest.TestCase):
+    def test_chassis_address_table(self):
+        table = ChassisAddressTable({
+            'chassis_identifier': 'VPX-1',
+            'entries': [
+                {'hardware_address': 0x10, 'site_number': 1,
+                 'site_type': 'dedicated_chassis_manager'},
+                {'hardware_address': 0x41, 'site_number': 0,
+                 'site_type': 'front_loading_vpx_module'},
+                {'hardware_address': 0x47, 'site_number': 1,
+                 'site_type': 'fan_tray'},
+            ]
+        })
+        serialized = table.serialize()
+        payload = serialized[5:]
+        # VITA manufacturer ID, record ID, format version, type/length
+        self.assertEqual(payload[:6], b'\xac\x81\x00\x10\x00\xc5')
+        # the identifier padded to 20 bytes, the count and the entries
+        self.assertEqual(payload[6:26], b'VPX-1' + b'\x00' * 15)
+        self.assertEqual(payload[26:], b'\x03\x10\x01\x03\x41\x00\x00'
+                         b'\x47\x01\x04')
+        self.assertEqual(serialized[2], len(payload))
+
+        decoded, remainder, _ = MultirecordEntry.deserialize(serialized)
+        self.assertEqual(remainder, b'')
+        self.assertIsInstance(decoded, ChassisAddressTable)
+        self.assertEqual(decoded.to_dict(), table.to_dict())
+        self.assertEqual(decoded.to_dict()['entries'][2]['site_type'],
+                         'fan_tray')
+
+    def test_chassis_identifier_too_long(self):
+        table = ChassisAddressTable({'chassis_identifier': 'X' * 21})
+        with self.assertRaises(ValueError):
+            table.serialize()
