@@ -1,0 +1,41 @@
+# created with frugy 0.5.4 from "vita-chassis.bin"
+
+ChassisInfo:
+  type: 23
+  part_number: VPX-CHASSIS-6U
+  serial_number: '0001'
+
+ProductInfo:
+  manufacturer: Example
+  product_name: VPX 6U Chassis
+  part_number: VPX-CHASSIS-6U
+  version: '1.0'
+  serial_number: '0001'
+
+MultirecordArea:
+- type: ChassisAddressTable
+  chassis_identifier: VPX-CHASSIS-1
+  entries:
+  - hardware_address: 16
+    site_number: 1
+    site_type: dedicated_chassis_manager
+  - hardware_address: 65
+    site_type: front_loading_vpx_module
+  - hardware_address: 66
+    site_type: front_loading_vpx_module
+  - hardware_address: 67
+    site_type: front_loading_vpx_module
+  - hardware_address: 68
+    site_number: 1
+    site_type: power_supply
+  - hardware_address: 71
+    site_number: 1
+    site_type: fan_tray
+  - hardware_address: 72
+    site_number: 1
+    site_type: chassis_fru_information_module
+
+- type: ChassisManagerIpConnection
+  ip_address: 192.168.0.10
+  default_gateway: 192.168.0.1
+  subnet_mask: 255.255.255.0

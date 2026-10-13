@@ -116,6 +116,7 @@ Show layout of the FRU record called 'PointToPointConnectivity'.
 * [Detailed list of supported IPMI records](docs/ipmi.md)
 * [Detailed list of supported PICMG records](docs/picmg.md)
 * [Detailed list of supported FMC records](docs/fmc.md)
+* [Detailed list of supported VITA 46.11 records](docs/vita.md)
 
 ## Example configuration file
 

@@ -62,6 +62,7 @@ class TestIntrospection(unittest.TestCase):
             'ipmi': [FruRecordType.ipmi_area, FruRecordType.ipmi_multirecord],
             'picmg': [FruRecordType.picmg_multirecord, FruRecordType.picmg_secondary],
             'fmc': [FruRecordType.fmc_multirecord, FruRecordType.fmc_secondary],
+            'vita': [FruRecordType.vita_multirecord, FruRecordType.vita_secondary],
         }
         for category in categories:
             result = f'\n# {category.upper()} records\n\n'

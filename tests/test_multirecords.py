@@ -8,6 +8,7 @@ import unittest
 from frugy.multirecords import MultirecordArea, MultirecordEntry
 from frugy.multirecords_fmc import FmcMainDefinition
 from frugy.multirecords_picmg import ModuleCurrentRequirements
+from frugy.multirecords_vita import ChassisAddressTable, ChassisManagerIpConnection
 
 class TestPicmg(unittest.TestCase):
     def test_module_current(self):
@@ -56,6 +57,98 @@ class TestFmc(unittest.TestCase):
             self.assertEqual(decoded.to_dict(), definition.to_dict())
         finally:
             FmcMainDefinition.vadatech_workaround_enabled = False
+
+
+class TestVita(unittest.TestCase):
+    def test_chassis_address_table(self):
+        table = ChassisAddressTable({
+            'chassis_identifier': 'VPX-1',
+            'entries': [
+                {'hardware_address': 0x10, 'site_number': 1,
+                 'site_type': 'dedicated_chassis_manager'},
+                {'hardware_address': 0x41, 'site_number': 0,
+                 'site_type': 'front_loading_vpx_module'},
+                {'hardware_address': 0x47, 'site_number': 1,
+                 'site_type': 'fan_tray'},
+            ]
+        })
+        serialized = table.serialize()
+        payload = serialized[5:]
+        # VITA manufacturer ID, record ID, format version, type/length
+        self.assertEqual(payload[:6], b'\xac\x81\x00\x10\x00\xc5')
+        # the identifier padded to 20 bytes, the count and the entries
+        self.assertEqual(payload[6:26], b'VPX-1' + b'\x00' * 15)
+        self.assertEqual(payload[26:], b'\x03\x10\x01\x03\x41\x00\x00'
+                         b'\x47\x01\x04')
+        self.assertEqual(serialized[2], len(payload))
+
+        decoded, remainder, _ = MultirecordEntry.deserialize(serialized)
+        self.assertEqual(remainder, b'')
+        self.assertIsInstance(decoded, ChassisAddressTable)
+        self.assertEqual(decoded.to_dict(), table.to_dict())
+        self.assertEqual(decoded.to_dict()['entries'][2]['site_type'],
+                         'fan_tray')
+
+    def test_chassis_identifier_too_long(self):
+        table = ChassisAddressTable({'chassis_identifier': 'X' * 21})
+        with self.assertRaises(ValueError):
+            table.serialize()
+
+    def test_chassis_manager_ip_connection(self):
+        record = ChassisManagerIpConnection({
+            'ip_address': '192.168.0.10',
+            'default_gateway': '192.168.0.1',
+            'subnet_mask': '255.255.255.0',
+        })
+        serialized = record.serialize()
+        payload = serialized[5:]
+        # VITA manufacturer ID, record ID 13h, format version, then the
+        # addresses MS byte first
+        self.assertEqual(payload, b'\xac\x81\x00\x13\x00'
+                         b'\xc0\xa8\x00\x0a\xc0\xa8\x00\x01\xff\xff\xff\x00')
+        decoded, remainder, _ = MultirecordEntry.deserialize(serialized)
+        self.assertEqual(remainder, b'')
+        self.assertEqual(decoded.to_dict()['ip_address'], '192.168.0.10')
+
+    def test_too_many_entries(self):
+        table = ChassisAddressTable({'entries': [{}] * 256})
+        with self.assertRaises(ValueError):
+            table.serialize()
+
+    def _corrupt(self, offset, value):
+        serialized = bytearray(ChassisAddressTable({
+            'chassis_identifier': 'VPX-1'}).serialize())
+        serialized[offset] = value
+        # fix up the record and header checksums
+        serialized[3] = (-sum(serialized[5:])) & 0xff
+        serialized[4] = (-sum(serialized[:4])) & 0xff
+        return bytes(serialized)
+
+    def test_corrupt_identifier_length(self):
+        # type/length byte claims 24 bytes
+        with self.assertLogs(level='WARNING'):
+            decoded, _, _ = MultirecordEntry.deserialize(
+                self._corrupt(10, 0xd8))
+        self.assertIsNone(decoded)
+
+    def test_unsupported_identifier_format(self):
+        # 6-bit ASCII instead of 8-bit ASCII
+        with self.assertLogs(level='WARNING'):
+            decoded, _, _ = MultirecordEntry.deserialize(
+                self._corrupt(10, 0x85))
+        self.assertIsNone(decoded)
+
+    def test_empty_payload(self):
+        record = ChassisManagerIpConnection()
+        serialized = bytearray(record.serialize()[:10])
+        serialized[2] = 5
+        serialized[3] = (-sum(serialized[5:])) & 0xff
+        serialized[4] = (-sum(serialized[:4])) & 0xff
+        with self.assertLogs(level='WARNING'):
+            decoded, remainder, _ = MultirecordEntry.deserialize(
+                bytes(serialized))
+        self.assertIsNone(decoded)
+        self.assertEqual(remainder, b'')
 
 
 if __name__ == '__main__':
