@@ -59,10 +59,6 @@ class TestFmc(unittest.TestCase):
             FmcMainDefinition.vadatech_workaround_enabled = False
 
 
-if __name__ == '__main__':
-    unittest.main()
-
-
 class TestVita(unittest.TestCase):
     def test_chassis_address_table(self):
         table = ChassisAddressTable({
@@ -113,3 +109,47 @@ class TestVita(unittest.TestCase):
         decoded, remainder, _ = MultirecordEntry.deserialize(serialized)
         self.assertEqual(remainder, b'')
         self.assertEqual(decoded.to_dict()['ip_address'], '192.168.0.10')
+
+    def test_too_many_entries(self):
+        table = ChassisAddressTable({'entries': [{}] * 256})
+        with self.assertRaises(ValueError):
+            table.serialize()
+
+    def _corrupt(self, offset, value):
+        serialized = bytearray(ChassisAddressTable({
+            'chassis_identifier': 'VPX-1'}).serialize())
+        serialized[offset] = value
+        # fix up the record and header checksums
+        serialized[3] = (-sum(serialized[5:])) & 0xff
+        serialized[4] = (-sum(serialized[:4])) & 0xff
+        return bytes(serialized)
+
+    def test_corrupt_identifier_length(self):
+        # type/length byte claims 24 bytes
+        with self.assertLogs(level='WARNING'):
+            decoded, _, _ = MultirecordEntry.deserialize(
+                self._corrupt(10, 0xd8))
+        self.assertIsNone(decoded)
+
+    def test_unsupported_identifier_format(self):
+        # 6-bit ASCII instead of 8-bit ASCII
+        with self.assertLogs(level='WARNING'):
+            decoded, _, _ = MultirecordEntry.deserialize(
+                self._corrupt(10, 0x85))
+        self.assertIsNone(decoded)
+
+    def test_empty_payload(self):
+        record = ChassisManagerIpConnection()
+        serialized = bytearray(record.serialize()[:10])
+        serialized[2] = 5
+        serialized[3] = (-sum(serialized[5:])) & 0xff
+        serialized[4] = (-sum(serialized[:4])) & 0xff
+        with self.assertLogs(level='WARNING'):
+            decoded, remainder, _ = MultirecordEntry.deserialize(
+                bytes(serialized))
+        self.assertIsNone(decoded)
+        self.assertEqual(remainder, b'')
+
+
+if __name__ == '__main__':
+    unittest.main()

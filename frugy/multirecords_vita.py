@@ -42,6 +42,10 @@ class VitaEntry(MultirecordEntry):
         except KeyError:
             raise RuntimeError(f"Unknown VITA 46.11 entry 0x{rec_id:02x}")
 
+        if len(payload) == 0:
+            raise EOFError(
+                f"Skipping creation of {cls_inst.__class__.__name__} due to empty payload")
+
         cls_inst._deserialize(payload)
         return cls_inst
 
@@ -105,6 +109,13 @@ class ChassisAddressTable(VitaEntry):
         ('entries', ArrayField, ChassisAddressTableEntry,
          {'num_elems_field': '_entry_count'}),
     ]
+
+    def serialize(self):
+        num_entries = len(self._get('entries'))
+        if num_entries > 0xff:
+            raise ValueError(
+                f'{num_entries} chassis address table entries, at most 255 allowed')
+        return super().serialize()
 
 
 @vita_multirecord(0x13)

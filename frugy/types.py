@@ -337,9 +337,17 @@ class FixedTypeLengthStringField():
         return type_length + encoded + b'\x00' * (self._bufsize - len(encoded))
 
     def deserialize(self, input: bytearray) -> bytearray:
-        _, length = bitstruct.unpack('u2u6', input[0:1])
+        # RuntimeError, as a ValueError marks a foreign OEM multirecord
+        if len(input) < self._bufsize + 1:
+            raise RuntimeError(
+                f'Fixed string field needs {self._bufsize + 1} bytes, '
+                f'got {len(input)}')
+        fmt, length = bitstruct.unpack('u2u6', input[0:1])
+        if fmt != StringFmt.ASCII_8BIT.value:
+            raise RuntimeError(
+                f'Unsupported string format {StringFmt(fmt).name}')
         if length > self._bufsize:
-            raise ValueError(
+            raise RuntimeError(
                 f'String length {length} exceeds {self._bufsize} bytes')
         buf, remainder = input[1:self._bufsize + 1], input[self._bufsize + 1:]
         self._value = bytes(buf[:length]).decode(_en_decode)
